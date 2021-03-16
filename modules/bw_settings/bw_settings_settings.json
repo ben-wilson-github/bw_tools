@@ -1,0 +1,41 @@
+{
+    "First Group": {
+        "name": "wdwaue",
+        "dict": {
+            "1": 1,
+            "2": 2
+        },
+        "after dict": "value"
+    },
+    "Straighten Selected Hotkey": "wdwAlt+C",
+    "Removed Connected Dot Nodes Hotkey": "Alt+V",
+    "Distance From Input Node": 256,
+    "Debug Log": false,
+    "A Group Name": {
+        "With": "Stuff",
+        "valid list": [
+            1,
+            2.3,
+            "str",
+            true
+        ],
+        "invalid list": [
+            1,
+            2.3,
+            "str",
+            true,
+            [],
+            {}
+        ],
+        "Including a nested group": {
+            "dawdw": 5.5,
+            "Another nested": {
+                "with more stuff": true,
+                "adsawdwa": 12
+            }
+        }
+    },
+    "A completely new group": {
+        "value": "value"
+    }
+}
