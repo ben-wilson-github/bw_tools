@@ -73,6 +73,10 @@ class APITool:
     def current_graph(self) -> SDSBSCompGraph:
         return self.ui_mgr.getCurrentGraph()
 
+    @property
+    def log(self) -> logging.RootLogger:
+        return self.logger
+
     def initialize(self, module: TYPE_MODULES) -> bool:
         """Initialize a module by calling the modules .on_initialize()"""
         if not inspect.ismodule(module):

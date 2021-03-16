@@ -133,3 +133,6 @@ dmypy.json
 
 # Photoshop
 *.psd
+
+# PyCharm
+.idea

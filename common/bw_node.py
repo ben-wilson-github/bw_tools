@@ -86,6 +86,38 @@ class Node:
     def output_connectable_properties(self) -> Tuple[SDProperty]:
         return self._get_connectable_properties_from_category(sd.api.sdproperty.SDPropertyCategory.Output)
 
+    @property
+    def is_dot(self):
+        return self.api_node.getDefinition().getId() == 'sbs::compositing::passthrough'
+
+    def get_output_nodes(self, node_selection=None) -> Tuple[Node]:
+        """
+        Returns the connected output nodes.
+        If a node selection is passed in, will return only the output nodes in
+        that selection.
+        """
+        seen = []
+        ret = []
+        for p in self.output_connectable_properties:
+            for connection in self.api_node.getPropertyConnections(p):
+                identifier = connection.getInputPropertyNode().getIdentifier()
+                if identifier in seen:
+                    continue
+                seen.append(identifier)
+                if node_selection is not None and not node_selection.contains(identifier):
+                    continue
+                ret.append(Node(connection.getInputPropertyNode()))
+        return tuple(ret)
+
+    def get_output_nodes_count(self, node_selection=None) -> int:
+        """
+        Returns the connected output nodes.
+        If a node selection is passed in, will return only the the output nodes
+        count in that selection
+        """
+        return len(self.get_output_nodes(node_selection))
+
+
     def get_property_connections_input_nodes(self, p: SDProperty) -> Tuple['Node']:
         if not isinstance(p, sd.api.sdproperty.SDProperty):
             raise TypeError(bw_utils.type_error_message(

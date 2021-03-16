@@ -1,12 +1,15 @@
+import os
 import unittest
 import importlib
 from dataclasses import dataclass
 
 from common import bw_node
+from common import bw_node_selection
 
 import sd
 
 importlib.reload(bw_node)
+importlib.reload(bw_node_selection)
 
 # =========================================
 # Tests should be run from within designer
@@ -40,11 +43,45 @@ class TestNode(unittest.TestCase):
     def setUp(self) -> None:
         self.package = sd.getContext().getSDApplication().getPackageMgr().newUserPackage()
         self.graph = sd.api.sbs.sdsbscompgraph.SDSBSCompGraph.sNew(self.package)
+        self.test_package = sd.getContext().getSDApplication().getPackageMgr()
+
+        self.test_package_file_path = os.path.join(os.path.dirname(__file__), 'resources\\test_node.sbs')
+        self.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
+        self.test_package = self.pkg_mgr.loadUserPackage(self.test_package_file_path)
 
     def tearDown(self) -> None:
         # comment this to see resulting packages
         self.package = sd.getContext().getSDApplication().getPackageMgr().unloadUserPackage(self.package)
         pass
+
+    def test_output_nodes(self):
+        graph = self.test_package.findResourceFromUrl('test_output_nodes')
+
+        with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup('Test'):
+            node1 = bw_node.Node(graph.getNodeFromId('1407968709'))
+            node2 = bw_node.Node(graph.getNodeFromId('1407968593'))
+            node3 = bw_node.Node(graph.getNodeFromId('1407968714'))
+
+            nodes = [
+                graph.getNodeFromId('1407968625'),
+                graph.getNodeFromId('1407968718'),
+                graph.getNodeFromId('1407968725'),
+            ]
+            node_selection = bw_node_selection.NodeSelection(nodes, graph)
+
+        self.assertIsInstance(node1.get_output_nodes(), tuple)
+        self.assertIsInstance(node2.get_output_nodes(), tuple)
+        self.assertIsInstance(node3.get_output_nodes(), tuple)
+
+        self.assertIsInstance(node2.get_output_nodes()[0], bw_node.Node)
+        self.assertIsInstance(node3.get_output_nodes()[0], bw_node.Node)
+
+        self.assertEqual(0, len(node1.get_output_nodes()))
+        self.assertEqual(1, len(node2.get_output_nodes()))
+        self.assertEqual(3, len(node3.get_output_nodes()))
+
+        self.assertEqual(1, len(node2.get_output_nodes(node_selection)))
+        self.assertEqual(2, len(node3.get_output_nodes(node_selection)))
 
     def test_throws_type_error(self):
         with self.assertRaises(TypeError):

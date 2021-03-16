@@ -1,10 +1,14 @@
 import os
+import importlib
 from functools import partial
 
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 
 from common import bw_api_tool
+from common import bw_node_selection
+importlib.reload(bw_api_tool)
+importlib.reload(bw_node_selection)
 # import json, time, os
 # import importlib.util
 #
@@ -33,12 +37,16 @@ from common import bw_api_tool
 #
 # from PySide2 import QtCore, QtGui, QtWidgets
 
-def on_clicked_layout_graph(api: bw_api_tool) -> None:
-    print(api.current_selection)
+def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
+    api.log.info('Running layout Graph')
+    print(node_selection)
+    node_selection.remove_dot_nodes()
 
+def on_clicked_layout_graph(api: bw_api_tool) -> None:
+    node_selection = bw_node_selection.NodeSelection(api.current_selection, api.current_graph)
+    run_layout(node_selection, api)
 
 def on_graph_view_created(_, api: bw_api_tool.APITool) -> None:
-    return
     icon = os.path.normpath(
         os.path.join(
             os.path.dirname(__file__),
