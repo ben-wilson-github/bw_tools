@@ -55,37 +55,52 @@ class TestNode(unittest.TestCase):
         pass
 
     def test_output_nodes(self):
+        print('...test_output_nodes')
         graph = self.test_package.findResourceFromUrl('test_output_nodes')
 
-        with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup('Test'):
-            node1 = bw_node.Node(graph.getNodeFromId('1407968709'))
-            node2 = bw_node.Node(graph.getNodeFromId('1407968593'))
-            node3 = bw_node.Node(graph.getNodeFromId('1407968714'))
+        node_selection = bw_node_selection.NodeSelection(graph.getNodes(), graph)
 
-            nodes = [
-                graph.getNodeFromId('1407968625'),
+        node = node_selection.node(1407968709)
+        self.assertEqual(0, node.output_node_count)
+        self.assertEqual([], node.output_nodes)
+
+        node = node_selection.node(1407968593)
+        self.assertEqual(1, node.output_node_count)
+        self.assertEqual([node_selection.node(1407968625)], node.output_nodes)
+        self.assertEqual(1, node.output_node_count_in_index(0))
+        self.assertEqual([node_selection.node(1407968625)], node.output_nodes_in_index(0))
+
+        node = node_selection.node(1408121486)
+        self.assertEqual(2, node.output_node_count)
+        self.assertEqual([
+            node_selection.node(1408112819),
+            node_selection.node(1408112837)
+        ], node.output_nodes)
+        self.assertEqual([], node.output_nodes_in_index(0))
+        self.assertEqual([node_selection.node(1408112819)], node.output_nodes_in_index(1))
+        self.assertEqual([node_selection.node(1408112819)], node.output_nodes_in_index(2))
+        self.assertEqual([], node.output_nodes_in_index(3))
+        self.assertEqual([], node.output_nodes_in_index(4))
+        self.assertEqual([], node.output_nodes_in_index(5))
+        self.assertEqual([node_selection.node(1408112837)], node.output_nodes_in_index(6))
+        self.assertEqual([], node.output_nodes_in_index(7))
+        self.assertEqual([node_selection.node(1408112819)], node.output_nodes_in_index(8))
+
+        # Test only return nodes in selection
+        node_selection = bw_node_selection.NodeSelection(
+            [
+                graph.getNodeFromId('1407968714'),
                 graph.getNodeFromId('1407968718'),
-                graph.getNodeFromId('1407968725'),
-            ]
-            node_selection = bw_node_selection.NodeSelection(nodes, graph)
-
-        self.assertIsInstance(node1.get_output_nodes(), tuple)
-        self.assertIsInstance(node2.get_output_nodes(), tuple)
-        self.assertIsInstance(node3.get_output_nodes(), tuple)
-
-        self.assertIsInstance(node2.get_output_nodes()[0], bw_node.Node)
-        self.assertIsInstance(node3.get_output_nodes()[0], bw_node.Node)
-
-        self.assertEqual(0, len(node1.get_output_nodes()))
-        self.assertEqual(1, len(node2.get_output_nodes()))
-        self.assertEqual(3, len(node3.get_output_nodes()))
-
-        self.assertEqual(1, len(node2.get_output_nodes(node_selection)))
-        self.assertEqual(2, len(node3.get_output_nodes(node_selection)))
-
-    def test_throws_type_error(self):
-        with self.assertRaises(TypeError):
-            bw_node.Node(1)
+                graph.getNodeFromId('1407968725')
+            ],
+            graph
+        )
+        node = node_selection.node(1407968714)
+        self.assertEqual(2, node.output_node_count)
+        self.assertEqual([
+            node_selection.node(1407968718),
+            node_selection.node(1407968725),
+        ], node.output_nodes)
 
     def test_atomic_uniform_node(self):
         node = self.graph.newNode('sbs::compositing::uniform')
@@ -116,27 +131,18 @@ class TestNode(unittest.TestCase):
         levels_node.newPropertyConnectionFromId('unique_filter_output', blur_node, 'input1')
 
         node = bw_node.Node(levels_node)
-        for p in node.output_connectable_properties:
-            self.assertEqual(2, node.get_property_connections_count(p))
-            self.assertIsInstance(node.get_property_connections(p), sd.api.sdarray.SDArray)
-            self.assertIsInstance(node.get_property_connections(p)[0], sd.api.sdconnection.SDConnection)
 
         for p in node.output_connectable_properties:
-            self.assertEqual(2, node.get_property_connections_input_nodes_count(p))
-            self.assertIsInstance(node.get_property_connections_input_nodes(p), tuple)
-            self.assertIsInstance(node.get_property_connections_input_nodes(p)[0], bw_node.Node)
+            self.assertEqual(2, node.input_node_count_connected_to_property(p))
+            self.assertIsInstance(node.input_nodes_connected_to_property(p), tuple)
+            self.assertIsInstance(node.input_nodes_connected_to_property(p)[0], sd.api.sdnode.SDNode)
 
         node = bw_node.Node(hsl_node)
         p = hsl_node.getPropertyFromId(
             'unique_filter_output', sd.api.sdproperty.SDPropertyCategory.Output
         )
-        self.assertEqual(tuple(), node.get_property_connections_input_nodes(p))
-        self.assertEqual(0, node.get_property_connections_input_nodes_count(p))
-
-        with self.assertRaises(TypeError):
-            node.get_property_connections_input_nodes(1)
-        with self.assertRaises(TypeError):
-            node.get_property_connections_input_nodes_count(1)
+        self.assertEqual(tuple(), node.input_nodes_connected_to_property(p))
+        self.assertEqual(0, node.input_node_count_connected_to_property(p))
 
     def test_connected_nodes(self):
         levels_node = self.graph.newNode('sbs::compositing::levels')

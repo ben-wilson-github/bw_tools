@@ -17,6 +17,8 @@ def print_node_info(api: bw_api_tool.APITool):
 
     for node in api.ui_mgr.getCurrentGraphSelection():
         ret = f'{"=" * 20}\n' \
+              'Position:\n' \
+              f'\t{node.getPosition()}\n' \
               'Definition:\n' \
               f'\tIdentifier: {node.getIdentifier()}\n' \
               f'\tID: {node.getDefinition().getId()}\n' \

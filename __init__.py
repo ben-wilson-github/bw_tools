@@ -3,9 +3,11 @@ import os
 import sys
 import importlib
 
-from common import bw_api_tool
 from common import bw_logging
+from common import bw_api_tool
 
+importlib.reload(bw_logging)
+importlib.reload(bw_api_tool)
 
 # Add path to sys.path
 if not os.path.realpath(os.path.dirname(__file__)) in sys.path:
@@ -13,7 +15,7 @@ if not os.path.realpath(os.path.dirname(__file__)) in sys.path:
 
 
 LOGGER = bw_logging.create_logger(f'{os.path.dirname(__file__)}\\bwtools.log')
-API_TOOL = bw_api_tool.APITool(sd.getContext(), LOGGER['logger'])
+API_TOOL = bw_api_tool.APITool(LOGGER['logger'])
 
 
 def initializeSDPlugin():

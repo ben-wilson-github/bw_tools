@@ -17,24 +17,43 @@ SDSBSCompGraph = TypeVar('sd.api.sbs.sdsbscompgraph.SDSBSCompGraph')
 BWNode = TypeVar('bw_node.Node')
 
 
-
+@dataclass()
 class NodeSelection:
-    def __init__(self, api_nodes: List[SDNode], api_graph: SDSBSCompGraph):
-        self.api_graph = api_graph
-        self.node = dict()
-        self._parse_selection(api_nodes)
+    api_nodes: List[SDNode] = field(repr=False)
+    api_graph: SDSBSCompGraph = field(repr=False)
+    _node_map: dict = field(init=False, default_factory=dict)
+
+    def __post_init__(self):
+        self._create_nodes()
+        self._build_node_tree()
 
     @property
     def dot_nodes(self) -> Tuple[BWNode]:
         ret = []
-        for node in self.node.values():
+        for node in self._node_map.values():
             if node.is_dot:
                 ret.append(node)
         return tuple(ret)
 
+    @property
+    def root_nodes(self) -> Tuple[BWNode]:
+        ret = []
+        for node in self._node_map.values():
+            if node.is_root():
+                ret.append(node)
+        return tuple(ret)
+
+    def node(self, identifier: Union[str, int]) -> Union[BWNode, None]:
+        try:
+            node = self._node_map[int(identifier)]
+        except KeyError:
+            return None
+        else:
+            return node
+
     def contains(self, identifier: Union[str, int]) -> bool:
         try:
-            node = self.node[int(identifier)]
+            node = self._node_map[int(identifier)]
         except KeyError:
             return False
         else:
@@ -63,6 +82,19 @@ class NodeSelection:
             self.api_graph.deleteNode(dot_node)
         return True
 
-    def _parse_selection(self, api_nodes) -> bool:
-        for node in api_nodes:
-            self.node[int(node.getIdentifier())] = bw_node.Node(node)
+    def _create_nodes(self):
+        for node in self.api_nodes:
+            self._node_map[int(node.getIdentifier())] = bw_node.Node(node)
+
+    def _build_node_tree(self):
+        for identifier in self._node_map:
+            self._add_output_nodes(self._node_map[identifier])
+
+    def _add_output_nodes(self, node: bw_node.Node):
+        for i, p in enumerate(node.output_connectable_properties):
+            node._output_nodes_map[i] = []
+            api_nodes = node.output_nodes_connected_to_property(p)
+            for api_node in api_nodes:
+                output_node = self.node(api_node.getIdentifier())
+                if output_node is not None:
+                    node._output_nodes_map[i].append(output_node)

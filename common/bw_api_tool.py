@@ -16,11 +16,11 @@ importlib.reload(bw_utils)
 
 # Types for type hinting
 TYPE_MODULES = TypeVar('modules')
+SDConext = TypeVar('sd.context.Context')
 SDNode = TypeVar('SDNode')
 SDSBSCompGraph = TypeVar('SDSBSCompGraph')
 
 
-@dataclass()
 class APITool:
     """
     Helper class to interface and pass various API related objects around.
@@ -40,28 +40,20 @@ class APITool:
     Modules can have settings defined by creating a module_name.json file.
     The settings will automatically be added to the settings dialog.
     """
-    context: sd.context.Context
-    logger: logging.RootLogger
-
-    application: sd.api.sdapplication.SDApplication = field(init=False)
-    ui_mgr: sd.api.sduimgr.SDUIMgr = field(init=False)
-    pkg_mgr: sd.api.sdpackagemgr.SDPackageMgr = field(init=False)
-    main_window: QtWidgets.QMainWindow = field(init=False)
-    loaded_modules: List[TYPE_MODULES] = field(init=False, default_factory=list)
-    toolbar: bw_toolbar.BWToolbar = field(init=False, default=None)
-    graph_view_toolbar: bw_toolbar.BWToolbar = field(init=False, default=None)
-    debug: bool = field(init=False, default=True)
-    callback_ids: List[int] = field(init=False, default_factory=list)
-
-    def __post_init__(self):
-        object.__setattr__(self, 'application', self.context.getSDApplication())
-        object.__setattr__(self, 'ui_mgr', self.application.getQtForPythonUIMgr())
-        object.__setattr__(self, 'pkg_mgr', self.application.getPackageMgr())
-        object.__setattr__(self, 'main_window', self.ui_mgr.getMainWindow())
-
-        if type(self.context) != self.__dataclass_fields__['context'].type \
-                or type(self.logger) != self.__dataclass_fields__['logger'].type:
-            raise TypeError(bw_utils.type_error_message(self.__init__, self.context, self.logger))
+    def __init__(self, logger=None):
+        self.context: SDConext = sd.getContext()
+        if logger is None:
+            logger = logging.getLogger('Root')
+        self.logger: logging.RootLogger = logger
+        self.application: sd.api.sdapplication.SDApplication = self.context.getSDApplication()
+        self.ui_mgr: sd.api.sduimgr.SDUIMgr = self.application.getQtForPythonUIMgr()
+        self.pkg_mgr: sd.api.sdpackagemgr.SDPackageMgr = self.application.getPackageMgr()
+        self.main_window: QtWidgets.QMainWindow = self.ui_mgr.getMainWindow()
+        self.loaded_modules: List[TYPE_MODULES] = []
+        self.toolbar: bw_toolbar.BWToolbar = None
+        self.graph_view_toolbar: bw_toolbar.BWToolbar = None
+        self.debug: bool = True
+        self.callback_ids: List[int] = []
 
         self.logger.info(f'{self.__class__.__name__} initialized.')
 

@@ -1,4 +1,4 @@
-import sd
+from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Union
@@ -9,10 +9,13 @@ from typing import List
 from common import bw_connection
 from common import bw_utils
 
+import sd
+
 SDSBSCompNode = TypeVar('SDSBSCompNode')
 SDProperty = TypeVar('SDProperty')
 SDConnection = TypeVar('SDConnection')
 SDSBSCompGraph = TypeVar('SDSBSCompGraph')
+SDNode = TypeVar('sd.api.sdnode.SDNode')
 
 
 @dataclass()
@@ -27,12 +30,13 @@ class NodePosition:
 
 @dataclass()
 class Node:
-    api_node: 'SDSBSCompNode'
+    api_node: 'SDSBSCompNode' = field(repr=False)
     label: str = field(init=False)
     identifier: int = field(init=False)
     position: NodePosition = field(init=False)
-    display_border: float = field(init=False, default=26.75)
-    display_slot_stride: float = field(init=False, default=21.25)
+    display_border: float = field(init=False, default=26.75, repr=False)
+    display_slot_stride: float = field(init=False, default=21.25, repr=False)
+    _output_nodes_map: dict = field(init=False, default_factory=dict, repr=False)
 
     def __post_init__(self):
         if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
@@ -80,78 +84,73 @@ class Node:
 
     @property
     def input_connectable_properties(self) -> Tuple[SDProperty]:
-        return self._get_connectable_properties_from_category(sd.api.sdproperty.SDPropertyCategory.Input)
+        """Returns all API properties which are connectable for all inputs"""
+        return self._connectable_properties_from_category(sd.api.sdproperty.SDPropertyCategory.Input)
 
     @property
     def output_connectable_properties(self) -> Tuple[SDProperty]:
-        return self._get_connectable_properties_from_category(sd.api.sdproperty.SDPropertyCategory.Output)
+        """Returns all API properties which are connectable for all outputs"""
+        return self._connectable_properties_from_category(sd.api.sdproperty.SDPropertyCategory.Output)
 
     @property
-    def is_dot(self):
+    def is_dot(self) -> bool:
         return self.api_node.getDefinition().getId() == 'sbs::compositing::passthrough'
 
-    def get_output_nodes(self, node_selection=None) -> Tuple[Node]:
-        """
-        Returns the connected output nodes.
-        If a node selection is passed in, will return only the output nodes in
-        that selection.
-        """
-        seen = []
+    @property
+    def output_node_count(self) -> int:
+        return len(self.output_nodes)
+
+    @property
+    def output_nodes(self) -> Tuple['Node']:
         ret = []
-        for p in self.output_connectable_properties:
-            for connection in self.api_node.getPropertyConnections(p):
-                identifier = connection.getInputPropertyNode().getIdentifier()
-                if identifier in seen:
-                    continue
-                seen.append(identifier)
-                if node_selection is not None and not node_selection.contains(identifier):
-                    continue
-                ret.append(Node(connection.getInputPropertyNode()))
+        for output_nodes in self._output_nodes_map.values():
+            for output_node in output_nodes:
+                if output_node not in ret:
+                    ret.append(output_node)
+        return ret
+
+    def output_node_count_in_index(self, index):
+        return len(self.output_nodes_in_index(index))
+
+    def output_nodes_in_index(self, index):
+        ret = []
+        output_nodes = self._output_nodes_map[index]
+        for output_node in output_nodes:
+            if output_node not in ret:
+                ret.append(output_node)
+        return ret
+
+    def is_root(self) -> bool:
+        """
+        If a node does not have any outputs, it is considered a root node.
+        An optional node selection can be passed in to limit the output node checks to only
+        those in the selection.
+        """
+        return self.output_node_count == 0
+
+    def output_nodes_connected_to_property(self, p: SDProperty) -> Tuple[SDNode]:
+        """Returns a Tuple of API Nodes connected to the outputs of a property"""
+        ret = list()
+        seen = list()
+        for connection in self.api_node.getPropertyConnections(p):
+            node = connection.getInputPropertyNode()
+            if node.getIdentifier() not in seen:
+                ret.append(node)
+                seen.append(node.getIdentifier())
         return tuple(ret)
 
-    def get_output_nodes_count(self, node_selection=None) -> int:
-        """
-        Returns the connected output nodes.
-        If a node selection is passed in, will return only the the output nodes
-        count in that selection
-        """
-        return len(self.get_output_nodes(node_selection))
+    def output_node_count_connected_to_property(self, p: SDProperty) -> int:
+        return len(self.output_nodes_connected_to_property(p))
 
-
-    def get_property_connections_input_nodes(self, p: SDProperty) -> Tuple['Node']:
-        if not isinstance(p, sd.api.sdproperty.SDProperty):
-            raise TypeError(bw_utils.type_error_message(
-                self.get_property_connections_input_nodes, p)
-            )
-
+    def input_nodes_connected_to_property(self, p: SDProperty) -> Tuple[SDNode]:
+        """Returns a Tuple of API Nodes connected to the inputs of a property"""
         ret = list()
         for connection in self.api_node.getPropertyConnections(p):
-            node = Node(connection.getInputPropertyNode())
-            ret.append(node)
+            ret.append(connection.getInputPropertyNode())
         return tuple(ret)
 
-    def get_property_connections_input_nodes_count(self, p: SDProperty) -> int:
-        if not isinstance(p, sd.api.sdproperty.SDProperty):
-            raise TypeError(bw_utils.type_error_message(
-                self.get_property_connections_input_nodes_count, p)
-            )
-
-        return len(self.get_property_connections_input_nodes(p))
-
-    def get_property_connections(self, p: SDProperty) -> List[SDConnection]:
-        if not isinstance(p, sd.api.sdproperty.SDProperty):
-            raise TypeError(bw_utils.type_error_message(
-                self.get_property_connections, p)
-            )
-
-        return self.api_node.getPropertyConnections(p)
-
-    def get_property_connections_count(self, p: SDProperty) -> int:
-        if not isinstance(p, sd.api.sdproperty.SDProperty):
-            raise TypeError(bw_utils.type_error_message(
-                self.get_property_connections_count, p)
-            )
-        return len(self.get_property_connections(p))
+    def input_node_count_connected_to_property(self, p: SDProperty) -> int:
+        return len(self.input_nodes_connected_to_property(p))
 
     def is_connected_to_node(self, target_node: 'Node') -> bool:
         if not isinstance(target_node, Node):
@@ -160,12 +159,12 @@ class Node:
             )
 
         for p in self.output_connectable_properties:
-            for node in self.get_property_connections_input_nodes(p):
+            for node in self.input_nodes_connected_to_property(p):
                 if node.identifier == target_node.identifier:
                     return True
         return False
 
-    def get_y_position_of_property(self, source_property: SDProperty) -> float:
+    def y_position_of_property(self, source_property: SDProperty) -> float:
         if source_property.getCategory() == sd.api.sdproperty.SDPropertyCategory.Input:
             relevant_properties = self.input_connectable_properties
         elif source_property.getCategory() == sd.api.sdproperty.SDPropertyCategory.Output:
@@ -194,7 +193,7 @@ class Node:
             inner_area = ((len(relevant_properties) - 1) * self.display_slot_stride) / 2
             return (self.position.y - inner_area) + self.display_slot_stride * index
 
-    def _get_connectable_properties_from_category(self, category) -> Tuple[SDProperty]:
+    def _connectable_properties_from_category(self, category) -> Tuple[SDProperty]:
         connectable_properties = []
         for p in self.api_node.getProperties(category):
             if p.isConnectable():

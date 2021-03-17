@@ -39,8 +39,10 @@ importlib.reload(bw_node_selection)
 
 def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
     api.log.info('Running layout Graph')
-    print(node_selection)
     node_selection.remove_dot_nodes()
+
+    for root_node in node_selection.root_nodes:
+        print(root_node)
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:
     node_selection = bw_node_selection.NodeSelection(api.current_selection, api.current_graph)
@@ -57,15 +59,6 @@ def on_graph_view_created(_, api: bw_api_tool.APITool) -> None:
     action.setToolTip('Layout Graph')
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
 
-    # icon = os.path.normpath(
-    #     os.path.join(
-    #         os.path.dirname(__file__),
-    #         'resources\\remove_dot_node_selected.png'
-    #     )
-    # )
-    # action = api.graph_view_toolbar.addAction(QtGui.QIcon(icon), '')
-    # action.setToolTip('Remove dot nodes from selected nodes.')
-
 
 def on_initialize(api: bw_api_tool.APITool):
     api.register_on_graph_view_created_callback(partial(on_graph_view_created, api=api))
@@ -78,32 +71,6 @@ def on_initialize(api: bw_api_tool.APITool):
 #     Blend = 'sbs::compositing::blend'
 #     Dot = 'sbs::compositing::passthrough'
 #
-# def _deleteDotNode(aDotNode, aGraph):
-#     # Get property the connection comes from
-#     dotNodeInputProperty = aDotNode.getPropertyFromId('input', SDPropertyCategory.Input)
-#     dotNodeInputConnection = aDotNode.getPropertyConnections(dotNodeInputProperty)[0]
-#     outputNodeProperty = dotNodeInputConnection.getInputProperty()
-#
-#     outputNode = dotNodeInputConnection.getInputPropertyNode()
-#
-#     # Get property the connection goes too
-#     dotNodeOutputProperty = aDotNode.getPropertyFromId('unique_filter_output', SDPropertyCategory.Output)
-#
-#     dotNodeOutputConnections = aDotNode.getPropertyConnections(dotNodeOutputProperty)
-#     inputNodesProperties = []
-#     for connection in dotNodeOutputConnections:
-#         inputNodeProperty = connection.getInputProperty()
-#         inputNode = connection.getInputPropertyNode()
-#
-#         outputNode.newPropertyConnectionFromId(outputNodeProperty.getId(), inputNode, inputNodeProperty.getId())
-#
-#     aGraph.deleteNode(aDotNode)
-#     return True
-#
-# def _deleteAllDotNodes(aNodeSelection, aGraph):
-#     for apiNode in aNodeSelection:
-#         if apiNode.getDefinition().getId() == NodeType.Dot.value:
-#             _deleteDotNode(apiNode, aGraph)
 #
 # def onClickedLayoutButton(aSettingsFile, aUiMgr, aPkgMgr, aLogger):
 #     start = time.time()
