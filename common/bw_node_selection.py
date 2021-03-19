@@ -89,12 +89,25 @@ class NodeSelection:
     def _build_node_tree(self):
         for identifier in self._node_map:
             self._add_output_nodes(self._node_map[identifier])
+            self._add_input_nodes(self._node_map[identifier])
+
+    def _add_input_nodes(self, node: bw_node.Node):
+        for i, p in enumerate(node.input_connectable_properties):
+            # Because we are only looking at input properties. We can be sure
+            # there will only be one connection or none at all
+            connection = node.api_node.getPropertyConnections(p)
+            if len(connection) == 0:
+                node._input_nodes[i] = None
+            else:
+                api_node = connection[0].getInputPropertyNode()
+                node._input_nodes[i] = self.node(api_node.getIdentifier())
 
     def _add_output_nodes(self, node: bw_node.Node):
         for i, p in enumerate(node.output_connectable_properties):
-            node._output_nodes_map[i] = []
-            api_nodes = node.output_nodes_connected_to_property(p)
-            for api_node in api_nodes:
-                output_node = self.node(api_node.getIdentifier())
-                if output_node is not None:
-                    node._output_nodes_map[i].append(output_node)
+            node._output_nodes[i] = []
+            for connection in node.api_node.getPropertyConnections(p):
+                api_node = connection.getInputPropertyNode()
+                identifier = api_node.getIdentifier()
+                node_in_selection = self.node(identifier)
+                if node_in_selection is not None:
+                    node._output_nodes[i].append(node_in_selection)

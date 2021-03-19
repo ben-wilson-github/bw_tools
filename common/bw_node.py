@@ -36,7 +36,8 @@ class Node:
     position: NodePosition = field(init=False)
     display_border: float = field(init=False, default=26.75, repr=False)
     display_slot_stride: float = field(init=False, default=21.25, repr=False)
-    _output_nodes_map: dict = field(init=False, default_factory=dict, repr=False)
+    _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
+    _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
 
     def __post_init__(self):
         if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
@@ -103,22 +104,38 @@ class Node:
     @property
     def output_nodes(self) -> Tuple['Node']:
         ret = []
-        for output_nodes in self._output_nodes_map.values():
+        for output_nodes in self._output_nodes.values():
             for output_node in output_nodes:
                 if output_node not in ret:
                     ret.append(output_node)
-        return ret
+        return tuple(ret)
 
-    def output_node_count_in_index(self, index):
+    @property
+    def input_node_count(self) -> int:
+        return len(self.input_nodes)
+
+    @property
+    def input_nodes(self) -> Tuple['Node']:
+        ret = []
+        for input_node in self._input_nodes.values():
+            if input_node is None or input_node in ret:
+                continue
+            ret.append(input_node)
+        return tuple(ret)
+
+    def output_node_count_in_index(self, index) -> int:
         return len(self.output_nodes_in_index(index))
 
-    def output_nodes_in_index(self, index):
+    def output_nodes_in_index(self, index) -> Tuple['Node']:
         ret = []
-        output_nodes = self._output_nodes_map[index]
+        output_nodes = self._output_nodes[index]
         for output_node in output_nodes:
             if output_node not in ret:
                 ret.append(output_node)
-        return ret
+        return tuple(ret)
+
+    def input_node_in_index(self, index) -> Union['Node', None]:
+        return self._input_nodes[index]
 
     def is_root(self) -> bool:
         """
@@ -127,30 +144,6 @@ class Node:
         those in the selection.
         """
         return self.output_node_count == 0
-
-    def output_nodes_connected_to_property(self, p: SDProperty) -> Tuple[SDNode]:
-        """Returns a Tuple of API Nodes connected to the outputs of a property"""
-        ret = list()
-        seen = list()
-        for connection in self.api_node.getPropertyConnections(p):
-            node = connection.getInputPropertyNode()
-            if node.getIdentifier() not in seen:
-                ret.append(node)
-                seen.append(node.getIdentifier())
-        return tuple(ret)
-
-    def output_node_count_connected_to_property(self, p: SDProperty) -> int:
-        return len(self.output_nodes_connected_to_property(p))
-
-    def input_nodes_connected_to_property(self, p: SDProperty) -> Tuple[SDNode]:
-        """Returns a Tuple of API Nodes connected to the inputs of a property"""
-        ret = list()
-        for connection in self.api_node.getPropertyConnections(p):
-            ret.append(connection.getInputPropertyNode())
-        return tuple(ret)
-
-    def input_node_count_connected_to_property(self, p: SDProperty) -> int:
-        return len(self.input_nodes_connected_to_property(p))
 
     def is_connected_to_node(self, target_node: 'Node') -> bool:
         if not isinstance(target_node, Node):
