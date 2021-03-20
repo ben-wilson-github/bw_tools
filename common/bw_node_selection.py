@@ -39,9 +39,20 @@ class NodeSelection:
     def root_nodes(self) -> Tuple[BWNode]:
         ret = []
         for node in self._node_map.values():
-            if node.is_root():
+            if node.is_root:
                 ret.append(node)
         return tuple(ret)
+
+    @property
+    def nodes(self) -> Tuple[BWNode]:
+        ret = []
+        for node in self._node_map.values():
+            ret.append(node)
+        return tuple(ret)
+
+    @property
+    def node_count(self) -> int:
+        return len(self.nodes)
 
     def node(self, identifier: Union[str, int]) -> Union[BWNode, None]:
         try:
@@ -92,15 +103,25 @@ class NodeSelection:
             self._add_input_nodes(self._node_map[identifier])
 
     def _add_input_nodes(self, node: bw_node.Node):
+        seen = []
         for i, p in enumerate(node.input_connectable_properties):
-            # Because we are only looking at input properties. We can be sure
-            # there will only be one connection or none at all
+            node._input_nodes[i] = None
+            node._input_node_heights[i] = 0
+
             connection = node.api_node.getPropertyConnections(p)
             if len(connection) == 0:
-                node._input_nodes[i] = None
-            else:
-                api_node = connection[0].getInputPropertyNode()
-                node._input_nodes[i] = self.node(api_node.getIdentifier())
+                continue
+
+            # Because we are only looking at input properties. We can be sure
+            # there will only be one connection or none at all
+            api_node = connection[0].getInputPropertyNode()
+            if self.contains(api_node.getIdentifier()):
+                node_in_selection = self.node(api_node.getIdentifier())
+                node._input_nodes[i] = node_in_selection
+                if node_in_selection not in seen:
+                    node._input_node_heights[i] = node_in_selection.height
+
+            seen.append(node_in_selection)
 
     def _add_output_nodes(self, node: bw_node.Node):
         for i, p in enumerate(node.output_connectable_properties):

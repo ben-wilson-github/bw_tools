@@ -187,6 +187,43 @@ class TestNode(unittest.TestCase):
             node_selection.node(1407968725),
         ), node.output_nodes)
 
+    def test_center_index(self):
+        print('...test_center_index')
+        graph = self.test_package.findResourceFromUrl('test_center_index')
+        node_selection = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+
+        self.assertEqual(0, node_selection.node(1408291940).center_input_index)
+        self.assertEqual(0.5, node_selection.node(1408291961).center_input_index)
+        self.assertEqual(1, node_selection.node(1408291946).center_input_index)
+        self.assertEqual(1.5, node_selection.node(1408291971).center_input_index)
+        self.assertEqual(2, node_selection.node(1408291992).center_input_index)
+
+    def test_node_connects_to_center(self):
+        print('...test_node_connects_to_center')
+        graph = self.test_package.findResourceFromUrl('test_node_connects_to_center')
+        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+
+        self.assertFalse(ns.node(1408299540).connects_to_center(ns.node(1408299544)))
+        self.assertTrue(ns.node(1408299553).connects_to_center(ns.node(1408299552)))
+        self.assertFalse(ns.node(1408299563).connects_to_center(ns.node(1408299562)))
+        self.assertTrue(ns.node(1408299575).connects_to_center(ns.node(1408299574)))
+        self.assertTrue(ns.node(1408299584).connects_to_center(ns.node(1408299585)))
+        self.assertTrue(ns.node(1408299594).connects_to_center(ns.node(1408299595)))
+
+        self.assertTrue(ns.node(1408299540).connects_above_center(ns.node(1408299544)))
+        self.assertFalse(ns.node(1408299553).connects_above_center(ns.node(1408299552)))
+        self.assertFalse(ns.node(1408299563).connects_above_center(ns.node(1408299562)))
+        self.assertFalse(ns.node(1408299575).connects_above_center(ns.node(1408299574)))
+        self.assertTrue(ns.node(1408299584).connects_above_center(ns.node(1408299585)))
+        self.assertTrue(ns.node(1408299594).connects_above_center(ns.node(1408299595)))
+
+        self.assertFalse(ns.node(1408299540).connects_below_center(ns.node(1408299544)))
+        self.assertFalse(ns.node(1408299553).connects_below_center(ns.node(1408299552)))
+        self.assertTrue(ns.node(1408299563).connects_below_center(ns.node(1408299562)))
+        self.assertTrue(ns.node(1408299575).connects_below_center(ns.node(1408299574)))
+        self.assertFalse(ns.node(1408299584).connects_below_center(ns.node(1408299585)))
+        self.assertTrue(ns.node(1408299594).connects_below_center(ns.node(1408299595)))
+
 
 if __name__ == '__main__':
     unittest.main()

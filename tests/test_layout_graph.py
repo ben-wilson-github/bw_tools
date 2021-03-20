@@ -1,4 +1,6 @@
 import os
+import shutil
+import random
 import logging
 import unittest
 import importlib
@@ -20,39 +22,43 @@ class MyTestCase(unittest.TestCase):
         self.package = self.pkg_mgr.loadUserPackage(self.package_file_path)
         self.api = bw_api_tool.APITool()
 
-    # def tearDown(self) -> None:
-    #     self.pkg_mgr.unloadUserPackage(self.package)
-    #     self.package = self.pkg_mgr.loadUserPackage(self.package_file_path)
+    def test_layout_graphs_in_package(self):
+        temp_file = os.path.join(os.path.dirname(self.package_file_path), 'tmp\\__test_layout_graph.sbs')
+        self._create_temp_file(temp_file)
 
-    def test_single_node(self):
-        graph = self.package.findResourceFromUrl('test_single_node')
-        node_selection = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        temp_package = self.pkg_mgr.loadUserPackage(temp_file)
+        for temp_graph in temp_package.getChildrenResources(isRecursive=False):
+            temp_graph_node_selection = bw_node_selection.NodeSelection(temp_graph.getNodes(), temp_graph)
+            self._randomise_node_positions(temp_graph_node_selection)
+            bw_layout_graph.run_layout(temp_graph_node_selection, self.api)
 
-        bw_layout_graph.run_layout(node_selection, self.api)
+        for temp_graph in temp_package.getChildrenResources(isRecursive=False):
+            print(f'...{temp_graph.getIdentifier()}')
+            original_graph = self.package.findResourceFromUrl(temp_graph.getIdentifier())
+            original_graph_node_selection = bw_node_selection.NodeSelection(original_graph.getNodes(),
+                                                                            original_graph)
+            temp_graph_node_selection = bw_node_selection.NodeSelection(temp_graph.getNodes(), temp_graph)
 
-        self.assertEqual(16, graph.getNodes()[0].getPosition().x)
-        self.assertEqual(16, graph.getNodes()[0].getPosition().y)
+            for temp_graph_node in temp_graph_node_selection.nodes:
+                original_graph_node = original_graph_node_selection.node(temp_graph_node.identifier)
 
+                self.assertEqual(original_graph_node.position, temp_graph_node.position)
 
-    def test_line_of_nodes(self):
-        graph = self.package.findResourceFromUrl('test_line_of_nodes')
-        n1 = graph.getNodeFromId('1408049754')
-        n2 = graph.getNodeFromId('1408083786')
-        n3 = graph.getNodeFromId('1408083790')
-        expected1 = [16, 16]
-        expected2 = [-112, 16]
-        expected3 = [-240, 16]
+        self._remove_temp_file(temp_file)
 
-        bw_layout_graph.run_layout(bw_node_selection.NodeSelection([n1, n2, n3], self.api), self.api)
+    def _randomise_node_positions(self, node_selection):
+        for i, node in enumerate(node_selection.nodes):
+            if node.is_root:
+                continue
+            node.set_position(node.position.x + random.uniform(-64, 64), node.position.y + random.uniform(-64, 64))
 
-        self.assertEqual(expected1[0], n1.getPosition().x)
-        self.assertEqual(expected1[1], n1.getPosition().y)
+    def _create_temp_file(self, temp_file):
+        os.makedirs(os.path.dirname(temp_file), exist_ok=True)
+        shutil.copy(self.package_file_path, temp_file)
 
-        self.assertEqual(expected2[0], n2.getPosition().x)
-        self.assertEqual(expected2[1], n2.getPosition().y)
-
-        self.assertEqual(expected3[0], n3.getPosition().x)
-        self.assertEqual(expected3[1], n3.getPosition().y)
+    def _remove_temp_file(self, temp_file):
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
 
 if __name__ == '__main__':
     unittest.main()

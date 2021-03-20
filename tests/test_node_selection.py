@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 import importlib
 
@@ -16,10 +17,6 @@ class MyTestCase(unittest.TestCase):
         self.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         self.package = self.pkg_mgr.loadUserPackage(self.package_file_path)
 
-    # def tearDown(self) -> None:
-    #     self.pkg_mgr.unloadUserPackage(self.package)
-        # self.package = self.pkg_mgr.loadUserPackage(self.package_file_path)
-
     def test_can_get_node(self):
         print('...test_can_get_node')
         graph = self.package.findResourceFromUrl('test_can_get_node')
@@ -32,13 +29,33 @@ class MyTestCase(unittest.TestCase):
 
         self.assertIsNone(node_selection.node(1))
 
+    def test_can_get_all_nodes(self):
+        print('...test_can_get_all_nodes')
+        graph = self.package.findResourceFromUrl('test_can_get_all_nodes')
+        node_selection =  bw_node_selection.NodeSelection(graph.getNodes(), graph)
+
+        self.assertEqual(4, node_selection.node_count)
+        result = (
+            node_selection.node(1408284648),
+            node_selection.node(1408284643),
+            node_selection.node(1408284662),
+            node_selection.node(1408284655)
+        )
+        self.assertTrue(result[0] in node_selection.nodes)
+        self.assertTrue(result[1] in node_selection.nodes)
+        self.assertTrue(result[2] in node_selection.nodes)
+        self.assertTrue(result[3] in node_selection.nodes)
+
     def test_can_remove_dot_nodes(self):
         print('...test_can_remove_dot_nodes')
-        graph = self.package.findResourceFromUrl('can_remove_dot_nodes')
+        temp_file = os.path.join(os.path.dirname(self.package_file_path), 'tmp\\__test_can_remove_dot_nodes.sbs')
+        self._create_temp_file(temp_file)
+
+        package = self.pkg_mgr.loadUserPackage(temp_file)
+        graph = package.findResourceFromUrl('can_remove_dot_nodes')
         node_selection = bw_node_selection.NodeSelection(graph.getNodes(), graph)
 
-        with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup('Test'):
-            node_selection.remove_dot_nodes()
+        node_selection.remove_dot_nodes()
 
         self.assertEqual(6, len(graph.getNodes()))
         node = graph.getNodeFromId('1407882793')
@@ -46,6 +63,8 @@ class MyTestCase(unittest.TestCase):
         for i, p in enumerate(node.getProperties(sd.api.sdproperty.SDPropertyCategory.Output)):
             connections = node.getPropertyConnections(p)
             self.assertEqual(expected[i], len(connections))
+
+        self._remove_temp_file(temp_file)
 
     def test_is_root(self):
         print('...test_is_root')
@@ -56,10 +75,18 @@ class MyTestCase(unittest.TestCase):
         n4 = graph.getNodeFromId('1408093556')
         node_selection = bw_node_selection.NodeSelection([n1, n2, n3, n4], graph)
 
-        self.assertTrue(node_selection.node(1408093525).is_root())
-        self.assertFalse(node_selection.node(1408093532).is_root())
-        self.assertTrue(node_selection.node(1408093545).is_root())
-        self.assertTrue(node_selection.node(1408093556).is_root())
+        self.assertTrue(node_selection.node(1408093525).is_root)
+        self.assertFalse(node_selection.node(1408093532).is_root)
+        self.assertTrue(node_selection.node(1408093545).is_root)
+        self.assertTrue(node_selection.node(1408093556).is_root)
+
+    def _create_temp_file(self, temp_file):
+        os.makedirs(os.path.dirname(temp_file), exist_ok=True)
+        shutil.copy(self.package_file_path, temp_file)
+
+    def _remove_temp_file(self, temp_file):
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
 
 
 if __name__ == '__main__':

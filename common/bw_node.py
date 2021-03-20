@@ -38,6 +38,7 @@ class Node:
     display_slot_stride: float = field(init=False, default=21.25, repr=False)
     _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
     _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
+    _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
 
     def __post_init__(self):
         if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
@@ -98,6 +99,15 @@ class Node:
         return self.api_node.getDefinition().getId() == 'sbs::compositing::passthrough'
 
     @property
+    def is_root(self) -> bool:
+        """
+        If a node does not have any outputs, it is considered a root node.
+        An optional node selection can be passed in to limit the output node checks to only
+        those in the selection.
+        """
+        return self.output_node_count == 0
+
+    @property
     def output_node_count(self) -> int:
         return len(self.output_nodes)
 
@@ -123,6 +133,47 @@ class Node:
             ret.append(input_node)
         return tuple(ret)
 
+    @property
+    def has_input_nodes_connected(self):
+        return self.input_node_count > 0
+
+    @property
+    def center_input_index(self) -> float:
+        return (self.input_connectable_properties_count - 1) / 2
+
+    @property
+    def input_nodes_height_sum(self) -> float:
+        sum = 0
+        for height in self._input_node_heights.values():
+            sum += height
+        return sum
+
+    def input_node_height_in_index(self, index) -> float:
+        return self._input_node_heights[index]
+
+    def connects_above_center(self, target_node: Node) -> bool:
+        return any(i < target_node.center_input_index for i in self.indices_in_target(target_node))
+
+    def connects_below_center(self, target_node: Node) -> bool:
+        return any(i > target_node.center_input_index for i in self.indices_in_target(target_node))
+
+    def connects_to_center(self, target_node: Node) -> bool:
+        return target_node.center_input_index in self.indices_in_target(target_node)
+
+    def indices_in_target(self, target_node: Node) -> List[int]:
+        """Returns all the indices that this node connects to in target node"""
+        indices = []
+        for index, node in target_node._input_nodes.items():
+            if node is self:
+                indices.append(index)
+        return indices
+
+    def set_position(self, x, y):
+        self.position = NodePosition(x, y)
+        self.api_node.setPosition(
+            sd.api.sdbasetypes.float2(x, y)
+        )
+
     def output_node_count_in_index(self, index) -> int:
         return len(self.output_nodes_in_index(index))
 
@@ -135,15 +186,12 @@ class Node:
         return tuple(ret)
 
     def input_node_in_index(self, index) -> Union['Node', None]:
-        return self._input_nodes[index]
-
-    def is_root(self) -> bool:
-        """
-        If a node does not have any outputs, it is considered a root node.
-        An optional node selection can be passed in to limit the output node checks to only
-        those in the selection.
-        """
-        return self.output_node_count == 0
+        try:
+            node = self._input_nodes[index]
+        except KeyError:
+            return None
+        else:
+            return node
 
     def is_connected_to_node(self, target_node: 'Node') -> bool:
         if not isinstance(target_node, Node):

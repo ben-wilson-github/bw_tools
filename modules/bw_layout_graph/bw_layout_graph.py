@@ -5,8 +5,11 @@ from functools import partial
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 
+from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
+
+importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
 importlib.reload(bw_node_selection)
 # import json, time, os
@@ -37,16 +40,100 @@ importlib.reload(bw_node_selection)
 #
 # from PySide2 import QtCore, QtGui, QtWidgets
 
+SPACER = 32
+
+
+def get_y_offset_from_target(node: bw_node.Node, target_node: bw_node.Node) -> float:
+    if target_node.input_node_in_index(target_node.center_input_index) is None:
+        y_offset = 2 * SPACER
+    else:
+        y_offset = SPACER + node.height
+    return y_offset
+
+
+def move_node_below_target(node: bw_node.Node, target_node: bw_node.Node):
+    node.set_position(
+        target_node.position.x - SPACER - node.width,
+        target_node.position.y + get_y_offset_from_target(node, target_node)
+    )
+
+
+def move_node_above_target(node: bw_node.Node, target_node: bw_node.Node):
+    node.set_position(
+        target_node.position.x - SPACER - node.width,
+        target_node.position.y - get_y_offset_from_target(node, target_node)
+    )
+
+
+def move_node_inline_with_target(node: bw_node.Node, target_node: bw_node.Node):
+    node.set_position(
+        target_node.position.x - SPACER - node.width,
+        target_node.position.y
+    )
+
+
+def move_node_averaged_height(node: bw_node.Node, target_node: bw_node.Node):
+    y_offset = 0
+
+    target_index = node.indices_in_target(target_node)[0]
+    for i in range(target_index):
+        input_node_height = target_node.input_node_height_in_index(i)
+        y_offset += input_node_height
+        if input_node_height > 0:
+            y_offset += SPACER
+
+    additional_spacing = (target_node.input_node_count - 1) * SPACER
+    y_pos = (target_node.position.y + y_offset + (target_node.height / 2)) \
+            - ((target_node.input_nodes_height_sum + additional_spacing) / 2)
+
+    node.set_position(
+        target_node.position.x - SPACER - node.width,
+        y_pos
+    )
+
+
+def move_node(node: bw_node.Node, queue: list):
+    target_node = node.output_nodes[0]
+
+    if target_node.input_node_count == 1:
+        move_node_inline_with_target(node, target_node)
+
+    elif target_node.input_node_count == 2:
+        move_node_averaged_height(node, target_node)
+    else:
+        if node.connects_above_center(target_node) and not node.connects_to_center(target_node):
+            move_node_above_target(node, target_node)
+        elif node.connects_below_center(target_node) and not node.connects_above_center(target_node):
+            move_node_below_target(node, target_node)
+        else:
+            move_node_inline_with_target(node, target_node)
+
+    if node.has_input_nodes_connected:
+        for input_node in node.input_nodes:
+            queue.append(input_node)
+
+
 def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
     api.log.info('Running layout Graph')
     node_selection.remove_dot_nodes()
 
     for root_node in node_selection.root_nodes:
-        print(root_node)
+        if not root_node.has_input_nodes_connected:
+            continue
+
+        queue = []
+        for input_node in root_node.input_nodes:
+            queue.append(input_node)
+
+        while len(queue) > 0:
+            node = queue.pop(0)
+            move_node(node, queue)
+
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:
     node_selection = bw_node_selection.NodeSelection(api.current_selection, api.current_graph)
     run_layout(node_selection, api)
+
 
 def on_graph_view_created(_, api: bw_api_tool.APITool) -> None:
     icon = os.path.normpath(
@@ -62,8 +149,6 @@ def on_graph_view_created(_, api: bw_api_tool.APITool) -> None:
 
 def on_initialize(api: bw_api_tool.APITool):
     api.register_on_graph_view_created_callback(partial(on_graph_view_created, api=api))
-
-
 
 # #TODO:
 # # layout pass
