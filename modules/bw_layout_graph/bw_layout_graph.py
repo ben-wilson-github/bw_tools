@@ -73,22 +73,24 @@ def move_node_inline_with_target(node: bw_node.Node, target_node: bw_node.Node):
 
 
 def move_node_averaged_height(node: bw_node.Node, target_node: bw_node.Node):
-    y_offset = 0
+    target_delta_from_norm = (target_node.height - 96) / 2
+    current_delta_from_norm = (node.height - 96) / 2
+    y_offset = target_delta_from_norm - current_delta_from_norm
 
     target_index = node.indices_in_target(target_node)[0]
-    for i in range(target_index):
+    for i in range(target_index + 1):
         input_node_height = target_node.input_node_height_in_index(i)
         y_offset += input_node_height
         if input_node_height > 0:
             y_offset += SPACER
 
+    y_offset -= SPACER  # Remove the first spacer
     additional_spacing = (target_node.input_node_count - 1) * SPACER
-    y_pos = (target_node.position.y + y_offset + (target_node.height / 2)) \
-            - ((target_node.input_nodes_height_sum + additional_spacing) / 2)
 
     node.set_position(
         target_node.position.x - SPACER - node.width,
-        y_pos
+        target_node.position.y + y_offset - (target_node.height / 2)
+        - ((target_node.input_nodes_height_sum + additional_spacing) / 2)
     )
 
 
@@ -97,16 +99,20 @@ def move_node(node: bw_node.Node, queue: list):
 
     if target_node.input_node_count == 1:
         move_node_inline_with_target(node, target_node)
-
-    elif target_node.input_node_count == 2:
-        move_node_averaged_height(node, target_node)
     else:
-        if node.connects_above_center(target_node) and not node.connects_to_center(target_node):
-            move_node_above_target(node, target_node)
-        elif node.connects_below_center(target_node) and not node.connects_above_center(target_node):
-            move_node_below_target(node, target_node)
-        else:
-            move_node_inline_with_target(node, target_node)
+        move_node_averaged_height(node, target_node)
+
+
+    #
+    # if target_node.input_node_count % 2 == 0:
+    #     move_node_averaged_height(node, target_node)
+    # else:
+    #     if node.connects_above_center(target_node) and not node.connects_to_center(target_node):
+    #         move_node_above_target(node, target_node)
+    #     elif node.connects_below_center(target_node) and not node.connects_above_center(target_node):
+    #         move_node_below_target(node, target_node)
+    #     else:
+    #         move_node_inline_with_target(node, target_node)
 
     if node.has_input_nodes_connected:
         for input_node in node.input_nodes:
