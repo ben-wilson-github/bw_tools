@@ -34,6 +34,7 @@ class NodeConnectionData:
     nodes: Union[None, 'Node', List['Node']] = field(init=False, default=None)
     height: int = field(init=False, default=0)
     chain_depth: int = field(init=False, default=0)
+    branches: List['Node'] = field(init=False, default_factory=list)
 
 
 @dataclass()
@@ -41,13 +42,13 @@ class Node:
     api_node: 'SDSBSCompNode' = field(repr=False)
     label: str = field(init=False)
     identifier: int = field(init=False)
-    position: NodePosition = field(init=False)
+    position: NodePosition = field(init=False, repr=False)
     display_border: float = field(init=False, default=26.75, repr=False)
     display_slot_stride: float = field(init=False, default=21.25, repr=False)
     input_connection_data: list = field(init=False, default_factory=list, repr=False)
     output_connection_data: list = field(init=False, default_factory=list, repr=False)
     closest_output_node: 'Node' = field(init=False, default=None, repr=None)
-    mainline_node: bool = field(init=False, default=False, repr=False)
+    mainline: bool = field(init=False, default=False, repr=False)
     # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
@@ -122,6 +123,10 @@ class Node:
     @property
     def is_end(self) -> bool:
         return self.input_node_count == 0
+
+    @property
+    def is_branching(self) -> bool:
+        return self.input_node_count > 1
 
     @property
     def output_node_count(self) -> int:
@@ -285,6 +290,11 @@ class Node:
         else:
             inner_area = ((len(relevant_properties) - 1) * self.display_slot_stride) / 2
             return (self.position.y - inner_area) + self.display_slot_stride * index
+
+    def add_comment(self, msg: str):
+        comment = sd.api.sdgraphobjectcomment.SDGraphObjectComment.sNewAsChild(self.api_node)
+        comment.setPosition(sd.api.sdbasetypes.float2(64, 0))
+        comment.setDescription(msg)
 
     def _connectable_properties_from_category(self, category) -> Tuple[SDProperty]:
         connectable_properties = []

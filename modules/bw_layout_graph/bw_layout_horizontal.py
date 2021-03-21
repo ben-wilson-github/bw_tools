@@ -3,12 +3,12 @@ from common import bw_node_selection
 
 SPACER = 32
 
+
 def move_node(node: bw_node.Node, queue: list):
     target_node = node.closest_output_node
     if target_node is None:
         target_node = node.output_nodes[0]
 
-    print(f'moving {node.label} to {target_node.label}')
     node.set_position(
         target_node.position.x - SPACER - node.width,
         target_node.position.y

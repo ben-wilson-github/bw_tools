@@ -156,9 +156,9 @@ class TestNode(unittest.TestCase):
         ]
         for node in ns.nodes:
             if node in nodes_which_should_be_false:
-                self.assertFalse(node.mainline_node)
+                self.assertFalse(node.mainline)
             else:
-                self.assertTrue(node.mainline_node)
+                self.assertTrue(node.mainline)
 
     def test_atomic_uniform_node(self):
         graph = self.test_package.findResourceFromUrl('test_node_properties')

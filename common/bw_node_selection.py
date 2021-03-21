@@ -8,9 +8,11 @@ from typing import Tuple
 from typing import TypeVar
 
 from common import bw_node
+
 importlib.reload(bw_node)
 
 import sd
+
 SDNode = TypeVar('sd.api.sdnode.SDNode')
 SDArray = TypeVar('sd.api.sdarray.SDArray')
 SDSBSCompGraph = TypeVar('sd.api.sbs.sdsbscompgraph.SDSBSCompGraph')
@@ -23,15 +25,25 @@ class NodeSelection:
     api_graph: SDSBSCompGraph = field(repr=False)
     _node_map: dict = field(init=False, default_factory=dict)
     _end_nodes: list = field(init=False, default_factory=list, repr=False)
-    _root_nodes: list = field(init=False, default_factory=list, repr=False)
     _dot_nodes: list = field(init=False, default_factory=list, repr=False)
+    _root_nodes: list = field(init=False, default_factory=list, repr=False)
+    _branching_nodes: list = field(init=False, default_factory=list, repr=False)
 
     def __post_init__(self):
         self._create_nodes()
         self._build_node_tree()
         self._categorize_nodes()
-        for node in self.end_nodes:
-            self._count_nodes(node)
+
+        # queue = []
+        # running_list = []
+        # for root_node in self.root_nodes:
+        #     queue.append(root_node)
+        #     while len(queue) > 0:
+        #         node = queue.pop(0)
+        #         self._calculate_upstream_data(node, running_list=running_list, queue=queue)
+        #
+        # for node in self.end_nodes:
+        #     self._calculate_downstream_data(node)
 
     @property
     def dot_nodes(self) -> Tuple[BWNode]:
@@ -83,14 +95,16 @@ class NodeSelection:
             output_node = dot_node_input_connection.getInputPropertyNode()
 
             # Get property the connection goes too
-            dot_node_output_property = dot_node.getPropertyFromId('unique_filter_output', sd.api.sdproperty.SDPropertyCategory.Output)
+            dot_node_output_property = dot_node.getPropertyFromId('unique_filter_output',
+                                                                  sd.api.sdproperty.SDPropertyCategory.Output)
 
             dot_node_output_connections = dot_node.getPropertyConnections(dot_node_output_property)
             for connection in dot_node_output_connections:
                 input_node_property = connection.getInputProperty()
                 input_node = connection.getInputPropertyNode()
 
-                output_node.newPropertyConnectionFromId(output_node_property.getId(), input_node, input_node_property.getId())
+                output_node.newPropertyConnectionFromId(output_node_property.getId(), input_node,
+                                                        input_node_property.getId())
 
             self.api_graph.deleteNode(dot_node)
         return True
@@ -109,6 +123,9 @@ class NodeSelection:
 
             if node.is_end:
                 self._end_nodes.append(node)
+
+            if node.is_branching:
+                self._branching_nodes.append(node)
 
     def _build_node_tree(self):
         for identifier in self._node_map:
@@ -147,22 +164,28 @@ class NodeSelection:
                 if node_in_selection is not None:
                     connection_data.nodes.append(node_in_selection)
 
-    def _count_nodes(self, node: BWNode):
-        for output_node in node.output_nodes:
-            indices = node.indices_in_target(output_node)
-            for index in indices:
-                connection_data = output_node.input_connection_data[index]
-                connection_data.chain_depth = node.largest_input_chain_depth + 1
+    @staticmethod
+    def _set_chain_depth_property(node: bw_node.Node, output_node: bw_node.Node):
+        indices = node.indices_in_target(output_node)
+        for index in indices:
+            connection_data = output_node.input_connection_data[index]
+            connection_data.chain_depth = node.largest_input_chain_depth + 1
 
-            self._count_nodes(output_node)
-
+    @staticmethod
+    def _set_mainline_property(node):
         largest_chain_node = node.input_node_with_largest_chain_depth
         for input_node in node.input_nodes:
             if input_node is largest_chain_node:
-                input_node.mainline_node = True
+                input_node.mainline = True
             else:
-                input_node.mainline_node = False
+                input_node.mainline = False
 
         if node.is_root:
             node.mainline_node = True
 
+    def _calculate_downstream_data(self, node: BWNode):
+        for output_node in node.output_nodes:
+            self._set_chain_depth_property(node, output_node)
+            self._calculate_downstream_data(output_node)
+
+        # self._set_mainline_property(node)
