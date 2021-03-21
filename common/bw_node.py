@@ -29,6 +29,14 @@ class NodePosition:
 
 
 @dataclass()
+class NodeConnectionData:
+    index: int
+    nodes: Union[None, 'Node', List['Node']] = field(init=False, default=None)
+    height: int = field(init=False, default=0)
+    chain_depth: int = field(init=False, default=0)
+
+
+@dataclass()
 class Node:
     api_node: 'SDSBSCompNode' = field(repr=False)
     label: str = field(init=False)
@@ -36,9 +44,11 @@ class Node:
     position: NodePosition = field(init=False)
     display_border: float = field(init=False, default=26.75, repr=False)
     display_slot_stride: float = field(init=False, default=21.25, repr=False)
-    _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
-    _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
-    _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
+    input_connection_data: list = field(init=False, default_factory=list, repr=False)
+    output_connection_data: list = field(init=False, default_factory=list, repr=False)
+    # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
+    # _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
+    # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
 
     def __post_init__(self):
         if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
@@ -108,16 +118,20 @@ class Node:
         return self.output_node_count == 0
 
     @property
+    def is_end(self) -> bool:
+        return self.input_node_count == 0
+
+    @property
     def output_node_count(self) -> int:
         return len(self.output_nodes)
 
     @property
     def output_nodes(self) -> Tuple['Node']:
         ret = []
-        for output_nodes in self._output_nodes.values():
-            for output_node in output_nodes:
-                if output_node not in ret:
-                    ret.append(output_node)
+        for connection_data in self.output_connection_data:
+            for node in connection_data.nodes:
+                if node not in ret:
+                    ret.append(node)
         return tuple(ret)
 
     @property
@@ -125,12 +139,11 @@ class Node:
         return len(self.input_nodes)
 
     @property
-    def input_nodes(self) -> Tuple['Node']:
+    def input_nodes(self) -> Tuple['Node', ...]:
         ret = []
-        for input_node in self._input_nodes.values():
-            if input_node is None or input_node in ret:
-                continue
-            ret.append(input_node)
+        for connection_data in self.input_connection_data:
+            if connection_data.nodes not in ret and connection_data.nodes is not None:
+                ret.append(connection_data.nodes)
         return tuple(ret)
 
     @property
@@ -144,12 +157,41 @@ class Node:
     @property
     def input_nodes_height_sum(self) -> float:
         sum = 0
-        for height in self._input_node_heights.values():
-            sum += height
+        for connection_data in self.input_connection_data:
+            sum += connection_data.height
         return sum
 
+    @property
+    def largest_input_chain_depth(self) -> int:
+        return self._calculate_largest_chain_depth()[0]
+
+    @property
+    def input_chains_are_equal_depth(self) -> bool:
+        largest = self.largest_input_chain_depth
+        for cd in self.input_connection_data:
+            if cd.chain_depth == 0:
+                continue
+            if cd.chain_depth != largest:
+                return False
+        return True
+
+    @property
+    def index_of_largest_chain_depth(self) -> int:
+        return self._calculate_largest_chain_depth()[1]
+
+    def is_largest_chain_in_target(self, target_node: 'Node') -> bool:
+        index = self.indices_in_target(target_node)[0] # Assume top index
+        return index == target_node.index_of_largest_chain_depth
+
     def input_node_height_in_index(self, index) -> float:
-        return self._input_node_heights[index]
+        connection_data = self.input_connection_data[index]
+        return connection_data.height
+
+    def connects_above_largest_chain_in_target(self, target_node: Node) -> bool:
+        return self.indices_in_target(target_node)[0] < target_node.index_of_largest_chain_depth
+
+    def connects_below_largest_chain_in_target(self, target_node: Node) -> bool:
+        return self.indices_in_target(target_node)[0] > target_node.index_of_largest_chain_depth
 
     def connects_above_center(self, target_node: Node) -> bool:
         return any(i < target_node.center_input_index for i in self.indices_in_target(target_node))
@@ -163,9 +205,9 @@ class Node:
     def indices_in_target(self, target_node: Node) -> List[int]:
         """Returns all the indices that this node connects to in target node"""
         indices = []
-        for index, node in target_node._input_nodes.items():
-            if node is self:
-                indices.append(index)
+        for connection_data in target_node.input_connection_data:
+            if connection_data.nodes is self:
+                indices.append(connection_data.index)
         return indices
 
     def set_position(self, x, y):
@@ -179,19 +221,22 @@ class Node:
 
     def output_nodes_in_index(self, index) -> Tuple['Node']:
         ret = []
-        output_nodes = self._output_nodes[index]
-        for output_node in output_nodes:
-            if output_node not in ret:
-                ret.append(output_node)
+        for connection_data in self.output_connection_data:
+            if connection_data.index != index:
+                continue
+
+            for node in connection_data.nodes:
+                if node not in ret:
+                    ret.append(node)
         return tuple(ret)
 
     def input_node_in_index(self, index) -> Union['Node', None]:
-        try:
-            node = self._input_nodes[index]
-        except KeyError:
-            return None
-        else:
-            return node
+        for connection_data in self.input_connection_data:
+            if connection_data.index != index:
+                continue
+            else:
+                return connection_data.nodes
+        return None
 
     def is_connected_to_node(self, target_node: 'Node') -> bool:
         if not isinstance(target_node, Node):
@@ -240,6 +285,15 @@ class Node:
             if p.isConnectable():
                 connectable_properties.append(p)
         return tuple(connectable_properties)
+
+    def _calculate_largest_chain_depth(self) -> Tuple[int, int]:
+        largest = 0
+        index = 0
+        for cd in self.input_connection_data:
+            if cd.chain_depth > largest:
+                largest = cd.chain_depth
+                index = cd.index
+        return largest, index
 
     # ====================================================
     # To refactor

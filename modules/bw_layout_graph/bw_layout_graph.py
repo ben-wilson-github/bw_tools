@@ -1,54 +1,49 @@
 import os
+import math
 import importlib
 from functools import partial
 
-from PySide2 import QtWidgets
 from PySide2 import QtGui
+from PySide2 import QtWidgets
+
+import sd
 
 from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
 
+
 importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
 importlib.reload(bw_node_selection)
-# import json, time, os
-# import importlib.util
-#
-# from enum import Enum
-#
-# from common import (
-#     bwSettings,
-#     bwUtils
-# )
-# from modules.bw_layout_graph.lib import (
-#     bwNodeChain,
-#     bwLayoutPass
-# )
-#
-# importlib.reload(bwSettings)
-# importlib.reload(bwNodeChain)
-# importlib.reload(bwLayoutPass)
-# importlib.reload(bwUtils)
-#
-# from sd.ui.graphgrid import GraphGrid
-# from sd.api.sdbasetypes import float2
-# from sd.api.sdproperty import SDPropertyCategory
-# from sd.api.sdtypetexture import SDTypeTexture
-# from sd.api.sdhistoryutils import SDHistoryUtils
-# from sd.api.apiexception import APIException
-#
-# from PySide2 import QtCore, QtGui, QtWidgets
 
 SPACER = 32
 
 
-def get_y_offset_from_target(node: bw_node.Node, target_node: bw_node.Node) -> float:
-    if target_node.input_node_in_index(target_node.center_input_index) is None:
-        y_offset = 2 * SPACER
+def get_height_sum_from_largest_chain_to_node(node: bw_node.Node, target_node: bw_node.Node):
+    index_to_move = node.indices_in_target(target_node)[0]
+    largest_chain_index = target_node.index_of_largest_chain_depth
+
+    if index_to_move > largest_chain_index:
+        increment = 1
+        start = largest_chain_index + 1
     else:
-        y_offset = SPACER + node.height
-    return y_offset
+        increment = -1
+        start = largest_chain_index - 1
+
+    sum = 0
+    for i in range(start, index_to_move, increment):
+        height = target_node.input_node_height_in_index(i)
+        if height > 0:
+            sum += height + SPACER
+
+    return sum
+
+
+def get_y_offset_from_target(node: bw_node.Node, target_node: bw_node.Node) -> float:
+    sum = get_height_sum_from_largest_chain_to_node(node, target_node)
+    offset = sum + (node.height / 2) + (SPACER / 2)
+    return offset
 
 
 def move_node_below_target(node: bw_node.Node, target_node: bw_node.Node):
@@ -72,18 +67,23 @@ def move_node_inline_with_target(node: bw_node.Node, target_node: bw_node.Node):
     )
 
 
-def move_node_averaged_height(node: bw_node.Node, target_node: bw_node.Node):
+def sum_of_all_input_nodes_above(target_index: int, target_node: bw_node.Node) -> float:
+    sum = 0
+    for i in range(target_index + 1):
+        input_node_height = target_node.input_node_height_in_index(i)
+        sum += input_node_height
+        if input_node_height > 0:
+            sum += SPACER
+    return sum
+
+
+def move_node_equal_distance_between_inputs_chains(node: bw_node.Node, target_node: bw_node.Node):
     target_delta_from_norm = (target_node.height - 96) / 2
     current_delta_from_norm = (node.height - 96) / 2
     y_offset = target_delta_from_norm - current_delta_from_norm
 
     target_index = node.indices_in_target(target_node)[0]
-    for i in range(target_index + 1):
-        input_node_height = target_node.input_node_height_in_index(i)
-        y_offset += input_node_height
-        if input_node_height > 0:
-            y_offset += SPACER
-
+    y_offset += sum_of_all_input_nodes_above(target_index, target_node)
     y_offset -= SPACER  # Remove the first spacer
     additional_spacing = (target_node.input_node_count - 1) * SPACER
 
@@ -99,20 +99,15 @@ def move_node(node: bw_node.Node, queue: list):
 
     if target_node.input_node_count == 1:
         move_node_inline_with_target(node, target_node)
+    elif target_node.input_chains_are_equal_depth:
+        move_node_equal_distance_between_inputs_chains(node, target_node)
     else:
-        move_node_averaged_height(node, target_node)
-
-
-    #
-    # if target_node.input_node_count % 2 == 0:
-    #     move_node_averaged_height(node, target_node)
-    # else:
-    #     if node.connects_above_center(target_node) and not node.connects_to_center(target_node):
-    #         move_node_above_target(node, target_node)
-    #     elif node.connects_below_center(target_node) and not node.connects_above_center(target_node):
-    #         move_node_below_target(node, target_node)
-    #     else:
-    #         move_node_inline_with_target(node, target_node)
+        if node.is_largest_chain_in_target(target_node):
+            move_node_inline_with_target(node, target_node)
+        elif node.connects_above_largest_chain_in_target(target_node):
+            move_node_above_target(node, target_node)
+        elif node.connects_below_largest_chain_in_target(target_node):
+            move_node_below_target(node, target_node)
 
     if node.has_input_nodes_connected:
         for input_node in node.input_nodes:
@@ -121,19 +116,26 @@ def move_node(node: bw_node.Node, queue: list):
 
 def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
     api.log.info('Running layout Graph')
-    node_selection.remove_dot_nodes()
 
-    for root_node in node_selection.root_nodes:
-        if not root_node.has_input_nodes_connected:
-            continue
+    # n1 = node_selection.nodes[1]
+    # n2 = node_selection.nodes[0]
+    # print(n1.is_largest_chain_in_target(n2))
+    # print(n1.connects_above_largest_chain_in_target(n2))
 
-        queue = []
-        for input_node in root_node.input_nodes:
-            queue.append(input_node)
+    with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
+        node_selection.remove_dot_nodes()
 
-        while len(queue) > 0:
-            node = queue.pop(0)
-            move_node(node, queue)
+        for root_node in node_selection.root_nodes:
+            if not root_node.has_input_nodes_connected:
+                continue
+
+            queue = []
+            for input_node in root_node.input_nodes:
+                queue.append(input_node)
+
+            while len(queue) > 0:
+                node = queue.pop(0)
+                move_node(node, queue)
 
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:

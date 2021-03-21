@@ -45,6 +45,104 @@ class TestNode(unittest.TestCase):
         self.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         self.test_package = self.pkg_mgr.loadUserPackage(self.test_package_file_path)
 
+    def test_chain_depth(self):
+        print('...test_chain_depth')
+        graph = self.test_package.findResourceFromUrl('test_chain_depth')
+        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+
+        node = ns.node(1408385550)
+        self.assertTrue(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 0)
+        self.assertEqual(node.largest_input_chain_depth, 1)
+        input_node = ns.node(1408385554)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+
+        node = ns.node(1408385507)
+        self.assertTrue(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 0)
+        self.assertEqual(node.largest_input_chain_depth, 2)
+        input_node = ns.node(1408385517)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385530)
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertTrue(input_node.connects_below_largest_chain_in_target(node))
+
+        node = ns.node(1408385575)
+        self.assertTrue(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 0)
+        self.assertEqual(node.largest_input_chain_depth, 2)
+        input_node = ns.node(1408385578)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385577)
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertTrue(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385587)
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertTrue(input_node.connects_below_largest_chain_in_target(node))
+
+        node = ns.node(1408385610)
+        self.assertFalse(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 1)
+        self.assertEqual(node.largest_input_chain_depth, 2)
+        input_node = ns.node(1408385609)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385614)
+        self.assertTrue(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+
+        node = ns.node(1408385607)
+        self.assertFalse(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 0)
+        self.assertEqual(node.largest_input_chain_depth, 2)
+        input_node = ns.node(1408385618)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385615)
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertTrue(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385611)
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertTrue(input_node.connects_below_largest_chain_in_target(node))
+
+        node = ns.node(1408385648)
+        self.assertFalse(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 2)
+        self.assertEqual(node.largest_input_chain_depth, 4)
+        input_node = ns.node(1408385699)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385644)
+        self.assertTrue(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385645)
+        self.assertTrue(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+
+        node = ns.node(1408385736)
+        self.assertFalse(node.input_chains_are_equal_depth)
+        self.assertEqual(node.index_of_largest_chain_depth, 1)
+        self.assertEqual(node.largest_input_chain_depth, 4)
+        input_node = ns.node(1408385733)
+        self.assertTrue(input_node.is_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385735)
+        self.assertTrue(input_node.connects_above_largest_chain_in_target(node))
+        self.assertFalse(input_node.connects_below_largest_chain_in_target(node))
+        input_node = ns.node(1408385737)
+        self.assertFalse(input_node.connects_above_largest_chain_in_target(node))
+        self.assertTrue(input_node.connects_below_largest_chain_in_target(node))
+
     def test_atomic_uniform_node(self):
         print('...test_node_properties')
         graph = self.test_package.findResourceFromUrl('test_node_properties')
@@ -72,20 +170,17 @@ class TestNode(unittest.TestCase):
         node_selection = bw_node_selection.NodeSelection(graph.getNodes(), graph)
 
         node = node_selection.node(1408223740)
-        print(f'......testing {node.label}')
         self.assertEqual(0, node.input_node_count)
         self.assertEqual((), node.input_nodes)
         self.assertIsNone(node.input_node_in_index(0))
 
         node = node_selection.node(1408230178)
-        print(f'......testing {node.label}')
         result = (node_selection.node(1408223752), )
         self.assertEqual(1, node.input_node_count)
         self.assertEqual(result, node.input_nodes)
         self.assertEqual(result[0], node.input_node_in_index(0))
 
         node = node_selection.node(1408223766)
-        print(f'......testing {node.label}')
         result = (
             node_selection.node(1408223772),
             node_selection.node(1408223782),
@@ -98,7 +193,6 @@ class TestNode(unittest.TestCase):
         self.assertEqual(result[2], node.input_node_in_index(2))
 
         node = node_selection.node(1408223917)
-        print(f'......testing {node.label}')
         result = (
             None,
             node_selection.node(1408223970),
@@ -125,7 +219,6 @@ class TestNode(unittest.TestCase):
             graph
         )
         node = node_selection.node(1408230210)
-        print(f'......testing {node.label}')
         self.assertEqual(node.input_node_count, 2)
         self.assertEqual(node.input_nodes, (
             node_selection.node(1408224069),
@@ -142,19 +235,16 @@ class TestNode(unittest.TestCase):
         node_selection = bw_node_selection.NodeSelection(graph.getNodes(), graph)
 
         node = node_selection.node(1407968709)
-        print(f'......testing {node.label}')
         self.assertEqual(0, node.output_node_count)
         self.assertEqual((), node.output_nodes)
 
         node = node_selection.node(1408229620)
-        print(f'......testing {node.label}')
         self.assertEqual(1, node.output_node_count)
         self.assertEqual((node_selection.node(1407968625), ), node.output_nodes)
         self.assertEqual(1, node.output_node_count_in_index(0))
         self.assertEqual((node_selection.node(1407968625), ), node.output_nodes_in_index(0))
 
         node = node_selection.node(1408121486)
-        print(f'......testing {node.label}')
         self.assertEqual(2, node.output_node_count)
         self.assertEqual((
             node_selection.node(1408112819),
@@ -180,7 +270,6 @@ class TestNode(unittest.TestCase):
             graph
         )
         node = node_selection.node(1408230085)
-        print(f'......testing {node.label}')
         self.assertEqual(2, node.output_node_count)
         self.assertEqual((
             node_selection.node(1407968718),

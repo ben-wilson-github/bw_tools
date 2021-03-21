@@ -22,26 +22,28 @@ class NodeSelection:
     api_nodes: List[SDNode] = field(repr=False)
     api_graph: SDSBSCompGraph = field(repr=False)
     _node_map: dict = field(init=False, default_factory=dict)
+    _end_nodes: list = field(init=False, default_factory=list)
+    _root_nodes: list = field(init=False, default_factory=list)
+    _dot_nodes: list = field(init=False, default_factory=list)
 
     def __post_init__(self):
         self._create_nodes()
         self._build_node_tree()
+        self._categorize_nodes()
+        for node in self.end_nodes:
+            self._count_nodes(node)
 
     @property
     def dot_nodes(self) -> Tuple[BWNode]:
-        ret = []
-        for node in self._node_map.values():
-            if node.is_dot:
-                ret.append(node)
-        return tuple(ret)
+        return tuple(self._dot_nodes)
 
     @property
     def root_nodes(self) -> Tuple[BWNode]:
-        ret = []
-        for node in self._node_map.values():
-            if node.is_root:
-                ret.append(node)
-        return tuple(ret)
+        return tuple(self._root_nodes)
+
+    @property
+    def end_nodes(self) -> Tuple[BWNode]:
+        return tuple(self._end_nodes)
 
     @property
     def nodes(self) -> Tuple[BWNode]:
@@ -97,6 +99,17 @@ class NodeSelection:
         for node in self.api_nodes:
             self._node_map[int(node.getIdentifier())] = bw_node.Node(node)
 
+    def _categorize_nodes(self):
+        for node in self._node_map.values():
+            if node.is_dot:
+                self._dot_nodes.append(node)
+
+            if node.is_root:
+                self._root_nodes.append(node)
+
+            if node.is_end:
+                self._end_nodes.append(node)
+
     def _build_node_tree(self):
         for identifier in self._node_map:
             self._add_output_nodes(self._node_map[identifier])
@@ -105,8 +118,8 @@ class NodeSelection:
     def _add_input_nodes(self, node: bw_node.Node):
         seen = []
         for i, p in enumerate(node.input_connectable_properties):
-            node._input_nodes[i] = None
-            node._input_node_heights[i] = 0
+            connection_data = bw_node.NodeConnectionData(i)
+            node.input_connection_data.append(connection_data)
 
             connection = node.api_node.getPropertyConnections(p)
             if len(connection) == 0:
@@ -117,18 +130,31 @@ class NodeSelection:
             api_node = connection[0].getInputPropertyNode()
             if self.contains(api_node.getIdentifier()):
                 node_in_selection = self.node(api_node.getIdentifier())
-                node._input_nodes[i] = node_in_selection
+                connection_data.nodes = node_in_selection
                 if node_in_selection not in seen:
-                    node._input_node_heights[i] = node_in_selection.height
-
-            seen.append(node_in_selection)
+                    connection_data.height = node_in_selection.height
+                seen.append(node_in_selection)
 
     def _add_output_nodes(self, node: bw_node.Node):
         for i, p in enumerate(node.output_connectable_properties):
-            node._output_nodes[i] = []
+            connection_data = bw_node.NodeConnectionData(i)
+            node.output_connection_data.append(connection_data)
+            connection_data.nodes = []
             for connection in node.api_node.getPropertyConnections(p):
                 api_node = connection.getInputPropertyNode()
                 identifier = api_node.getIdentifier()
                 node_in_selection = self.node(identifier)
                 if node_in_selection is not None:
-                    node._output_nodes[i].append(node_in_selection)
+                    connection_data.nodes.append(node_in_selection)
+
+    def _count_nodes(self, node: BWNode):
+        if node.is_root:
+            return
+
+        for output_node in node.output_nodes:
+            indices = node.indices_in_target(output_node)
+            for index in indices:
+                connection_data = output_node.input_connection_data[index]
+                connection_data.chain_depth = node.largest_input_chain_depth + 1
+
+            self._count_nodes(output_node)
