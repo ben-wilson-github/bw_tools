@@ -11,107 +11,15 @@ import sd
 from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
+from . import bw_layout_mainline
+from . import bw_layout_horizontal
 
 
 importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
 importlib.reload(bw_node_selection)
-
-SPACER = 32
-
-
-def get_height_sum_from_largest_chain_to_node(node: bw_node.Node, target_node: bw_node.Node):
-    index_to_move = node.indices_in_target(target_node)[0]
-    largest_chain_index = target_node.index_of_largest_chain_depth
-
-    if index_to_move > largest_chain_index:
-        increment = 1
-        start = largest_chain_index + 1
-    else:
-        increment = -1
-        start = largest_chain_index - 1
-
-    sum = 0
-    for i in range(start, index_to_move, increment):
-        height = target_node.input_node_height_in_index(i)
-        if height > 0:
-            sum += height + SPACER
-
-    return sum
-
-
-def get_y_offset_from_target(node: bw_node.Node, target_node: bw_node.Node) -> float:
-    sum = get_height_sum_from_largest_chain_to_node(node, target_node)
-    offset = sum + (node.height / 2) + (SPACER / 2)
-    return offset
-
-
-def move_node_below_target(node: bw_node.Node, target_node: bw_node.Node):
-    node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y + get_y_offset_from_target(node, target_node)
-    )
-
-
-def move_node_above_target(node: bw_node.Node, target_node: bw_node.Node):
-    node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y - get_y_offset_from_target(node, target_node)
-    )
-
-
-def move_node_inline_with_target(node: bw_node.Node, target_node: bw_node.Node):
-    node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y
-    )
-
-
-def sum_of_all_input_nodes_above(target_index: int, target_node: bw_node.Node) -> float:
-    sum = 0
-    for i in range(target_index + 1):
-        input_node_height = target_node.input_node_height_in_index(i)
-        sum += input_node_height
-        if input_node_height > 0:
-            sum += SPACER
-    return sum
-
-
-def move_node_equal_distance_between_inputs_chains(node: bw_node.Node, target_node: bw_node.Node):
-    target_delta_from_norm = (target_node.height - 96) / 2
-    current_delta_from_norm = (node.height - 96) / 2
-    y_offset = target_delta_from_norm - current_delta_from_norm
-
-    target_index = node.indices_in_target(target_node)[0]
-    y_offset += sum_of_all_input_nodes_above(target_index, target_node)
-    y_offset -= SPACER  # Remove the first spacer
-    additional_spacing = (target_node.input_node_count - 1) * SPACER
-
-    node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y + y_offset - (target_node.height / 2)
-        - ((target_node.input_nodes_height_sum + additional_spacing) / 2)
-    )
-
-
-def move_node(node: bw_node.Node, queue: list):
-    target_node = node.output_nodes[0]
-
-    if target_node.input_node_count == 1:
-        move_node_inline_with_target(node, target_node)
-    elif target_node.input_chains_are_equal_depth:
-        move_node_equal_distance_between_inputs_chains(node, target_node)
-    else:
-        if node.is_largest_chain_in_target(target_node):
-            move_node_inline_with_target(node, target_node)
-        elif node.connects_above_largest_chain_in_target(target_node):
-            move_node_above_target(node, target_node)
-        elif node.connects_below_largest_chain_in_target(target_node):
-            move_node_below_target(node, target_node)
-
-    if node.has_input_nodes_connected:
-        for input_node in node.input_nodes:
-            queue.append(input_node)
+importlib.reload(bw_layout_mainline)
+importlib.reload(bw_layout_horizontal)
 
 
 def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
@@ -123,19 +31,8 @@ def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool
     # print(n1.connects_above_largest_chain_in_target(n2))
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-        node_selection.remove_dot_nodes()
-
-        for root_node in node_selection.root_nodes:
-            if not root_node.has_input_nodes_connected:
-                continue
-
-            queue = []
-            for input_node in root_node.input_nodes:
-                queue.append(input_node)
-
-            while len(queue) > 0:
-                node = queue.pop(0)
-                move_node(node, queue)
+        bw_layout_horizontal.run(node_selection)
+        # bw_layout_mainline.run(node_selection)
 
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:

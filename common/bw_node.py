@@ -46,6 +46,8 @@ class Node:
     display_slot_stride: float = field(init=False, default=21.25, repr=False)
     input_connection_data: list = field(init=False, default_factory=list, repr=False)
     output_connection_data: list = field(init=False, default_factory=list, repr=False)
+    closest_output_node: 'Node' = field(init=False, default=None, repr=None)
+    mainline_node: bool = field(init=False, default=False, repr=False)
     # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
@@ -166,6 +168,11 @@ class Node:
         return self._calculate_largest_chain_depth()[0]
 
     @property
+    def input_node_with_largest_chain_depth(self) -> 'Node':
+        index = self.largest_chain_depth_index
+        return self.input_node_in_index(index)
+
+    @property
     def input_chains_are_equal_depth(self) -> bool:
         largest = self.largest_input_chain_depth
         for cd in self.input_connection_data:
@@ -176,22 +183,22 @@ class Node:
         return True
 
     @property
-    def index_of_largest_chain_depth(self) -> int:
+    def largest_chain_depth_index(self) -> int:
         return self._calculate_largest_chain_depth()[1]
 
     def is_largest_chain_in_target(self, target_node: 'Node') -> bool:
         index = self.indices_in_target(target_node)[0] # Assume top index
-        return index == target_node.index_of_largest_chain_depth
+        return index == target_node.largest_chain_depth_index
 
     def input_node_height_in_index(self, index) -> float:
         connection_data = self.input_connection_data[index]
         return connection_data.height
 
     def connects_above_largest_chain_in_target(self, target_node: Node) -> bool:
-        return self.indices_in_target(target_node)[0] < target_node.index_of_largest_chain_depth
+        return self.indices_in_target(target_node)[0] < target_node.largest_chain_depth_index
 
     def connects_below_largest_chain_in_target(self, target_node: Node) -> bool:
-        return self.indices_in_target(target_node)[0] > target_node.index_of_largest_chain_depth
+        return self.indices_in_target(target_node)[0] > target_node.largest_chain_depth_index
 
     def connects_above_center(self, target_node: Node) -> bool:
         return any(i < target_node.center_input_index for i in self.indices_in_target(target_node))

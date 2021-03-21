@@ -22,9 +22,9 @@ class NodeSelection:
     api_nodes: List[SDNode] = field(repr=False)
     api_graph: SDSBSCompGraph = field(repr=False)
     _node_map: dict = field(init=False, default_factory=dict)
-    _end_nodes: list = field(init=False, default_factory=list)
-    _root_nodes: list = field(init=False, default_factory=list)
-    _dot_nodes: list = field(init=False, default_factory=list)
+    _end_nodes: list = field(init=False, default_factory=list, repr=False)
+    _root_nodes: list = field(init=False, default_factory=list, repr=False)
+    _dot_nodes: list = field(init=False, default_factory=list, repr=False)
 
     def __post_init__(self):
         self._create_nodes()
@@ -148,9 +148,6 @@ class NodeSelection:
                     connection_data.nodes.append(node_in_selection)
 
     def _count_nodes(self, node: BWNode):
-        if node.is_root:
-            return
-
         for output_node in node.output_nodes:
             indices = node.indices_in_target(output_node)
             for index in indices:
@@ -158,3 +155,14 @@ class NodeSelection:
                 connection_data.chain_depth = node.largest_input_chain_depth + 1
 
             self._count_nodes(output_node)
+
+        largest_chain_node = node.input_node_with_largest_chain_depth
+        for input_node in node.input_nodes:
+            if input_node is largest_chain_node:
+                input_node.mainline_node = True
+            else:
+                input_node.mainline_node = False
+
+        if node.is_root:
+            node.mainline_node = True
+
