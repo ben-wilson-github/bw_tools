@@ -27,7 +27,8 @@ class NodeSelection:
     _end_nodes: list = field(init=False, default_factory=list, repr=False)
     _dot_nodes: list = field(init=False, default_factory=list, repr=False)
     _root_nodes: list = field(init=False, default_factory=list, repr=False)
-    _branching_nodes: list = field(init=False, default_factory=list, repr=False)
+    _output_branching_nodes: list = field(init=False, default_factory=list, repr=False)
+    _input_branching_nodes: list = field(init=False, default_factory=list, repr=False)
 
     def __post_init__(self):
         self._create_nodes()
@@ -56,6 +57,14 @@ class NodeSelection:
     @property
     def end_nodes(self) -> Tuple[BWNode]:
         return tuple(self._end_nodes)
+
+    @property
+    def input_branching_nodes(self) -> Tuple[BWNode]:
+        return tuple(self._input_branching_nodes)
+
+    @property
+    def output_branching_nodes(self) -> Tuple[BWNode]:
+        return tuple(self._output_branching_nodes)
 
     @property
     def nodes(self) -> Tuple[BWNode]:
@@ -124,8 +133,11 @@ class NodeSelection:
             if node.is_end:
                 self._end_nodes.append(node)
 
-            if node.is_branching:
-                self._branching_nodes.append(node)
+            if node.has_branching_outputs:
+                self._output_branching_nodes.append(node)
+
+            if node.has_branching_inputs:
+                self._input_branching_nodes.append(node)
 
     def _build_node_tree(self):
         for identifier in self._node_map:

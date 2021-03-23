@@ -8,6 +8,7 @@ from typing import List
 
 from common import bw_connection
 from common import bw_utils
+from common import bw_chain_dimension
 
 import sd
 
@@ -16,6 +17,7 @@ SDProperty = TypeVar('SDProperty')
 SDConnection = TypeVar('SDConnection')
 SDSBSCompGraph = TypeVar('SDSBSCompGraph')
 SDNode = TypeVar('sd.api.sdnode.SDNode')
+ChainDimension = TypeVar('bw_chain_dimension.ChainDimension')
 
 
 @dataclass()
@@ -49,6 +51,7 @@ class Node:
     output_connection_data: list = field(init=False, default_factory=list, repr=False)
     closest_output_node: 'Node' = field(init=False, default=None, repr=None)
     mainline: bool = field(init=False, default=False, repr=False)
+    chain_dimension: ChainDimension = field(init=False, default=None, repr=False)
     # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
@@ -125,7 +128,11 @@ class Node:
         return self.input_node_count == 0
 
     @property
-    def is_branching(self) -> bool:
+    def has_branching_outputs(self) -> bool:
+        return self.output_node_count > 1
+
+    @property
+    def has_branching_inputs(self) -> bool:
         return self.input_node_count > 1
 
     @property
