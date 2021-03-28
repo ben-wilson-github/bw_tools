@@ -16,35 +16,7 @@ def set_branching_property(node: bw_node.Node, running_list: List[bw_node.Node],
         queue.append(input_node)
 
 
-def calculate_chain_dimension(node: bw_node.Node):
 
-    chain_dimension = bw_chain_dimension.ChainDimension(
-        max_x=node.position.x + (node.width / 2),
-        min_x=node.position.x - (node.width / 2),
-        max_y=node.position.y + (node.height / 2),
-        min_y=node.position.y - (node.height / 2)
-    )
-    node.chain_dimension = chain_dimension
-
-    # for output_node in node.output_nodes:
-    #     output_node_max_x = output_node.position.x - (output_node.width / 2) - SPACER
-    #     chain_dimension.max_x = max(chain_dimension.max_x, output_node_max_x)
-
-    for input_node in node.input_nodes:
-        if not input_node.has_branching_outputs and input_node.chain_dimension is not None:
-            chain_dimension.min_x = min(input_node.chain_dimension.min_x, chain_dimension.min_x)
-            chain_dimension.min_y = min(input_node.chain_dimension.min_y, chain_dimension.min_y)
-            chain_dimension.max_y = max(input_node.chain_dimension.max_y, chain_dimension.max_y)
-
-    for output_node in node.output_nodes:
-        calculate_chain_dimension(output_node)
-
-
-def build_downstream_data(node_selection: bw_node_selection.NodeSelection):
-    for node in node_selection.end_nodes:
-        calculate_chain_dimension(node)
-
-        in order to move the node back, we must track the last node in the chain
 
 
 def build_upstream_data(node_selection: bw_node_selection.NodeSelection):
@@ -58,14 +30,32 @@ def build_upstream_data(node_selection: bw_node_selection.NodeSelection):
             node.add_comment(str(node.output_connection_data))
 
 
+def update_inputs_positions(node: bw_node.Node, offset, seen):
+    for input_node in node.input_nodes:
+        if input_node in seen:
+            continue
+        seen.append(input_node)
+        input_node.set_position(input_node.position.x - offset, input_node.position.y)
+        if input_node.has_input_nodes_connected:
+            update_inputs_positions(input_node, offset, seen)
+
+
 def run(node_selection: bw_node_selection.NodeSelection):
     # build_upstream_data(node_selection)
     build_downstream_data(node_selection)
 
+    i = 0
     for node in node_selection.input_branching_nodes:
+        if i == 1:
+            return
+        i += 1
+        print(node.chain_dimension)
         sorted_inputs = sorted(list(node.input_nodes), key=lambda item: item.chain_dimension.min_x)
         furthest_input = sorted_inputs[0]
+        print(furthest_input)
         furthest_input.set_position(
-            sorted_inputs[1].position.x - 128,
+            sorted_inputs[1].chain_dimension.end_node.position.x - 128 - 96,
             furthest_input.position.y
         )
+        seen = []
+        update_inputs_positions(furthest_input, sorted_inputs[1].chain_dimension.width + SPACER + 96, seen)

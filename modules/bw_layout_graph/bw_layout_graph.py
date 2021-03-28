@@ -12,6 +12,7 @@ from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
 from . import bw_layout_mainline
+from . import bw_layout_vertical
 from . import bw_layout_horizontal
 
 
@@ -19,20 +20,17 @@ importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
 importlib.reload(bw_node_selection)
 importlib.reload(bw_layout_mainline)
+importlib.reload(bw_layout_vertical)
 importlib.reload(bw_layout_horizontal)
 
 
 def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
     api.log.info('Running layout Graph')
 
-    # n1 = node_selection.nodes[1]
-    # n2 = node_selection.nodes[0]
-    # print(n1.is_largest_chain_in_target(n2))
-    # print(n1.connects_above_largest_chain_in_target(n2))
-
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         bw_layout_horizontal.run(node_selection)
-        bw_layout_mainline.run(node_selection)
+        bw_layout_vertical.run(node_selection)
+        # bw_layout_mainline.run(node_selection)
 
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:

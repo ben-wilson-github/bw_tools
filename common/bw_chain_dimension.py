@@ -1,4 +1,8 @@
+from __future__ import annotations
 from dataclasses import dataclass
+from dataclasses import field
+
+from common import bw_node
 
 
 @dataclass()
@@ -7,6 +11,7 @@ class ChainDimension:
     max_x: float
     min_y: float
     max_y: float
+    end_node: bw_node.Node = field(init=False, default=None)
 
     @property
     def width(self):

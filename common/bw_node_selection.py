@@ -176,28 +176,28 @@ class NodeSelection:
                 if node_in_selection is not None:
                     connection_data.nodes.append(node_in_selection)
 
-    @staticmethod
-    def _set_chain_depth_property(node: bw_node.Node, output_node: bw_node.Node):
-        indices = node.indices_in_target(output_node)
-        for index in indices:
-            connection_data = output_node.input_connection_data[index]
-            connection_data.chain_depth = node.largest_input_chain_depth + 1
+    # @staticmethod
+    # def _set_chain_depth_property(node: bw_node.Node, output_node: bw_node.Node):
+    #     indices = node.indices_in_target(output_node)
+    #     for index in indices:
+    #         connection_data = output_node.input_connection_data[index]
+    #         connection_data.chain_depth = node.largest_input_chain_depth + 1
 
-    @staticmethod
-    def _set_mainline_property(node):
-        largest_chain_node = node.input_node_with_largest_chain_depth
-        for input_node in node.input_nodes:
-            if input_node is largest_chain_node:
-                input_node.mainline = True
-            else:
-                input_node.mainline = False
+    # @staticmethod
+    # def _set_mainline_property(node):
+    #     largest_chain_node = node.input_node_with_largest_chain_depth
+    #     for input_node in node.input_nodes:
+    #         if input_node is largest_chain_node:
+    #             input_node.mainline = True
+    #         else:
+    #             input_node.mainline = False
+    #
+    #     if node.is_root:
+    #         node.mainline_node = True
 
-        if node.is_root:
-            node.mainline_node = True
-
-    def _calculate_downstream_data(self, node: BWNode):
-        for output_node in node.output_nodes:
-            self._set_chain_depth_property(node, output_node)
-            self._calculate_downstream_data(output_node)
+    # def _calculate_downstream_data(self, node: BWNode):
+    #     for output_node in node.output_nodes:
+    #         self._set_chain_depth_property(node, output_node)
+    #         self._calculate_downstream_data(output_node)
 
         # self._set_mainline_property(node)
