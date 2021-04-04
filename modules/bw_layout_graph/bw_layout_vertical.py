@@ -1,6 +1,32 @@
+from typing import Tuple
+
 from common import bw_node
 from common import bw_node_selection
 from common import bw_chain_dimension
+
+
+SPACER = 32
+
+def calculate_chain_dimension2(node: bw_node.Node):
+    cd = bw_chain_dimension.ChainDimension(
+        max_x=node.position.x + (node.width / 2),
+        min_x=node.position.x - (node.width / 2),
+        max_y=node.position.y + (node.height / 2),
+        min_y=node.position.y - (node.height / 2)
+    )
+    node.chain_dimension = cd
+
+    if not node.has_branching_outputs:
+        for input_node in node.input_nodes:
+            if input_node.chain_dimension is None:
+                continue
+
+            cd.min_x = min(input_node.chain_dimension.min_x, cd.min_x)
+            cd.min_y = min(input_node.chain_dimension.min_y, cd.min_y)
+            cd.max_y = max(input_node.chain_dimension.max_y, cd.max_y)
+
+    for output_node in node.output_nodes:
+        calculate_chain_dimension2(output_node)
 
 
 def calculate_chain_dimension(node: bw_node.Node):
@@ -28,7 +54,7 @@ def calculate_chain_dimension(node: bw_node.Node):
 
 def build_downstream_data(node_selection: bw_node_selection.NodeSelection):
     for node in node_selection.end_nodes:
-        calculate_chain_dimension(node)
+        calculate_chain_dimension2(node)
 
 
 def update_chain_positions(node, offset, seen):
@@ -40,55 +66,74 @@ def update_chain_positions(node, offset, seen):
         update_chain_positions(input_node, offset, seen)
 
 
-def run(node_selection: bw_node_selection.NodeSelection):
-    Update the calculate chain dimension fcuntion
-    Can I include the branching node?
-    if I am a branchign node, then create a new dimension
-        otherwise take the largest dimensions from inptus
+def get_node_furthest_back(nodes: Tuple[bw_node.Node, ...]) -> bw_node.Node:
+    for i, node in enumerate(nodes):
+        if i == 0:
+            continue
+        previous_node = nodes[i - 1]
+        if node.chain_dimension.min_x > previous_node.chain_dimension.min_x:
+            return previous_node
+        elif node.position.x == previous_node.position.x:
+            continue
+        else:
+            return node
+    return nodes[0]
 
-    Need to figure out if there is a better way of doing vertical pass
-    I want to place each chain under the other
-    then find the mainline and position that to center
-    and move everything else up with the same offset
 
-    sorted_branching_nodes = sorted(
-        list(node_selection.input_branching_nodes),
-        key=lambda item: item.position.x)
-
+def move_nodes_below_sibling_above(sorted_branching_nodes: Tuple[bw_node.Node, ...],
+                                   node_selection: bw_node_selection.NodeSelection):
     # move all children down
     for node in sorted_branching_nodes:
-        if not node.has_input_nodes_connected:
-            continue
-
-        build_downstream_data(node_selection)
-
         for i, input_node in enumerate(node.input_nodes):
             if i == 0:
                 continue
 
-            previous_input_node = node.input_nodes[i - 1]
+            # Must update the chain dimensions after each move
+            # because the graph is changing
+            build_downstream_data(node_selection)
+
+            input_node_above = node.input_nodes[i - 1]
+
             old_y = input_node.position.y
-            new_y = previous_input_node.chain_dimension.max_y + (previous_input_node.height / 2)
+            new_y = input_node_above.chain_dimension.max_y + (input_node.height / 2) + SPACER
             offset = new_y - old_y
 
             seen = []
             update_chain_positions(input_node, offset, seen)
 
-    # Move back up
-    for node in sorted_branching_nodes:
-        if not node.has_input_nodes_connected:
-            continue
 
+def realign_nodes(sorted_branching_nodes: Tuple[bw_node.Node, ...],
+                  node_selection: bw_node_selection.NodeSelection):
+    for node in sorted_branching_nodes:
         build_downstream_data(node_selection)
+
         sorted_by_min_x = sorted(
             list(node.input_nodes),
             key=lambda item: item.chain_dimension.min_x
         )
-        offset = sorted_by_min_x[0].position.y - node.position.y
+        input_node_furthest_back = get_node_furthest_back(tuple(sorted_by_min_x))
+
+        offset = node.position.y - input_node_furthest_back.position.y
 
         seen = [node]
-        update_chain_positions(node, -offset, seen)
+        update_chain_positions(node, offset, seen)
 
+
+def run(node_selection: bw_node_selection.NodeSelection):
+    sorted_branching_nodes = tuple(sorted(
+        list(node_selection.input_branching_nodes),
+        key=lambda item: item.position.x))
+
+    move_nodes_below_sibling_above(sorted_branching_nodes, node_selection)
+    realign_nodes(sorted_branching_nodes, node_selection)
+
+    Next step would be to average teh positions after if they are too few
+    But first, we should try to solve main line idea before offseting in y
+    because branching close to the root are positions below the siblings entire
+    tree, even if that sibling was a mainline and further back.
+
+    return
+    # maybe we should average the node positions after
     # Down again
     for node in sorted_branching_nodes:
         if not node.has_input_nodes_connected:
