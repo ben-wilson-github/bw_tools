@@ -29,8 +29,8 @@ def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         bw_layout_horizontal.run(node_selection)
+        bw_layout_mainline.run(node_selection)
         bw_layout_vertical.run(node_selection)
-        # bw_layout_mainline.run(node_selection)
 
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:

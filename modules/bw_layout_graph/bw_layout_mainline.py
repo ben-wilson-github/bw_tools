@@ -1,4 +1,5 @@
-from typing import List
+from typing import Tuple
+from typing import Union
 
 from common import bw_node
 from common import bw_node_selection
@@ -6,56 +7,102 @@ from common import bw_chain_dimension
 
 SPACER = 32
 
-def set_branching_property(node: bw_node.Node, running_list: List[bw_node.Node], queue: List[bw_node.Node]):
-    if node.is_branching:
-        running_list.append(node)
+def calculate_chain_dimension(node: bw_node.Node):
+    cd = bw_chain_dimension.ChainDimension(
+        max_x=node.position.x + (node.width / 2),
+        min_x=node.position.x - (node.width / 2),
+        max_y=node.position.y + (node.height / 2),
+        min_y=node.position.y - (node.height / 2)
+    )
+    node.chain_dimension = cd
 
-    for input_node in node.input_nodes:
-        for cd in input_node.output_connection_data:
-            cd.branches = running_list.copy()
-        queue.append(input_node)
+    if not node.has_branching_outputs:
+        for input_node in node.input_nodes:
+            if input_node.chain_dimension is None:
+                continue
+
+            cd.min_x = min(input_node.chain_dimension.min_x, cd.min_x)
+            cd.min_y = min(input_node.chain_dimension.min_y, cd.min_y)
+            cd.max_y = max(input_node.chain_dimension.max_y, cd.max_y)
+
+    for output_node in node.output_nodes:
+        calculate_chain_dimension(output_node)
 
 
-
-
-
-def build_upstream_data(node_selection: bw_node_selection.NodeSelection):
-    queue = []
-    running_list = []
-    for root_node in node_selection.root_nodes:
-        queue.append(root_node)
-        while len(queue) > 0:
-            node = queue.pop(0)
-            set_branching_property(node, running_list=running_list, queue=queue)
-            node.add_comment(str(node.output_connection_data))
+def build_downstream_data(node_selection: bw_node_selection.NodeSelection):
+    for node in node_selection.end_nodes:
+        calculate_chain_dimension(node)
 
 
 def update_inputs_positions(node: bw_node.Node, offset, seen):
+    if node in seen:
+        return
+
+    node.set_position(node.position.x + offset, node.position.y)
+    seen.append(node)
+
     for input_node in node.input_nodes:
-        if input_node in seen:
+        update_inputs_positions(input_node, offset, seen)
+
+
+def calculate_mainline(node: bw_node.Node) -> Tuple[Union[bw_node.Node, None], Union[bw_node.Node, None]]:
+    sorted_by_min_x = sorted(
+        list(node.input_nodes),
+        key=lambda item: item.chain_dimension.min_x
+    )
+
+    for i, n in enumerate(sorted_by_min_x):
+        if i == 0:
             continue
-        seen.append(input_node)
-        input_node.set_position(input_node.position.x - offset, input_node.position.y)
-        if input_node.has_input_nodes_connected:
-            update_inputs_positions(input_node, offset, seen)
+        previous_node = sorted_by_min_x[i - 1]
+        if n.chain_dimension.min_x > previous_node.chain_dimension.min_x:
+            return previous_node, n
+        elif n.position.x == previous_node.position.x:
+            continue
+        else:
+            return n, previous_node
+    return None, None
 
 
 def run(node_selection: bw_node_selection.NodeSelection):
-    # build_upstream_data(node_selection)
     build_downstream_data(node_selection)
 
     i = 0
-    for node in node_selection.input_branching_nodes:
-        if i == 1:
-            return
-        i += 1
-        print(node.chain_dimension)
-        sorted_inputs = sorted(list(node.input_nodes), key=lambda item: item.chain_dimension.min_x)
-        furthest_input = sorted_inputs[0]
-        print(furthest_input)
-        furthest_input.set_position(
-            sorted_inputs[1].chain_dimension.end_node.position.x - 128 - 96,
-            furthest_input.position.y
-        )
-        seen = []
-        update_inputs_positions(furthest_input, sorted_inputs[1].chain_dimension.width + SPACER + 96, seen)
+    sorted_branching_nodes = tuple(sorted(
+        list(node_selection.input_branching_nodes),
+        key=lambda item: item.position.x))
+
+    for node in sorted_branching_nodes:
+        mainline_node, largest_sibling = calculate_mainline(node)
+        if mainline_node is None:
+            continue
+
+        should I move the offset logic to if its a branching node or not?
+        # To calculate the offset, we should extend the dimension to include
+        # the mainline node
+        # offset_dimension = largest_sibling.chain_dimension.min_x - (mainline_node.width / 2) - SPACER
+        offset_dimension = largest_sibling.chain_dimension.min_x
+        offset = offset_dimension - mainline_node.position.x
+        print(offset)
+        threshold = (mainline_node.width / 2) + SPACER
+        print(threshold)
+
+        if offset < -((mainline_node.width / 2) + SPACER):
+            seen = []
+            update_inputs_positions(mainline_node, -offset, seen)
+
+
+
+        # if i == 1:
+        #     return
+        # i += 1
+        # print(node.chain_dimension)
+        # sorted_inputs = sorted(list(node.input_nodes), key=lambda item: item.chain_dimension.min_x)
+        # furthest_input = sorted_inputs[0]
+        # print(furthest_input)
+        # furthest_input.set_position(
+        #     sorted_inputs[1].chain_dimension.end_node.position.x - 128 - 96,
+        #     furthest_input.position.y
+        # )
+        # seen = []
+        # update_inputs_positions(furthest_input, sorted_inputs[1].chain_dimension.width + SPACER + 96, seen)

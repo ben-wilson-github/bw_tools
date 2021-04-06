@@ -29,29 +29,6 @@ def calculate_chain_dimension2(node: bw_node.Node):
         calculate_chain_dimension2(output_node)
 
 
-def calculate_chain_dimension(node: bw_node.Node):
-    chain_dimension = bw_chain_dimension.ChainDimension(
-        max_x=node.position.x + (node.width / 2),
-        min_x=node.position.x - (node.width / 2),
-        max_y=node.position.y + (node.height / 2),
-        min_y=node.position.y - (node.height / 2)
-    )
-    chain_dimension.end_node = node
-    node.chain_dimension = chain_dimension
-
-    for input_node in node.input_nodes:
-        if input_node.chain_dimension is not None and not input_node.has_branching_outputs:
-            # if input_node.chain_dimension.min_x < chain_dimension.min_x:
-            #     chain_dimension.min_x = input_node.chain_dimension.min_x
-            #     chain_dimension.end_node = input_node.chain_dimension.end_node
-            chain_dimension.min_x = min(input_node.chain_dimension.min_x, chain_dimension.min_x)
-            chain_dimension.min_y = min(input_node.chain_dimension.min_y, chain_dimension.min_y)
-            chain_dimension.max_y = max(input_node.chain_dimension.max_y, chain_dimension.max_y)
-
-    for output_node in node.output_nodes:
-        calculate_chain_dimension(output_node)
-
-
 def build_downstream_data(node_selection: bw_node_selection.NodeSelection):
     for node in node_selection.end_nodes:
         calculate_chain_dimension2(node)
@@ -127,12 +104,14 @@ def run(node_selection: bw_node_selection.NodeSelection):
     move_nodes_below_sibling_above(sorted_branching_nodes, node_selection)
     realign_nodes(sorted_branching_nodes, node_selection)
 
-    Next step would be to average teh positions after if they are too few
-    But first, we should try to solve main line idea before offseting in y
-    because branching close to the root are positions below the siblings entire
-    tree, even if that sibling was a mainline and further back.
+    # rebuilding the chain dimnesions every loop is too
+    # not slow. Can probably only build the hain for the siblin above when nedded instead.
+    #
+    # Next step would be to average teh positions after if they are too few
+    # But first, we should try to solve main line idea before offseting in y
+    # because branching close to the root are positions below the siblings entire
+    # tree, even if that sibling was a mainline and further back.
 
-    return
     # maybe we should average the node positions after
     # Down again
     for node in sorted_branching_nodes:
