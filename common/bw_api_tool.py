@@ -16,7 +16,7 @@ importlib.reload(bw_utils)
 
 # Types for type hinting
 TYPE_MODULES = TypeVar('modules')
-SDConext = TypeVar('sd.context.Context')
+SDContext = TypeVar('sd.context.Context')
 SDNode = TypeVar('SDNode')
 SDSBSCompGraph = TypeVar('SDSBSCompGraph')
 
@@ -41,7 +41,7 @@ class APITool:
     The settings will automatically be added to the settings dialog.
     """
     def __init__(self, logger=None):
-        self.context: SDConext = sd.getContext()
+        self.context: SDContext = sd.getContext()
         if logger is None:
             logger = logging.getLogger('Root')
         self.logger: logging.RootLogger = logger
@@ -72,7 +72,7 @@ class APITool:
     def initialize(self, module: TYPE_MODULES) -> bool:
         """Initialize a module by calling the modules .on_initialize()"""
         if not inspect.ismodule(module):
-            raise TypeError(bw_utils.type_error_message(self.initialize, module))
+            raise TypeError(bw_utils.invalid_type_error(self.initialize, module))
 
         if module.__name__ not in self.loaded_modules:
             if self.debug:
@@ -117,18 +117,22 @@ class APITool:
         for callback in self.callback_ids:
             self.ui_mgr.unregisterCallback(callback)
 
-    def find_all_toolbars(self) -> List[bw_toolbar.BWToolbar]:
+    def remove_toolbars(self):
+        for toolbar in self._find_all_toolbars():
+            toolbar.deleteLater()
+
+    def register_on_graph_view_created_callback(self, func):
+        self.callback_ids.append(
+            self.ui_mgr.registerGraphViewCreatedCallback(func)
+        )
+
+    def _find_all_toolbars(self) -> List[bw_toolbar.BWToolbar]:
         ret = []
         toolbars = self.main_window.findChildren(QtWidgets.QToolBar)
         for toolbar in toolbars:
             if toolbar.__class__.__name__ == self.toolbar.uid:
                 ret.append(toolbar)
         return ret
-
-    def register_on_graph_view_created_callback(self, func):
-        self.callback_ids.append(
-            self.ui_mgr.registerGraphViewCreatedCallback(func)
-        )
 
     def _create_graph_view_toolbar(self, graph_view_id):
         toolbar = bw_toolbar.BWToolbar()

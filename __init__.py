@@ -36,6 +36,5 @@ def uninitializeSDPlugin():
     LOGGER['logger'].removeHandler(LOGGER['file_handler'])
     LOGGER['logger'].removeHandler(LOGGER['stream_handler'])
     API_TOOL.unregister_callbacks()
-    for toolbar in API_TOOL.find_all_toolbars():
-        toolbar.deleteLater()
+    API_TOOL.remove_toolbars()
 

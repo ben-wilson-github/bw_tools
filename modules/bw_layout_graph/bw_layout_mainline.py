@@ -65,35 +65,36 @@ def calculate_mainline(node: bw_node.Node) -> Tuple[Union[bw_node.Node, None], U
 
 
 def run(node_selection: bw_node_selection.NodeSelection):
-    build_downstream_data(node_selection)
+    print('Split nodes into sorted groups of selections')
+    print('split by branching nodes')
+    # build_downstream_data(node_selection)
 
-    i = 0
-    sorted_branching_nodes = tuple(sorted(
-        list(node_selection.input_branching_nodes),
-        key=lambda item: item.position.x))
+    # i = 0
+    # sorted_branching_nodes = tuple(sorted(
+    #     list(node_selection.input_branching_nodes),
+    #     key=lambda item: item.position.x))
 
-    for node in sorted_branching_nodes:
-        mainline_node, largest_sibling = calculate_mainline(node)
-        if mainline_node is None:
-            continue
+    # for node in sorted_branching_nodes:
+    #     mainline_node, largest_sibling = calculate_mainline(node)
+    #     if mainline_node is None:
+    #         continue
 
-        should I move the offset logic to if its a branching node or not?
-        # To calculate the offset, we should extend the dimension to include
-        # the mainline node
-        # offset_dimension = largest_sibling.chain_dimension.min_x - (mainline_node.width / 2) - SPACER
-        offset_dimension = largest_sibling.chain_dimension.min_x
-        offset = offset_dimension - mainline_node.position.x
-        print(offset)
-        threshold = (mainline_node.width / 2) + SPACER
-        print(threshold)
+    #     # To calculate the offset, we should extend the dimension to include
+    #     # the mainline node
+    #     # offset_dimension = largest_sibling.chain_dimension.min_x - (mainline_node.width / 2) - SPACER
+    #     offset_dimension = largest_sibling.chain_dimension.min_x
+    #     offset = offset_dimension - mainline_node.position.x
+    #     print(offset)
+    #     threshold = (mainline_node.width / 2) + SPACER
+    #     print(threshold)
 
-        if offset < -((mainline_node.width / 2) + SPACER):
-            seen = []
-            update_inputs_positions(mainline_node, -offset, seen)
-
+    #     if offset < -((mainline_node.width / 2) + SPACER):
+    #         seen = []
+    #         update_inputs_positions(mainline_node, -offset, seen)
 
 
-        # if i == 1:
+
+    #     # if i == 1:
         #     return
         # i += 1
         # print(node.chain_dimension)

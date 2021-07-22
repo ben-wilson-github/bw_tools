@@ -19,6 +19,8 @@ SDSBSCompGraph = TypeVar('SDSBSCompGraph')
 SDNode = TypeVar('sd.api.sdnode.SDNode')
 ChainDimension = TypeVar('bw_chain_dimension.ChainDimension')
 
+# TODO: Move this to settings
+SPACER = 32
 
 @dataclass()
 class NodePosition:
@@ -27,7 +29,7 @@ class NodePosition:
 
     def __post_init__(self):
         if not any(isinstance(i, float) for i in [self.x, self.y]):
-            raise TypeError(bw_utils.type_error_message(self.__init__, self.x, self.y))
+            raise TypeError(bw_utils.invalid_type_error(self.__init__, self.x, self.y))
 
 
 @dataclass()
@@ -58,7 +60,7 @@ class Node:
 
     def __post_init__(self):
         if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
-            raise TypeError(bw_utils.type_error_message(self.__init__, self.api_node))
+            raise TypeError(bw_utils.invalid_type_error(self.__init__, self.api_node))
         self.label = self.api_node.getDefinition().getLabel()
         self.identifier = int(self.api_node.getIdentifier())
         self.position = NodePosition(self.api_node.getPosition().x, self.api_node.getPosition().y)
@@ -230,10 +232,15 @@ class Node:
         return indices
 
     def set_position(self, x, y):
-        self.position = NodePosition(x, y)
+        self.position.x = x
+        self.position.y = y
         self.api_node.setPosition(
             sd.api.sdbasetypes.float2(x, y)
         )
+    
+    def move_to_node(self, other: Node, offset_x: float = 0, offset_y: float = 0):
+        """Helper function to position a node to another"""
+        self.set_position(other.position.x + offset_x, other.position.y + offset_y)
 
     def output_node_count_in_index(self, index) -> int:
         return len(self.output_nodes_in_index(index))
@@ -259,7 +266,7 @@ class Node:
 
     def is_connected_to_node(self, target_node: 'Node') -> bool:
         if not isinstance(target_node, Node):
-            raise TypeError(bw_utils.type_error_message(
+            raise TypeError(bw_utils.invalid_type_error(
                 self.is_connected_to_node, target_node)
             )
 

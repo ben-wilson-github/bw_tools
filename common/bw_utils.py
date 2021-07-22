@@ -10,7 +10,7 @@ def object_is_subclass(obj, parent_class, verbose=False):
     return False
 
 
-def type_error_message(obj, *args):
+def invalid_type_error(obj, *args):
     msg = f'Unable to call {obj.__qualname__}().\nCalled with signature:\n\t('
     for i, arg in enumerate(inspect.signature(obj).parameters.keys()):
         msg += f'{arg}: {type(args[i])} {args[i]}'

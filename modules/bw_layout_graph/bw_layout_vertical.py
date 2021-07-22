@@ -7,6 +7,25 @@ from common import bw_chain_dimension
 
 SPACER = 32
 
+def calculate_chain_dimension3(node: bw_node.Node):
+    cd = bw_chain_dimension.ChainDimension(
+        max_x=node.position.x + (node.width / 2),
+        min_x=node.position.x - (node.width / 2),
+        max_y=node.position.y + (node.height / 2),
+        min_y=node.position.y - (node.height / 2)
+    )
+
+    if node.has_input_nodes_connected:
+        for input_node in node.input_nodes:
+            input_cd = calculate_chain_dimension3(input_node)
+
+            cd.min_x = min(input_cd.min_x, cd.min_x)
+            cd.min_y = min(input_cd.min_y, cd.min_y)
+            cd.max_x = max(input_cd.max_x, cd.max_x)
+            cd.max_y = max(input_cd.max_y, cd.max_y)
+    
+    return cd
+
 def calculate_chain_dimension2(node: bw_node.Node):
     cd = bw_chain_dimension.ChainDimension(
         max_x=node.position.x + (node.width / 2),
@@ -57,7 +76,7 @@ def get_node_furthest_back(nodes: Tuple[bw_node.Node, ...]) -> bw_node.Node:
     return nodes[0]
 
 
-def move_nodes_below_sibling_above(sorted_branching_nodes: Tuple[bw_node.Node, ...],
+def move_nodes_below_sibling_above_old(sorted_branching_nodes: Tuple[bw_node.Node, ...],
                                    node_selection: bw_node_selection.NodeSelection):
     # move all children down
     for node in sorted_branching_nodes:
@@ -79,7 +98,21 @@ def move_nodes_below_sibling_above(sorted_branching_nodes: Tuple[bw_node.Node, .
             update_chain_positions(input_node, offset, seen)
 
 
-def realign_nodes(sorted_branching_nodes: Tuple[bw_node.Node, ...],
+def arrange_children_in_y_axis(parent_node: bw_node.Node):
+    for i, input_node in enumerate(parent_node.input_nodes):
+        if i == 0:  # ignore the first child, so it remains inline with the parent
+            input_node.move_to_node(parent_node, offset_x=-(input_node.width + SPACER))
+        else:
+            node_above = parent_node.input_nodes[i - 1]
+            # cd = calculate_chain_dimension3(input_node_above)
+            offset = (node_above.height / 2) + (input_node.height / 2) + SPACER
+            input_node.move_to_node(node_above, offset_y=offset)
+
+        if input_node.has_input_nodes_connected:
+            arrange_children_in_y_axis(input_node)
+
+
+def realign_nodes_old(sorted_branching_nodes: Tuple[bw_node.Node, ...],
                   node_selection: bw_node_selection.NodeSelection):
     for node in sorted_branching_nodes:
         build_downstream_data(node_selection)
@@ -97,12 +130,21 @@ def realign_nodes(sorted_branching_nodes: Tuple[bw_node.Node, ...],
 
 
 def run(node_selection: bw_node_selection.NodeSelection):
+    # TODO: Change to single node selection roots by spliting selections
+    root_node = node_selection.root_nodes[0]
+
+    arrange_children_in_y_axis(root_node)
+    
+        
+
+
+    return
     sorted_branching_nodes = tuple(sorted(
         list(node_selection.input_branching_nodes),
         key=lambda item: item.position.x))
 
-    move_nodes_below_sibling_above(sorted_branching_nodes, node_selection)
-    realign_nodes(sorted_branching_nodes, node_selection)
+    move_nodes_below_sibling_above_old(sorted_branching_nodes, node_selection)
+    realign_nodes_old(sorted_branching_nodes, node_selection)
 
     # rebuilding the chain dimnesions every loop is too
     # not slow. Can probably only build the hain for the siblin above when nedded instead.
