@@ -19,6 +19,20 @@ class AbstractAlignStrategy(ABC):
     def align_children(self, parent_node: bw_node.Node):
         pass
 
+class AlignParentCenter(AbstractAlignStrategy):
+    def align_children(self, parent_node: bw_node.Node):
+        top_child = parent_node.input_nodes[0]
+        bottom_child = parent_node.input_nodes[-1]
+
+        min = top_child.position.y - (top_child.height / 2)
+        max = bottom_child.position.y + (bottom_child.height / 2)
+        mid = (min + max) / 2
+
+        offset = parent_node.position.y - mid
+        offset = mid - parent_node.position.y
+        parent_node.set_position(parent_node.position.x, parent_node.position.y + offset)
+
+
 class AlignCenter(AbstractAlignStrategy):
     def align_children(self, parent_node: bw_node.Node):
         """Aligns the children of a parent node to the center point of those children in Y"""
@@ -28,13 +42,9 @@ class AlignCenter(AbstractAlignStrategy):
         min = top_child.position.y - (top_child.height / 2)
         max = bottom_child.position.y + (bottom_child.height / 2)
         mid = (min + max) / 2
-        delta = parent_node.position.y - mid
+        offset = parent_node.position.y - mid
 
-        for input_node in parent_node.input_nodes:
-            input_node.set_position(input_node.position.x, input_node.position.y + delta)
-
-            if input_node.has_input_nodes_connected:
-                self.align_children(input_node)
+        offset_children(parent_node, offset=offset)
 
 def arrange_chain_in_hiararchy(parent_node: bw_node.Node):
     for i, input_node in enumerate(parent_node.input_nodes):
@@ -65,9 +75,6 @@ def run(node_selection: bw_node_selection.NodeSelection):
     root_node = node_selection.root_nodes[0]
     arrange_chain_in_hiararchy(root_node)
     run_remove_overlap(root_node)
-    # for node in node_selection.input_branching_nodes:
-    #     s = AlignCenter()
-    #     s.align_children(node)
 
 def run_remove_overlap(parent_node: bw_node.Node):
     for i, input_node in enumerate(parent_node.input_nodes):
@@ -98,8 +105,15 @@ def run_remove_overlap(parent_node: bw_node.Node):
             input_node.set_position(input_node.position.x, input_node.position.y + offset)
         
         run_remove_overlap(input_node)
+    
+    if parent_node.input_node_count > 1:
+        if parent_node.output_node_count == 0:
+            strategy = AlignCenter()
+        else:
+            strategy = AlignParentCenter()
+        strategy.align_children(parent_node)
 
-        
+     
 def offset_children(parent_node: bw_node.Node, offset: float):
     for input_node in parent_node.input_nodes:
         input_node.set_position(input_node.position.x, input_node.position.y + offset)
