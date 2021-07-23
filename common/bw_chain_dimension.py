@@ -1,21 +1,99 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
+from typing import Union
 
 from common import bw_node
 
 
 @dataclass()
+class Bound:
+     min_x: Union[float, None] = None
+     max_x: Union[float, None] = None
+     min_y: Union[float, None] = None
+     max_y: Union[float, None] = None
+
+
+@dataclass()
 class ChainDimension:
-    min_x: float
-    max_x: float
-    min_y: float
-    max_y: float
+    bounds: Bound = field(init=False, default_factory=Bound)
     end_node: bw_node.Node = field(init=False, default=None)
+
+    @property
+    def min_x(self):
+        return self.bounds.min_x
+
+    @min_x.setter
+    def min_x(self, value: Union[float, None]):
+        self.bounds.min_x = value
+    
+    @property
+    def max_x(self):
+        return self.bounds.max_x
+    
+    @max_x.setter
+    def max_x(self, value: Union[float, None]):
+        self.bounds.max_x = value
+
+    @property
+    def min_y(self):
+        return self.bounds.min_y
+    
+    @min_y.setter
+    def min_y(self, value: Union[float, None]):
+        self.bounds.min_y = value
+
+    @property
+    def max_y(self):
+        return self.bounds.max_y
+    
+    @max_y.setter
+    def max_y(self, value: Union[float, None]):
+        self.bounds.max_y = value
 
     @property
     def width(self):
         return self.max_x - self.min_x
+
+
+def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound):
+    cd = ChainDimension()
+    cd.bounds = Bound(
+        max_x=node.position.x + (node.width / 2),
+        min_x=node.position.x - (node.width / 2),
+        max_y=node.position.y + (node.height / 2),
+        min_y=node.position.y - (node.height / 2)
+    )
+
+    if node.has_input_nodes_connected:
+        for input_node in node.input_nodes:
+
+            test_bounds = Bound(
+                min_x=limit_bounds.min_x,
+                max_x=limit_bounds.max_x,
+                min_y=limit_bounds.min_y,
+                max_y=limit_bounds.max_y,
+            )
+            if test_bounds.min_x is None:
+                test_bounds.min_x = input_node.position.x
+            if test_bounds.max_x is None:
+                test_bounds.max_x = input_node.position.x
+            if test_bounds.min_y is None:
+                test_bounds.min_y = input_node.position.y
+            if test_bounds.max_y is None:
+                test_bounds.max_y = input_node.position.y
+
+            if (input_node.position.x >= test_bounds.min_x
+                    and input_node.position.x <= test_bounds.max_x
+                    and input_node.position.y >= test_bounds.min_y
+                    and input_node.position.y <= test_bounds.max_y):
+                input_cd = calculate_chain_dimension(input_node, limit_bounds=limit_bounds)
+                cd.min_x = min(input_cd.min_x, cd.min_x)
+                cd.max_x = max(input_cd.max_x, cd.max_x)
+                cd.min_y = min(input_cd.min_y, cd.min_y)
+                cd.max_y = max(input_cd.max_y, cd.max_y)
+
+    return cd
 
 
 class OldChainDimension(object):

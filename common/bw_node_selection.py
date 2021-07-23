@@ -16,7 +16,6 @@ import sd
 SDNode = TypeVar('sd.api.sdnode.SDNode')
 SDArray = TypeVar('sd.api.sdarray.SDArray')
 SDSBSCompGraph = TypeVar('sd.api.sbs.sdsbscompgraph.SDSBSCompGraph')
-BWNode = TypeVar('bw_node.Node')
 
 
 @dataclass()
@@ -47,27 +46,27 @@ class NodeSelection:
         #     self._calculate_downstream_data(node)
 
     @property
-    def dot_nodes(self) -> Tuple[BWNode]:
+    def dot_nodes(self) -> Tuple[bw_node.Node]:
         return tuple(self._dot_nodes)
 
     @property
-    def root_nodes(self) -> Tuple[BWNode]:
+    def root_nodes(self) -> Tuple[bw_node.Node]:
         return tuple(self._root_nodes)
 
     @property
-    def end_nodes(self) -> Tuple[BWNode]:
+    def end_nodes(self) -> Tuple[bw_node.Node]:
         return tuple(self._end_nodes)
 
     @property
-    def input_branching_nodes(self) -> Tuple[BWNode]:
+    def input_branching_nodes(self) -> Tuple[bw_node.Node]:
         return tuple(self._input_branching_nodes)
 
     @property
-    def output_branching_nodes(self) -> Tuple[BWNode]:
+    def output_branching_nodes(self) -> Tuple[bw_node.Node]:
         return tuple(self._output_branching_nodes)
 
     @property
-    def nodes(self) -> Tuple[BWNode]:
+    def nodes(self) -> Tuple[bw_node.Node]:
         ret = []
         for node in self._node_map.values():
             ret.append(node)
@@ -77,7 +76,7 @@ class NodeSelection:
     def node_count(self) -> int:
         return len(self.nodes)
 
-    def node(self, identifier: Union[str, int]) -> Union[BWNode, None]:
+    def node(self, identifier: Union[str, int]) -> Union[bw_node.Node, None]:
         try:
             node = self._node_map[int(identifier)]
         except KeyError:
