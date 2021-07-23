@@ -18,6 +18,7 @@ class Bound:
 class ChainDimension:
     bounds: Bound = field(init=False, default_factory=Bound)
     left_node: bw_node.Node = field(init=False, default=None)
+    right_node: bw_node.Node = field(init=False, default=None)
     upper_node: bw_node.Node = field(init=False, default=None)
     lower_node: bw_node.Node = field(init=False, default=None)
 
@@ -26,7 +27,39 @@ class ChainDimension:
         return self.bounds.right - self.bounds.left
 
 
-def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound):
+def node_in_bounds(node: bw_node.Node, bounds: Bound):
+    # Setup testing bounds
+    testing_bounds = Bound(
+        left=bounds.left,
+        right=bounds.right,
+        upper=bounds.upper,
+        lower=bounds.lower,
+    )
+    # So we can resolve any undefined bounds
+    # Setting bounds to node position will ensure it passes 
+    # a bounds check
+    if testing_bounds.left is None:
+        testing_bounds.left = node.position.x
+    if testing_bounds.right is None:
+        testing_bounds.right = node.position.x
+    if testing_bounds.upper is None:
+        testing_bounds.upper = node.position.y
+    if testing_bounds.lower is None:
+        testing_bounds.lower = node.position.y
+
+    if (node.position.x >= testing_bounds.left
+            and node.position.x <= testing_bounds.right
+            and node.position.y >= testing_bounds.upper
+            and node.position.y <= testing_bounds.lower):
+        return True
+    else:
+        return False
+
+
+def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound, break_on_branch=False):
+    if not node_in_bounds(node, limit_bounds):
+        raise AttributeError(f'Node failed a bounds check')
+
     cd = ChainDimension()
     cd.bounds = Bound(
         right=node.position.x + (node.width / 2),
@@ -36,32 +69,15 @@ def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound):
     )
 
     cd.left_node = node
+    cd.right_node = node
     cd.upper_node = node
     cd.lower_node = node
 
-    if node.has_input_nodes_connected:
-        for input_node in node.input_nodes:
-
-            test_bounds = Bound(
-                left=limit_bounds.left,
-                right=limit_bounds.right,
-                upper=limit_bounds.upper,
-                lower=limit_bounds.lower,
-            )
-            # Update bounds to ensure the input_node will pass the bounds test
-            if test_bounds.left is None:
-                test_bounds.left = input_node.position.x
-            if test_bounds.right is None:
-                test_bounds.right = input_node.position.x
-            if test_bounds.upper is None:
-                test_bounds.upper = input_node.position.y
-            if test_bounds.lower is None:
-                test_bounds.lower = input_node.position.y
-
-            if (input_node.position.x >= test_bounds.left
-                    and input_node.position.x <= test_bounds.right
-                    and input_node.position.y >= test_bounds.upper
-                    and input_node.position.y <= test_bounds.lower):
+    for input_node in node.input_nodes:
+        if break_on_branch and input_node.output_node_count > 1:
+            continue
+        else:
+            if node_in_bounds(input_node, limit_bounds):
                 input_cd = calculate_chain_dimension(input_node, limit_bounds=limit_bounds)
                 
                 if input_cd.bounds.left <= cd.bounds.left:

@@ -3,6 +3,8 @@ import shutil
 import unittest
 import importlib
 
+from pathlib import Path
+
 import sd
 
 from common import bw_node
@@ -13,9 +15,9 @@ importlib.reload(bw_node_selection)
 
 class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        self.package_file_path = os.path.join(os.path.dirname(__file__), 'resources\\test_node_selection.sbs')
+        self.package_file_path = Path(__file__).parent.joinpath('resources/test_node_selection.sbs')
         self.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
-        self.package = self.pkg_mgr.loadUserPackage(self.package_file_path)
+        self.package = self.pkg_mgr.loadUserPackage(str(self.package_file_path.resolve()))
 
     def test_can_get_node(self):
         print('...test_can_get_node')
@@ -79,6 +81,57 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse(node_selection.node(1408093532).is_root)
         self.assertTrue(node_selection.node(1408093545).is_root)
         self.assertTrue(node_selection.node(1408093556).is_root)
+
+    def test_single_node_chain(self):
+        print('...test_single_node_chain')
+        graph = self.package.findResourceFromUrl('test_single_node_chain')
+        n1 = graph.getNodeFromId('1419106443')
+        n2 = graph.getNodeFromId('1419106427')
+        n3 = graph.getNodeFromId('1419106432')
+        n4 = graph.getNodeFromId('1419106754')
+        n5 = graph.getNodeFromId('1419106760')
+        n6 = graph.getNodeFromId('1419106755')
+
+        ns = bw_node_selection.NodeSelection([n1], graph)
+
+        self.assertEqual(ns.node_chain_count, 1)
+        self.assertEqual(ns.node_chains[0].nodes[0].identifier, int(n1.getIdentifier()))
+
+        ns = bw_node_selection.NodeSelection([n2, n3], graph)
+        self.assertEqual(ns.node_chain_count, 1)
+        self.assertEqual(ns.node_chains[0].nodes[0].identifier, int(n2.getIdentifier()))
+        self.assertEqual(ns.node_chains[0].nodes[1].identifier, int(n3.getIdentifier()))
+
+        ns = bw_node_selection.NodeSelection([n1, n2, n3], graph)
+        self.assertEqual(ns.node_chain_count, 2)
+        self.assertEqual(ns.node_chains[0].nodes[0].identifier, int(n1.getIdentifier()))
+        self.assertEqual(ns.node_chains[1].nodes[0].identifier, int(n2.getIdentifier()))
+        self.assertEqual(ns.node_chains[1].nodes[1].identifier, int(n3.getIdentifier()))
+
+        ns = bw_node_selection.NodeSelection([n4, n5, n6], graph)
+        self.assertEqual(ns.node_chain_count, 3)
+        self.assertEqual(ns.node_chains[0].nodes[0].identifier, int(n4.getIdentifier()))
+        self.assertEqual(ns.node_chains[1].nodes[0].identifier, int(n6.getIdentifier()))
+        self.assertEqual(ns.node_chains[2].nodes[0].identifier, int(n5.getIdentifier()))
+
+    def test_complex_node_chain(self):
+        print('...test_complex_node_chain')
+        graph = self.package.findResourceFromUrl('test_complex_node_chain')
+
+        n1 = graph.getNodeFromId('1419118045')
+        n2 = graph.getNodeFromId('1419118072')
+        n3 = graph.getNodeFromId('1419118039')
+        n4 = graph.getNodeFromId('1419118053')
+        n5 = graph.getNodeFromId('1419118058')
+        ns = bw_node_selection.NodeSelection([n1, n2, n3, n4, n5], graph)
+        self.assertEqual(ns.node_chain_count, 5)
+
+        n1 = graph.getNodeFromId('1419118098')
+        n2 = graph.getNodeFromId('1419118093')
+        n3 = graph.getNodeFromId('1419118108')
+        ns = bw_node_selection.NodeSelection([n1, n2, n3], graph)
+        self.assertEqual(ns.node_chain_count, 2)
+
 
     def _create_temp_file(self, temp_file):
         os.makedirs(os.path.dirname(temp_file), exist_ok=True)

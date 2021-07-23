@@ -19,13 +19,23 @@ SDArray = TypeVar('sd.api.sdarray.SDArray')
 SDSBSCompGraph = TypeVar('sd.api.sbs.sdsbscompgraph.SDSBSCompGraph')
 
 @dataclass
-class NodeGroup:
-    nodes: list[bw_node.Node]
+class NodeChain:
+    root: bw_node.Node
+    nodes: List[bw_node.Node] = field(init=False, default_factory=list)
+    
+    def __post_init__(self):
+        self.nodes.append(self.root)
+
+    def add_node(self, node: bw_node.Node):
+        if node not in self.nodes:
+            self.nodes.append(node)
 
 @dataclass()
 class NodeSelection:
     api_nodes: List[SDNode] = field(repr=False)
     api_graph: SDSBSCompGraph = field(repr=False)
+    node_chains: List[NodeChain] = field(init=False, default_factory=list, repr=False)
+
     _node_map: dict = field(init=False, default_factory=dict)
     _end_nodes: list = field(init=False, default_factory=list, repr=False)
     _dot_nodes: list = field(init=False, default_factory=list, repr=False)
@@ -37,6 +47,12 @@ class NodeSelection:
         self._create_nodes()
         self._build_node_tree()
         self._categorize_nodes()
+        self._build_node_chains()
+    
+    
+    @property
+    def node_chain_count(self) -> int:
+        return len(self.node_chains)
 
     @property
     def dot_nodes(self) -> Tuple[bw_node.Node]:
@@ -78,6 +94,7 @@ class NodeSelection:
             return node
 
     def contains(self, identifier: Union[str, int]) -> bool:
+        """Returns True if the identifier is present in the selection, otherwise False"""
         try:
             node = self._node_map[int(identifier)]
         except KeyError:
@@ -167,6 +184,24 @@ class NodeSelection:
                 node_in_selection = self.node(identifier)
                 if node_in_selection is not None:
                     connection_data.nodes.append(node_in_selection)
+
+    def _build_node_chains(self):
+        seen = []
+        for root_node in self.root_nodes:
+            self._build_node_chain(root_node, seen)
+            
+    def _build_node_chain(self, root_node: bw_node.Node, seen: List[bw_node.Node]):
+        seen.append(root_node)
+        chain = NodeChain(root_node)
+        self.node_chains.append(chain)
+        for input_node in root_node.input_nodes:
+            if input_node.has_branching_outputs:
+                if input_node in seen:
+                    continue
+                self._build_node_chain(input_node, seen)
+            else:
+                chain.add_node(input_node)
+                seen.append(input_node)
 
     # @staticmethod
     # def _set_chain_depth_property(node: bw_node.Node, output_node: bw_node.Node):
