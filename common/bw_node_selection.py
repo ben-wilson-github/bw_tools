@@ -1,6 +1,7 @@
 import importlib
 from dataclasses import dataclass
 from dataclasses import field
+from modules import bw_generate_slider_outputs
 from typing import List
 from typing import Dict
 from typing import Union
@@ -17,6 +18,9 @@ SDNode = TypeVar('sd.api.sdnode.SDNode')
 SDArray = TypeVar('sd.api.sdarray.SDArray')
 SDSBSCompGraph = TypeVar('sd.api.sbs.sdsbscompgraph.SDSBSCompGraph')
 
+@dataclass
+class NodeGroup:
+    nodes: list[bw_node.Node]
 
 @dataclass()
 class NodeSelection:
@@ -33,17 +37,6 @@ class NodeSelection:
         self._create_nodes()
         self._build_node_tree()
         self._categorize_nodes()
-
-        # queue = []
-        # running_list = []
-        # for root_node in self.root_nodes:
-        #     queue.append(root_node)
-        #     while len(queue) > 0:
-        #         node = queue.pop(0)
-        #         self._calculate_upstream_data(node, running_list=running_list, queue=queue)
-        #
-        # for node in self.end_nodes:
-        #     self._calculate_downstream_data(node)
 
     @property
     def dot_nodes(self) -> Tuple[bw_node.Node]:
