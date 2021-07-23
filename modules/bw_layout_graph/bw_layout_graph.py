@@ -1,3 +1,4 @@
+from modules.bw_layout_graph import bw_layout_hiarachy2
 import os
 import math
 import importlib
@@ -12,7 +13,8 @@ from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
 from . import bw_layout_mainline
-from . import bw_layout_vertical
+from . import bw_layout_hiarachy2
+from . import bw_layout_hiarachy
 from . import bw_layout_horizontal
 
 
@@ -20,7 +22,8 @@ importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
 importlib.reload(bw_node_selection)
 importlib.reload(bw_layout_mainline)
-importlib.reload(bw_layout_vertical)
+importlib.reload(bw_layout_hiarachy2)
+importlib.reload(bw_layout_hiarachy)
 importlib.reload(bw_layout_horizontal)
 
 
@@ -28,8 +31,9 @@ def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool
     api.log.info('Running layout Graph')
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-        bw_layout_vertical.run(node_selection) # this is actually hiarchy pass now
-        bw_layout_mainline.run(node_selection)
+        # bw_layout_hiarachy.run(node_selection)
+        bw_layout_hiarachy2.run(node_selection)
+        # bw_layout_mainline.run(node_selection)
 
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:
