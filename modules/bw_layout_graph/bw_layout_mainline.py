@@ -9,10 +9,10 @@ SPACER = 32
 
 def calculate_chain_dimension(node: bw_node.Node):
     cd = bw_chain_dimension.ChainDimension(
-        max_x=node.position.x + (node.width / 2),
-        min_x=node.position.x - (node.width / 2),
-        max_y=node.position.y + (node.height / 2),
-        min_y=node.position.y - (node.height / 2)
+        right_bound=node.position.x + (node.width / 2),
+        left_bound=node.position.x - (node.width / 2),
+        bottom_bound=node.position.y + (node.height / 2),
+        top_bound=node.position.y - (node.height / 2)
     )
     node.chain_dimension = cd
 
@@ -21,9 +21,9 @@ def calculate_chain_dimension(node: bw_node.Node):
             if input_node.chain_dimension is None:
                 continue
 
-            cd.min_x = min(input_node.chain_dimension.min_x, cd.min_x)
-            cd.min_y = min(input_node.chain_dimension.min_y, cd.min_y)
-            cd.max_y = max(input_node.chain_dimension.max_y, cd.max_y)
+            cd.left_bound = min(input_node.chain_dimension.min_x, cd.left_bound)
+            cd.top_bound = min(input_node.chain_dimension.min_y, cd.top_bound)
+            cd.bottom_bound = max(input_node.chain_dimension.max_y, cd.bottom_bound)
 
     for output_node in node.output_nodes:
         calculate_chain_dimension(output_node)
