@@ -8,90 +8,73 @@ from common import bw_node
 
 @dataclass()
 class Bound:
-     min_x: Union[float, None] = None
-     max_x: Union[float, None] = None
-     min_y: Union[float, None] = None
-     max_y: Union[float, None] = None
+     left: Union[float, None] = None
+     right: Union[float, None] = None
+     upper: Union[float, None] = None
+     lower: Union[float, None] = None
 
 
 @dataclass()
 class ChainDimension:
     bounds: Bound = field(init=False, default_factory=Bound)
-    end_node: bw_node.Node = field(init=False, default=None)
-
-    @property
-    def min_x(self):
-        return self.bounds.min_x
-
-    @min_x.setter
-    def min_x(self, value: Union[float, None]):
-        self.bounds.min_x = value
-    
-    @property
-    def max_x(self):
-        return self.bounds.max_x
-    
-    @max_x.setter
-    def max_x(self, value: Union[float, None]):
-        self.bounds.max_x = value
-
-    @property
-    def min_y(self):
-        return self.bounds.min_y
-    
-    @min_y.setter
-    def min_y(self, value: Union[float, None]):
-        self.bounds.min_y = value
-
-    @property
-    def max_y(self):
-        return self.bounds.max_y
-    
-    @max_y.setter
-    def max_y(self, value: Union[float, None]):
-        self.bounds.max_y = value
+    left_node: bw_node.Node = field(init=False, default=None)
+    upper_node: bw_node.Node = field(init=False, default=None)
+    lower_node: bw_node.Node = field(init=False, default=None)
 
     @property
     def width(self):
-        return self.max_x - self.min_x
+        return self.bounds.right - self.bounds.left
 
 
 def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound):
     cd = ChainDimension()
     cd.bounds = Bound(
-        max_x=node.position.x + (node.width / 2),
-        min_x=node.position.x - (node.width / 2),
-        max_y=node.position.y + (node.height / 2),
-        min_y=node.position.y - (node.height / 2)
+        right=node.position.x + (node.width / 2),
+        left=node.position.x - (node.width / 2),
+        lower=node.position.y + (node.height / 2),
+        upper=node.position.y - (node.height / 2)
     )
+
+    cd.left_node = node
+    cd.upper_node = node
+    cd.lower_node = node
 
     if node.has_input_nodes_connected:
         for input_node in node.input_nodes:
 
             test_bounds = Bound(
-                min_x=limit_bounds.min_x,
-                max_x=limit_bounds.max_x,
-                min_y=limit_bounds.min_y,
-                max_y=limit_bounds.max_y,
+                left=limit_bounds.left,
+                right=limit_bounds.right,
+                upper=limit_bounds.upper,
+                lower=limit_bounds.lower,
             )
-            if test_bounds.min_x is None:
-                test_bounds.min_x = input_node.position.x
-            if test_bounds.max_x is None:
-                test_bounds.max_x = input_node.position.x
-            if test_bounds.min_y is None:
-                test_bounds.min_y = input_node.position.y
-            if test_bounds.max_y is None:
-                test_bounds.max_y = input_node.position.y
+            # Update bounds to ensure the input_node will pass the bounds test
+            if test_bounds.left is None:
+                test_bounds.left = input_node.position.x
+            if test_bounds.right is None:
+                test_bounds.right = input_node.position.x
+            if test_bounds.upper is None:
+                test_bounds.upper = input_node.position.y
+            if test_bounds.lower is None:
+                test_bounds.lower = input_node.position.y
 
-            if (input_node.position.x >= test_bounds.min_x
-                    and input_node.position.x <= test_bounds.max_x
-                    and input_node.position.y >= test_bounds.min_y
-                    and input_node.position.y <= test_bounds.max_y):
+            if (input_node.position.x >= test_bounds.left
+                    and input_node.position.x <= test_bounds.right
+                    and input_node.position.y >= test_bounds.upper
+                    and input_node.position.y <= test_bounds.lower):
                 input_cd = calculate_chain_dimension(input_node, limit_bounds=limit_bounds)
-                cd.min_x = min(input_cd.min_x, cd.min_x)
-                cd.max_x = max(input_cd.max_x, cd.max_x)
-                cd.min_y = min(input_cd.min_y, cd.min_y)
-                cd.max_y = max(input_cd.max_y, cd.max_y)
+                
+                if input_cd.bounds.left <= cd.bounds.left:
+                    cd.bounds.left = input_cd.bounds.left
+                    cd.left_node = input_cd.left_node
+
+                # designer coords are flipped in y
+                if input_cd.bounds.upper <= cd.bounds.upper:
+                    cd.bounds.upper = input_cd.bounds.upper
+                    cd.upper_node = input_cd.upper_node
+                if input_cd.bounds.lower >= cd.bounds.lower:
+                    cd.bounds.lower = input_cd.bounds.lower
+                    cd.lower_node = input_cd.lower_node
 
     return cd
 
