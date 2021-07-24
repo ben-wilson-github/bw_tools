@@ -27,7 +27,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(1408084024, node_selection.node('1408084024').identifier)
         self.assertIs(api_node, node_selection.node(1408084024).api_node)
-        self.assertIs(node_selection._node_map[1408084024], node_selection.node(1408084024))
+        self.assertIs(node_selection._node_list[1408084024], node_selection.node(1408084024))
 
         self.assertIsNone(node_selection.node(1))
 

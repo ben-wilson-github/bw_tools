@@ -79,10 +79,10 @@ def insert_dot_node(
 
     position_at_source = get_from_settings_file(__file__.replace('.py', '_settings.json'), 'Position At Source')
     if position_at_source:
-        x = bw_node.Node(source_node).position.x + threshold
+        x = bw_node.Node(source_node).pos.x + threshold
         y = bw_node.Node(target_node).y_position_of_property(target_property)
     else:
-        x = bw_node.Node(target_node).position.x - threshold
+        x = bw_node.Node(target_node).pos.x - threshold
         y = bw_node.Node(source_node).y_position_of_property(source_property)
 
     dot_node.setPosition(

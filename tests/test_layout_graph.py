@@ -42,7 +42,7 @@ class MyTestCase(unittest.TestCase):
             for temp_graph_node in temp_graph_node_selection.nodes:
                 original_graph_node = original_graph_node_selection.node(temp_graph_node.identifier)
 
-                self.assertEqual(original_graph_node.position, temp_graph_node.position)
+                self.assertEqual(original_graph_node.pos, temp_graph_node.pos)
 
         self._remove_temp_file(temp_file)
 

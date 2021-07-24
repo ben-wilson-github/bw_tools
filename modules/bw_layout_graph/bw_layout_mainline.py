@@ -9,10 +9,10 @@ SPACER = 32
 
 def calculate_chain_dimension(node: bw_node.Node):
     cd = bw_chain_dimension.ChainDimension(
-        right_bound=node.position.x + (node.width / 2),
-        left_bound=node.position.x - (node.width / 2),
-        bottom_bound=node.position.y + (node.height / 2),
-        top_bound=node.position.y - (node.height / 2)
+        right_bound=node.pos.x + (node.width / 2),
+        left_bound=node.pos.x - (node.width / 2),
+        bottom_bound=node.pos.y + (node.height / 2),
+        top_bound=node.pos.y - (node.height / 2)
     )
     node.chain_dimension = cd
 
@@ -38,7 +38,7 @@ def update_inputs_positions(node: bw_node.Node, offset, seen):
     if node in seen:
         return
 
-    node.set_position(node.position.x + offset, node.position.y)
+    node.set_position(node.pos.x + offset, node.pos.y)
     seen.append(node)
 
     for input_node in node.input_nodes:
@@ -57,7 +57,7 @@ def calculate_mainline(node: bw_node.Node) -> Tuple[Union[bw_node.Node, None], U
         previous_node = sorted_by_min_x[i - 1]
         if n.chain_dimension.min_x > previous_node.chain_dimension.min_x:
             return previous_node, n
-        elif n.position.x == previous_node.position.x:
+        elif n.pos.x == previous_node.pos.x:
             continue
         else:
             return n, previous_node

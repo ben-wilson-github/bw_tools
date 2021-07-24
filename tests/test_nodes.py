@@ -59,8 +59,8 @@ class TestNode(unittest.TestCase):
         self.assertIsInstance(node.identifier, int)
 
         # Position
-        self.assertEqual(-80, node.position.x)
-        self.assertEqual(-48, node.position.y)
+        self.assertEqual(-80, node.pos.x)
+        self.assertEqual(-48, node.pos.y)
 
         # Width
         # Height

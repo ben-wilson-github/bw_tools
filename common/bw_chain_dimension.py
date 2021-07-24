@@ -39,18 +39,18 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
     # Setting bounds to node position will ensure it passes 
     # a bounds check
     if testing_bounds.left is None:
-        testing_bounds.left = node.position.x
+        testing_bounds.left = node.pos.x
     if testing_bounds.right is None:
-        testing_bounds.right = node.position.x
+        testing_bounds.right = node.pos.x
     if testing_bounds.upper is None:
-        testing_bounds.upper = node.position.y
+        testing_bounds.upper = node.pos.y
     if testing_bounds.lower is None:
-        testing_bounds.lower = node.position.y
+        testing_bounds.lower = node.pos.y
 
-    if (node.position.x >= testing_bounds.left
-            and node.position.x <= testing_bounds.right
-            and node.position.y >= testing_bounds.upper
-            and node.position.y <= testing_bounds.lower):
+    if (node.pos.x >= testing_bounds.left
+            and node.pos.x <= testing_bounds.right
+            and node.pos.y >= testing_bounds.upper
+            and node.pos.y <= testing_bounds.lower):
         return True
     else:
         return False
@@ -62,10 +62,10 @@ def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound, bre
 
     cd = ChainDimension()
     cd.bounds = Bound(
-        right=node.position.x + (node.width / 2),
-        left=node.position.x - (node.width / 2),
-        lower=node.position.y + (node.height / 2),
-        upper=node.position.y - (node.height / 2)
+        right=node.pos.x + (node.width / 2),
+        left=node.pos.x - (node.width / 2),
+        lower=node.pos.y + (node.height / 2),
+        upper=node.pos.y - (node.height / 2)
     )
 
     cd.left_node = node

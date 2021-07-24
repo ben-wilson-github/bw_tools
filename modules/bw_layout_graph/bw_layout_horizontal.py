@@ -10,8 +10,8 @@ def move_node(node: bw_node.Node, queue: list):
         target_node = node.output_nodes[0]
 
     node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y
+        target_node.pos.x - SPACER - node.width,
+        target_node.pos.y
     )
 
     if node.has_input_nodes_connected:
