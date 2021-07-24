@@ -6,7 +6,7 @@ from typing import Tuple
 from typing import TypeVar
 from typing import List
 
-from common import bw_connection
+from common import bw_connection, bw_node_selection
 from common import bw_utils
 from common import bw_chain_dimension
 
@@ -21,6 +21,9 @@ ChainDimension = TypeVar('bw_chain_dimension.ChainDimension')
 
 # TODO: Move this to settings
 SPACER = 32
+# Pixel values about the UI
+NODE_BOADER_WIDTH = 26.75
+NODE_SLOT_STRIDE = 21.25
 
 @dataclass()
 class NodePosition:
@@ -38,19 +41,22 @@ class NodeConnectionData:
     nodes: Union[None, 'Node', List['Node']] = field(init=False, default=None)
     height: int = field(init=False, default=0)
     chain_depth: int = field(init=False, default=0)
-    branches: List['Node'] = field(init=False, default_factory=list)
+    # branches: List['Node'] = field(init=False, default_factory=list)
 
 
 @dataclass()
 class Node:
     api_node: 'SDSBSCompNode' = field(repr=False)
+    node_selection: bw_node_selection = field(init=False, repr=False)
+    node_chain: bw_node_selection.NodeChain = field(init=False, repr=False)
+
     label: str = field(init=False)
     identifier: int = field(init=False)
-    position: NodePosition = field(init=False, repr=False)
-    display_border: float = field(init=False, default=26.75, repr=False)
-    display_slot_stride: float = field(init=False, default=21.25, repr=False)
-    input_connection_data: list = field(init=False, default_factory=list, repr=False)
-    output_connection_data: list = field(init=False, default_factory=list, repr=False)
+    pos: NodePosition = field(init=False, repr=False)
+
+    input_connection_data: List[NodeConnectionData] = field(init=False, default_factory=list, repr=False)
+    output_connection_data: List[NodeConnectionData] = field(init=False, default_factory=list, repr=False)
+
     closest_output_node: 'Node' = field(init=False, default=None, repr=None)
     mainline: bool = field(init=False, default=False, repr=False)
     chain_dimension: ChainDimension = field(init=False, default=None, repr=False)
@@ -59,11 +65,11 @@ class Node:
     # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
 
     def __post_init__(self):
-        if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
-            raise TypeError(bw_utils.invalid_type_error(self.__init__, self.api_node))
+        # if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
+        #     raise TypeError(bw_utils.invalid_type_error(self.__init__, self.api_node))
         self.label = self.api_node.getDefinition().getLabel()
         self.identifier = int(self.api_node.getIdentifier())
-        self.position = NodePosition(self.api_node.getPosition().x, self.api_node.getPosition().y)
+        self.pos = NodePosition(self.api_node.getPosition().x, self.api_node.getPosition().y)
 
     @property
     def has_label(self) -> bool:
@@ -232,15 +238,15 @@ class Node:
         return indices
 
     def set_position(self, x, y):
-        self.position.x = x
-        self.position.y = y
+        self.pos.x = x
+        self.pos.y = y
         self.api_node.setPosition(
             sd.api.sdbasetypes.float2(x, y)
         )
     
     def move_to_node(self, other: Node, offset_x: float = 0, offset_y: float = 0):
         """Helper function to position a node to another"""
-        self.set_position(other.position.x + offset_x, other.position.y + offset_y)
+        self.set_position(other.pos.x + offset_x, other.pos.y + offset_y)
 
     def output_node_count_in_index(self, index) -> int:
         return len(self.output_nodes_in_index(index))
@@ -294,16 +300,16 @@ class Node:
             raise ValueError(f'Unable to get height of property {source_property}. It does not belong to this node.')
 
         if len(relevant_properties) < 2:
-            return self.position.y
+            return self.pos.y
         elif len(relevant_properties) == 2:
             if index == 0:
                 offset = -10.75
             else:
                 offset = 10.75
-            return self.position.y + offset
+            return self.pos.y + offset
         else:
             inner_area = ((len(relevant_properties) - 1) * self.display_slot_stride) / 2
-            return (self.position.y - inner_area) + self.display_slot_stride * index
+            return (self.pos.y - inner_area) + self.display_slot_stride * index
 
     def add_comment(self, msg: str):
         comment = sd.api.sdgraphobjectcomment.SDGraphObjectComment.sNewAsChild(self.api_node)

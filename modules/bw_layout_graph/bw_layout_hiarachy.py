@@ -32,22 +32,22 @@ def get_y_offset_from_target(node: bw_node.Node, target_node: bw_node.Node) -> f
 
 def move_node_below_target(node: bw_node.Node, target_node: bw_node.Node):
     node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y + get_y_offset_from_target(node, target_node)
+        target_node.pos.x - SPACER - node.width,
+        target_node.pos.y + get_y_offset_from_target(node, target_node)
     )
 
 
 def move_node_above_target(node: bw_node.Node, target_node: bw_node.Node):
     node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y - get_y_offset_from_target(node, target_node)
+        target_node.pos.x - SPACER - node.width,
+        target_node.pos.y - get_y_offset_from_target(node, target_node)
     )
 
 
 def move_node_inline_with_target(node: bw_node.Node, target_node: bw_node.Node):
     node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y
+        target_node.pos.x - SPACER - node.width,
+        target_node.pos.y
     )
 
 
@@ -72,8 +72,8 @@ def move_node_even_distance(node: bw_node.Node, target_node: bw_node.Node):
     additional_spacing = (target_node.input_node_count - 1) * SPACER
 
     node.set_position(
-        target_node.position.x - SPACER - node.width,
-        target_node.position.y + y_offset - (target_node.height / 2)
+        target_node.pos.x - SPACER - node.width,
+        target_node.pos.y + y_offset - (target_node.height / 2)
         - ((target_node.input_nodes_height_sum + additional_spacing) / 2)
     )
 

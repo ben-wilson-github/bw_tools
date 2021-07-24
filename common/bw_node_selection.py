@@ -18,6 +18,10 @@ SDNode = TypeVar('sd.api.sdnode.SDNode')
 SDArray = TypeVar('sd.api.sdarray.SDArray')
 SDSBSCompGraph = TypeVar('sd.api.sbs.sdsbscompgraph.SDSBSCompGraph')
 
+class NodeNotInSelectionError(KeyError):
+    def __init__(self):
+        super().__init__('Node not in selection')
+
 @dataclass
 class NodeChain:
     root: bw_node.Node
@@ -36,19 +40,54 @@ class NodeSelection:
     api_graph: SDSBSCompGraph = field(repr=False)
     node_chains: List[NodeChain] = field(init=False, default_factory=list, repr=False)
 
-    _node_map: dict = field(init=False, default_factory=dict)
+    # Node list is a dictionary of identifier keys with a bw_node.Node object as value
+    _node_list: dict = field(init=False, default_factory=dict)
+    # Node map is the tree structure of the selection
+    _node_map: dict = field(init=False, default_factory=dict, repr=False)
     _end_nodes: list = field(init=False, default_factory=list, repr=False)
-    _dot_nodes: list = field(init=False, default_factory=list, repr=False)
+    _dot_nodes: List[bw_node.Node] = field(init=False, default_factory=list, repr=False)
     _root_nodes: list = field(init=False, default_factory=list, repr=False)
     _output_branching_nodes: list = field(init=False, default_factory=list, repr=False)
     _input_branching_nodes: list = field(init=False, default_factory=list, repr=False)
 
+    _api_root_nodes = []
+
     def __post_init__(self):
         self._create_nodes()
-        self._build_node_tree()
-        self._categorize_nodes()
-        self._build_node_chains()
+        self._build_node_tree_api()
+        self._categorize_nodes2()
+
+        print(self._root_nodes)
+
+        # self._categorize_nodes()
+        # self._build_node_chains()
     
+    def _categorize_nodes2(self):
+        nodes_left = list(self._node_list.keys())
+        while nodes_left:
+            identifier = nodes_left.pop(0)
+
+            if self._is_root(identifier):
+                self._root_nodes.append(self.node(identifier))
+                BECAUSE THIS IS A ROOT, NEXT IS TO TRAVEL DOWN THE CHAIN
+                ADDING THE NODES TO A CHAIN
+                POPING THE NEW IDENTIFIERS FROM QUEUE
+                CATEGORIZING IT
+
+                IF ITS NOT A ROOT, PUT IT BACK IN QUEUE            
+
+    def _is_root(self, identifier):
+        unique_outputs = []
+        for _, outputs in self._node_map[identifier]['outputs'].items():
+            for output_identifier in outputs:
+                if output_identifier not in unique_outputs:
+                    unique_outputs.append(output_identifier)
+        return len(unique_outputs) != 1
+
+            
+
+
+                
     
     @property
     def node_chain_count(self) -> int:
@@ -77,7 +116,7 @@ class NodeSelection:
     @property
     def nodes(self) -> Tuple[bw_node.Node]:
         ret = []
-        for node in self._node_map.values():
+        for node in self._node_list.values():
             ret.append(node)
         return tuple(ret)
 
@@ -85,22 +124,14 @@ class NodeSelection:
     def node_count(self) -> int:
         return len(self.nodes)
 
-    def node(self, identifier: Union[str, int]) -> Union[bw_node.Node, None]:
+    def node(self, identifier: Union[str, int]) -> bw_node.Node:
         try:
-            node = self._node_map[int(identifier)]
+            node = self._node_list[int(identifier)]
         except KeyError:
-            return None
+            raise NodeNotInSelectionError()
         else:
             return node
 
-    def contains(self, identifier: Union[str, int]) -> bool:
-        """Returns True if the identifier is present in the selection, otherwise False"""
-        try:
-            node = self._node_map[int(identifier)]
-        except KeyError:
-            return False
-        else:
-            return True
 
     def remove_dot_nodes(self) -> bool:
         for dot_node in self.dot_nodes:
@@ -128,11 +159,12 @@ class NodeSelection:
         return True
 
     def _create_nodes(self):
-        for node in self.api_nodes:
-            self._node_map[int(node.getIdentifier())] = bw_node.Node(node)
+        for api_node in self.api_nodes:
+            node = bw_node.Node(api_node)
+            self._node_list[node.identifier] = node
 
     def _categorize_nodes(self):
-        for node in self._node_map.values():
+        for node in self._node_list.values():
             if node.is_dot:
                 self._dot_nodes.append(node)
 
@@ -148,60 +180,129 @@ class NodeSelection:
             if node.has_branching_inputs:
                 self._input_branching_nodes.append(node)
 
-    def _build_node_tree(self):
-        for identifier in self._node_map:
-            self._add_output_nodes(self._node_map[identifier])
-            self._add_input_nodes(self._node_map[identifier])
+    def _build_node_tree_api(self):
+        for identifier in self._node_list:
+            self._node_map[identifier] = dict()
 
-    def _add_input_nodes(self, node: bw_node.Node):
-        seen = []
-        for i, p in enumerate(node.input_connectable_properties):
-            connection_data = bw_node.NodeConnectionData(i)
-            node.input_connection_data.append(connection_data)
+            node = self.node(identifier)
+            self._node_map[identifier]['outputs'] = self._get_output_node_map(node)
+            self._node_map[identifier]['inputs'] = self._get_input_node_map(node)
 
-            connection = node.api_node.getPropertyConnections(p)
+    def _get_input_node_map(self, node: bw_node.Node) -> Dict:
+        input_node_map = dict()
+
+        # A node may input into the a this node more than once
+        # However, we only want to add one instance of it, so track
+        # if its been added or not
+        # already_added = []
+        for index_in_node, api_property in enumerate(node.input_connectable_properties):
+            input_node_map[index_in_node] = None
+
+            connection = node.api_node.getPropertyConnections(api_property)
             if len(connection) == 0:
                 continue
 
             # Because we are only looking at input properties. We can be sure
-            # there will only be one connection or none at all
-            api_node = connection[0].getInputPropertyNode()
-            if self.contains(api_node.getIdentifier()):
-                node_in_selection = self.node(api_node.getIdentifier())
-                connection_data.nodes = node_in_selection
-                if node_in_selection not in seen:
-                    connection_data.height = node_in_selection.height
-                seen.append(node_in_selection)
-
-    def _add_output_nodes(self, node: bw_node.Node):
-        for i, p in enumerate(node.output_connectable_properties):
-            connection_data = bw_node.NodeConnectionData(i)
-            node.output_connection_data.append(connection_data)
-            connection_data.nodes = []
-            for connection in node.api_node.getPropertyConnections(p):
-                api_node = connection.getInputPropertyNode()
-                identifier = api_node.getIdentifier()
-                node_in_selection = self.node(identifier)
-                if node_in_selection is not None:
-                    connection_data.nodes.append(node_in_selection)
-
-    def _build_node_chains(self):
-        seen = []
-        for root_node in self.root_nodes:
-            self._build_node_chain(root_node, seen)
-            
-    def _build_node_chain(self, root_node: bw_node.Node, seen: List[bw_node.Node]):
-        seen.append(root_node)
-        chain = NodeChain(root_node)
-        self.node_chains.append(chain)
-        for input_node in root_node.input_nodes:
-            if input_node.has_branching_outputs:
-                if input_node in seen:
-                    continue
-                self._build_node_chain(input_node, seen)
+            # there will only be one connection or none at all. No need
+            # to loop through all connections as there is only 1.
+            input_api_node = connection[0].getInputPropertyNode()
+            identifier = input_api_node.getIdentifier()
+            try:
+                self.node(identifier)
+            except NodeNotInSelectionError:
+                input_node_map[index_in_node] = None
             else:
-                chain.add_node(input_node)
-                seen.append(input_node)
+                input_node_map[index_in_node] = identifier
+                # already_added.append(identifier)
+        return input_node_map
+
+    def _get_output_node_map(self, node: bw_node.Node) -> Dict:
+        output_node_map = dict()
+        for index_in_node, property in enumerate(node.output_connectable_properties):
+            output_node_map[index_in_node] = list()
+            
+            # It is possible that a node may output from a single index 
+            # into another node multiple times. However, we only want
+            # to count the number of unique output nodes
+            for connection in node.api_node.getPropertyConnections(property):
+                output_api_node = connection.getInputPropertyNode()
+                identifier = output_api_node.getIdentifier()
+
+                try:
+                    self.node(identifier)
+                except NodeNotInSelectionError:
+                    continue
+                else:
+                    output_node_map[index_in_node].append(identifier)
+        return output_node_map
+
+    # def _build_node_tree(self):
+    #     for identifier in self._node_list:
+    #         node = self.node(identifier)
+    #         self._add_output_nodes(node)
+    #         self._add_input_nodes(node)
+
+    # def _add_input_nodes(self, node: bw_node.Node):
+    #     # A node may input into the some output node more than once
+    #     # However, we only want to add one instance of it, so track
+    #     # if its been added or not
+    #     already_added = []
+    #     for index_in_node, api_property in enumerate(node.input_connectable_properties):
+    #         connection_data = bw_node.NodeConnectionData(index_in_node)
+    #         node.input_connection_data.append(connection_data)
+
+    #         connection = node.api_node.getPropertyConnections(api_property)
+    #         if len(connection) == 0:
+    #             continue
+
+    #         # Because we are only looking at input properties. We can be sure
+    #         # there will only be one connection or none at all. No need
+    #         # to loop through all connections as there is only 1.
+    #         api_node = connection[0].getInputPropertyNode()
+    #         try:
+    #             input_node = self.node(api_node.getIdentifier())
+    #         except NodeNotInSelectionError:
+    #             pass
+    #         else:
+    #             connection_data.nodes = input_node
+    #             # TODO: I think this can be removed, we dont use bw_hiarachy anymore
+    #             # if input_node not in already_added:
+    #             #     connection_data.height = input_node.height
+    #             already_added.append(input_node)
+
+    # def _add_output_nodes(self, node: bw_node.Node):
+    #     for index_in_node, property in enumerate(node.output_connectable_properties):
+    #         connection_data = bw_node.NodeConnectionData(index_in_node)
+    #         node.output_connection_data.append(connection_data)
+
+    #         connection_data.nodes = []
+    #         for connection in node.api_node.getPropertyConnections(property):
+    #             output_api_node = connection.getInputPropertyNode()
+    #             identifier = output_api_node.getIdentifier()
+    #             try:
+    #                 output_node = self.node(identifier)
+    #             except NodeNotInSelectionError:
+    #                 pass
+    #             else:
+    #                 connection_data.nodes.append(output_node)
+
+    # def _build_node_chains(self):
+    #     seen = []
+    #     for root_node in self.root_nodes:
+    #         self._build_node_chain(root_node, seen)
+            
+    # def _build_node_chain(self, root_node: bw_node.Node, seen: List[bw_node.Node]):
+    #     seen.append(root_node)
+    #     chain = NodeChain(root_node)
+    #     self.node_chains.append(chain)
+    #     for input_node in root_node.input_nodes:
+    #         if input_node.has_branching_outputs:
+    #             if input_node in seen:
+    #                 continue
+    #             self._build_node_chain(input_node, seen)
+    #         else:
+    #             chain.add_node(input_node)
+    #             seen.append(input_node)
 
     # @staticmethod
     # def _set_chain_depth_property(node: bw_node.Node, output_node: bw_node.Node):
