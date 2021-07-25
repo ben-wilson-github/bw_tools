@@ -48,7 +48,7 @@ class InputConnectionData(ConnectionData):
 
 @dataclass
 class OutputConnectionData(ConnectionData):
-    nodes: List['Node'] = field(init=False, default=None)
+    nodes: List['Node'] = field(init=False, default_factory=list)
 
     def add_node(self, node: 'Node'):
         self.nodes.append(node)
@@ -65,8 +65,8 @@ class Node:
     identifier: int = field(init=False)
     pos: NodePosition = field(init=False, repr=False)
 
-    _input_connection_data: List[ConnectionData] = field(init=False, default_factory=list, repr=False)
-    _output_connection_data: List[ConnectionData] = field(init=False, default_factory=list, repr=False)
+    _input_connection_data: List[InputConnectionData] = field(init=False, default_factory=list, repr=False)
+    _output_connection_data: List[OutputConnectionData] = field(init=False, default_factory=list, repr=False)
 
     closest_output_node: 'Node' = field(init=False, default=None, repr=None)
     mainline: bool = field(init=False, default=False, repr=False)
@@ -166,12 +166,13 @@ class Node:
 
     @property
     def output_nodes(self) -> Tuple['Node']:
-        ret = []
-        for connection_data in self._output_connection_data:
-            for node in connection_data.nodes:
-                if node not in ret:
-                    ret.append(node)
-        return tuple(ret)
+        unique_nodes = list()
+        for connection in self._output_connection_data:
+            for node in connection.nodes:
+                if node not in unique_nodes:
+                    unique_nodes.append(node)
+        return tuple(unique_nodes)
+
 
     @property
     def input_node_count(self) -> int:
@@ -224,6 +225,17 @@ class Node:
     @property
     def largest_chain_depth_index(self) -> int:
         return self._calculate_largest_chain_depth()[1]
+    
+    def clear_input_connection_data(self):
+        self._input_connection_data = list()
+    
+    def clear_output_connection_data(self):
+        self._output_connection_data = list()
+    
+    def remove_node_from_input_connection_data(self, node: 'Node'):
+        for connection in self._input_connection_data:
+            if node == connection.input_node:
+                self._input_connection_data.remove(connection)
 
     def is_largest_chain_in_target(self, target_node: 'Node') -> bool:
         index = self.indices_in_target(target_node)[0] # Assume top index
