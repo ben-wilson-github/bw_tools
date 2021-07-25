@@ -1,4 +1,3 @@
-import sd
 import os
 import sys
 import importlib
@@ -8,6 +7,8 @@ from common import bw_api_tool
 
 importlib.reload(bw_logging)
 importlib.reload(bw_api_tool)
+
+# TODO: Add tools to menu instead of the current icon
 
 # Add path to sys.path
 if not os.path.realpath(os.path.dirname(__file__)) in sys.path:
@@ -37,4 +38,3 @@ def uninitializeSDPlugin():
     LOGGER['logger'].removeHandler(LOGGER['stream_handler'])
     API_TOOL.unregister_callbacks()
     API_TOOL.remove_toolbars()
-
