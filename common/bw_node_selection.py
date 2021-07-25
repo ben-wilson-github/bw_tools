@@ -28,11 +28,20 @@ class NodeChain:
     nodes: List[bw_node.Node] = field(init=False, default_factory=list)
     
     def __post_init__(self):
-        self.nodes.append(self.root)
+        self.add_node(self.root)
 
     def add_node(self, node: bw_node.Node):
         if node not in self.nodes:
             self.nodes.append(node)
+            node.node_chain = self
+    
+    def __str__(self) -> str:
+        ret = f'NodeChain(root={self.root.label.encode()}:{self.root.identifier}, children=(['
+        for node in self.nodes[1:]:
+            ret += f'{node.label.encode()}:{node.identifier}, '
+        ret += '])'
+        return ret
+
 
 @dataclass()
 class NodeSelection:
@@ -57,29 +66,83 @@ class NodeSelection:
         self._build_node_tree_api()
         self._categorize_nodes2()
 
-        print(self._root_nodes)
+        # print(self._root_nodes)
 
         # self._categorize_nodes()
         # self._build_node_chains()
-    
+
+
     def _categorize_nodes2(self):
         nodes_left = list(self._node_list.keys())
         while nodes_left:
-            identifier = nodes_left.pop(0)
+            # Do not .pop() as we need the nodes_left variable still.
+            # .pop() will clear the memory
+            identifier: int = nodes_left[0]
+            nodes_left.remove(identifier)
 
-            if self._is_root(identifier):
-                self._root_nodes.append(self.node(identifier))
-                BECAUSE THIS IS A ROOT, NEXT IS TO TRAVEL DOWN THE CHAIN
-                ADDING THE NODES TO A CHAIN
-                POPING THE NEW IDENTIFIERS FROM QUEUE
-                CATEGORIZING IT
+            if not self._is_root(identifier):
+                nodes_left.append(identifier)
+                continue
+            else:
+                self._parse_root_node(identifier, nodes_left)
+        
+    def _parse_root_node(self, identifier: int, nodes_left: List[int]):
+        node: bw_node.Node = self.node(identifier)
+        chain = NodeChain(node)
+        
+        self._root_nodes.append(node)
 
-                IF ITS NOT A ROOT, PUT IT BACK IN QUEUE            
+        inputs = self._parse_inputs(node, nodes_left, chain)
+        self._remove_identifiers_from_list(inputs, nodes_left)
+
+        # outputs = self._parse_outputs(node, nodes_left, chain)
+    
+    def _remove_identifiers_from_list(identifiers: List[int], nodes_left: List[int]):
+        # remove the inputs from the list
+        for identifier in identifiers:
+            try:
+                nodes_left.remove(identifier)
+            except ValueError:
+                continue
+
+    def _parse_outputs(self, node: bw_node.Node, nodes_left: List[int], chain: NodeChain) -> List[int]:
+        unique_outputs = []
+
+        output_identifier: int
+        # for index, output_identifier in self._node_map[node.identifier]['outputs'].items():
+
+
+    def _parse_inputs(self, node: bw_node.Node, nodes_left: List[int], chain: NodeChain) -> List[int]:
+        # Collect a list of the inputs found, so we can remove them after we are done
+        unique_inputs = []
+
+        input_identifier: int
+        for index, input_identifier in self._node_map[node.identifier]['inputs'].items():
+            if self._is_root(input_identifier):
+                continue
+
+            if input_identifier not in unique_inputs:
+                unique_inputs.append(input_identifier)
+
+            input_node: bw_node.Node = self.node(input_identifier)
+
+            MAYBE WE CAN ADD OUTPUT NODES AT THIS POINT?!
+
+            # Create new connection
+            connection = bw_node.InputConnectionData(index, input_node)
+            node.add_input_connection_data(connection)
+
+            chain.add_node(input_node)
+            
+            unique_inputs += self._parse_inputs(input_node, nodes_left, chain)
+        
+        return unique_inputs
 
     def _is_root(self, identifier):
         unique_outputs = []
-        for _, outputs in self._node_map[identifier]['outputs'].items():
-            for output_identifier in outputs:
+        outputs = self._node_map[identifier]['outputs']
+        for index in self._node_map[identifier]['outputs']:
+            for output_identifier in outputs[index]:
                 if output_identifier not in unique_outputs:
                     unique_outputs.append(output_identifier)
         return len(unique_outputs) != 1
@@ -181,6 +244,10 @@ class NodeSelection:
                 self._input_branching_nodes.append(node)
 
     def _build_node_tree_api(self):
+        """
+        Builds a tree hiarachy dictionary containing the inputs and outputs of every node.
+        Nodes are represented by their identifiers
+        """
         for identifier in self._node_list:
             self._node_map[identifier] = dict()
 
@@ -194,7 +261,6 @@ class NodeSelection:
         # A node may input into the a this node more than once
         # However, we only want to add one instance of it, so track
         # if its been added or not
-        # already_added = []
         for index_in_node, api_property in enumerate(node.input_connectable_properties):
             input_node_map[index_in_node] = None
 
@@ -210,10 +276,9 @@ class NodeSelection:
             try:
                 self.node(identifier)
             except NodeNotInSelectionError:
-                input_node_map[index_in_node] = None
+                continue
             else:
-                input_node_map[index_in_node] = identifier
-                # already_added.append(identifier)
+                input_node_map[index_in_node] = int(identifier)
         return input_node_map
 
     def _get_output_node_map(self, node: bw_node.Node) -> Dict:
@@ -233,7 +298,7 @@ class NodeSelection:
                 except NodeNotInSelectionError:
                     continue
                 else:
-                    output_node_map[index_in_node].append(identifier)
+                    output_node_map[index_in_node].append(int(identifier))
         return output_node_map
 
     # def _build_node_tree(self):
