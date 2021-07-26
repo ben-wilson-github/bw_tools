@@ -59,7 +59,7 @@ class OutputConnectionData(ConnectionData):
 class Node:
     api_node: 'SDSBSCompNode' = field(repr=False)
     # node_selection: bw_node_selection = field(init=False, repr=False)
-    node_chain: bw_node_selection.NodeChain = field(init=False, repr=False, compare=False)
+    chain: bw_node_selection.NodeChain = field(init=False, repr=False, compare=False)
 
     label: str = field(init=False)
     identifier: int = field(init=False)
@@ -68,7 +68,7 @@ class Node:
     _input_connection_data: List[InputConnectionData] = field(init=False, default_factory=list, repr=False)
     _output_connection_data: List[OutputConnectionData] = field(init=False, default_factory=list, repr=False)
 
-    closest_output_node: 'Node' = field(init=False, default=None, repr=None)
+    # closest_output_node: 'Node' = field(init=False, default=None, repr=None)
     mainline: bool = field(init=False, default=False, repr=False)
     chain_dimension: ChainDimension = field(init=False, default=None, repr=False)
     # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
@@ -229,9 +229,21 @@ class Node:
     def input_nodes_in_same_chain(self) -> Tuple['Node']:
         ret = []
         for input_node in self.input_nodes:
-            if self.node_chain.contains(input_node) and input_node not in ret:
+            if self.chain.contains(input_node) and input_node not in ret:
                 ret.append(input_node)
         return ret
+    
+    # TODO: inherit node class and move to new for plugin
+    @property
+    def closest_output_node_in_x(self) -> 'Node':
+        if self.output_node_count == 0:
+            raise AttributeError('No output nodes connected.')
+        
+        closest = self.output_nodes[0]
+        for output_node in self.output_nodes:
+            if output_node.pos.x < closest.pos.x:
+                closest = output_node
+        return closest
     
     def clear_input_connection_data(self):
         self._input_connection_data = list()

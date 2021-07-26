@@ -26,6 +26,8 @@ importlib.reload(bw_layout_hiarachy2)
 importlib.reload(bw_layout_hiarachy)
 importlib.reload(bw_layout_horizontal)
 
+# TODO: Create new node selection and node type for this plugin and inherit
+
 
 def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
     api.log.info('Running layout Graph')

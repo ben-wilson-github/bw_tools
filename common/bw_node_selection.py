@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import importlib
 
 import sd
@@ -8,6 +9,7 @@ from typing import List
 from typing import Union
 from typing import Tuple
 from typing import TypeVar
+from typing import Dict
 
 from common import bw_node
 
@@ -25,20 +27,52 @@ class NodeNotInSelectionError(KeyError):
 
 
 @dataclass
-class NodeChain:
+class NodeGroupInterface(ABC):
+    # Node list is a dictionary of identifier keys with
+    # a bw_node.Node object as value
+    _node_list: Dict[int, bw_node.Node] = field(init=False, default_factory=dict)
+
+    @property
+    def nodes(self) -> Tuple[bw_node.Node]:
+        """Returns a tuple of all nodes in the selection"""
+        ret = []
+        for node in self._node_list.values():
+            ret.append(node)
+        return tuple(ret)
+
+    @property
+    def node_count(self):
+        return len(self._node_list)
+
+    def node(self, identifier: Union[int, str]) -> bw_node.Node:
+        try:
+            node = self._node_list[int(identifier)]
+        except KeyError:
+            raise NodeNotInSelectionError()
+        return node
+
+    def add_node(self, node: bw_node.Node):
+        self._node_list[node.identifier] = node
+
+    def contains(self, node: bw_node.Node) -> bool:
+        try:
+            node = self._node_list[node.identifier]
+        except KeyError:
+            return False
+        else:
+            return True
+
+
+@dataclass
+class NodeChain(NodeGroupInterface):
     root: bw_node.Node
-    nodes: List[bw_node.Node] = field(init=False, default_factory=list)
 
     def __post_init__(self):
         self.add_node(self.root)
-
-    def add_node(self, node: bw_node.Node):
-        if node not in self.nodes:
-            self.nodes.append(node)
-            node.node_chain = self
     
-    def contains(self, node: bw_node):
-        return node in self.nodes
+    def add_node(self, node: bw_node.Node):
+        super().add_node(node)
+        node.chain = self
 
     def __str__(self) -> str:
         ret = f'NodeChain(root={self.root.label.encode()}' \
@@ -50,7 +84,7 @@ class NodeChain:
 
 
 @dataclass()
-class NodeSelection:
+class NodeSelection(NodeGroupInterface):
     """
     This class provides more detailed information about the selected API nodes.
 
@@ -73,10 +107,6 @@ class NodeSelection:
                                            default_factory=list,
                                            repr=False)
 
-    # Node list is a dictionary of identifier keys with
-    # a bw_node.Node object as value
-    _node_list: dict = field(init=False, default_factory=dict)
-
     def __post_init__(self):
         self._create_nodes()
         self._build_node_tree()
@@ -87,30 +117,7 @@ class NodeSelection:
     def node_chain_count(self) -> int:
         return len(self.node_chains)
 
-    @property
-    def nodes(self) -> Tuple[bw_node.Node]:
-        """Returns a tuple of all nodes in the selection"""
-        ret = []
-        for node in self._node_list.values():
-            ret.append(node)
-        return tuple(ret)
-
-    @property
-    def node_count(self) -> int:
-        return len(self.nodes)
-
-    def node(self, identifier: Union[str, int]) -> bw_node.Node:
-        """
-        Returns the node matching a given identifier. If the node
-        is not in the selection, NodeNotInSelectionError is raised.
-        """
-        try:
-            node = self._node_list[int(identifier)]
-        except KeyError:
-            raise NodeNotInSelectionError()
-        else:
-            return node
-
+    # TODO: Move this into plugin and inherit
     def remove_dot_nodes(self) -> bool:
         """
         Removes all dot nodes in the selection
@@ -184,7 +191,7 @@ class NodeSelection:
     def _create_nodes(self):
         for api_node in self.api_nodes:
             node = bw_node.Node(api_node)
-            self._node_list[node.identifier] = node
+            self.add_node(node)
 
     def _build_node_tree(self):
         for identifier in self._node_list:

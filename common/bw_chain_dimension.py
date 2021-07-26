@@ -3,12 +3,16 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Union
 
-from common import bw_node
+from common import bw_node, bw_node_selection
 
 
 class OutOfBoundsError(ValueError):
     def __init__(self):
-        super().__init__('Node not in bounds')
+        super().__init__('Node not in bounds.')
+
+class NotInChainError(AttributeError):
+    def __init__(self):
+        super().__init__('Node is not in chain.')
 
 
 @dataclass()
@@ -61,7 +65,14 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
         return False
 
 
-def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound, break_on_branch=False):
+def calculate_chain_dimension(node: bw_node.Node,
+                              chain: Union[bw_node_selection.NodeChain,
+                                           bw_node_selection.NodeSelection],
+                              limit_bounds: Bound = Bound
+                              ) -> ChainDimension:
+
+    if not chain.contains(node):
+        raise NotInChainError()
     if not node_in_bounds(node, limit_bounds):
         raise OutOfBoundsError()
 
@@ -79,11 +90,13 @@ def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound, bre
     cd.lower_node = node
 
     for input_node in node.input_nodes:
-        if break_on_branch and input_node.output_node_count > 1:
+        if not chain.contains(input_node):
             continue
         else:
             if node_in_bounds(input_node, limit_bounds):
-                input_cd = calculate_chain_dimension(input_node, limit_bounds=limit_bounds)
+                input_cd = calculate_chain_dimension(input_node,
+                                                     chain,
+                                                     limit_bounds=limit_bounds)
 
                 if input_cd.bounds.left <= cd.bounds.left:
                     cd.bounds.left = input_cd.bounds.left
