@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import importlib
 from abc import ABC
 from abc import abstractmethod
@@ -16,7 +17,38 @@ importlib.reload(bw_chain_dimension)
 SPACER = 32
 
 
-class AlignCenter():
+class AllInputsAlignment(ABC):
+    @abstractmethod
+    def run(self, node: bw_node.Node):
+        pass
+
+
+class NoAlignmentAction(AllInputsAlignment):
+    def run(self, node: bw_node.Node):
+        pass
+
+
+class AlignChildrenToBottom(AllInputsAlignment):
+    def run(self, node: bw_node.Node):
+        if len(node.input_nodes_in_same_chain) > 1:
+            bottom_input_node = node.input_nodes_in_same_chain[-1]
+
+            offset = bottom_input_node.pos.y - node.pos.y
+            seen = []
+            offset_children(node, offset=-offset, seen=seen)
+
+
+class AlignChildrenToCenter(AllInputsAlignment):
+    def run(self, node: bw_node.Node):
+        if len(node.input_nodes_in_same_chain) > 1:
+            top_input_node = node.input_nodes_in_same_chain[0]
+            bottom_input_node = node.input_nodes_in_same_chain[-1]
+
+            _, y = self.calculate_mid_point(top_input_node, bottom_input_node)
+            offset = y - node.pos.y
+            seen = []
+            offset_children(node, offset=-offset, seen=seen)
+
     @staticmethod
     def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> float:
         x = (a.pos.x + b.pos.x) / 2
@@ -25,35 +57,90 @@ class AlignCenter():
         return x, y
 
 
-class AbstractAlignStrategy(ABC):
+class SingleInputAlignment(ABC):
     @abstractmethod
-    def align(self, parent_node: bw_node.Node):
+    def run(self, node: bw_node.Node, target_node: bw_node.Node, index: int):
         pass
 
 
-class AlignParentToCenter(AbstractAlignStrategy, AlignCenter):
-    def align(self, parent_node: bw_node.Node):
-        _, y = self.calculate_mid_point(
-            parent_node.input_nodes_in_same_chain[0],
-            parent_node.input_nodes_in_same_chain[-1]
-        )
-        parent_node.set_position(parent_node.pos.x, y)
+class AlignLeftOutput(SingleInputAlignment):
+    def run(self, node: bw_node.Node, output_node: bw_node.Node, _):
+        node.set_position(node.pos.x, output_node.pos.y)
 
 
-class AlignChildrenToCenter(AbstractAlignStrategy, AlignCenter):
-    def align(self, parent_node: bw_node.Node):
-        """
-        Aligns the children of a parent node to the center point of those
-        children in Y
-        """
+class AlignBelowSibling(SingleInputAlignment):
+    def run(self, node: bw_node.Node, output_node: bw_node.Node, index: int):
+        try:
+            node_above = output_node.input_nodes_in_same_chain[index - 1]
+            cd = bw_chain_dimension.calculate_chain_dimension(
+                node_above,
+                node.chain,
+                limit_bounds=bw_chain_dimension.Bound(
+                    left=node.pos.x
+                )
+            )
+        except bw_chain_dimension.OutOfBoundsError:
+            # The node above might be outside of the bounds
+            # so this will fail. This can happen if the
+            # input node outputs to the same parent more than
+            # once
+            pass
+        else:
+            new_pos_y = cd.bounds.lower + SPACER + node.height / 2
+            node.set_position(node.pos.x, new_pos_y)
 
-        _, y = self.calculate_mid_point(
-            parent_node.input_nodes_in_same_chain[0],
-            parent_node.input_nodes_in_same_chain[-1]
-        )
-        offset = y - parent_node.pos.y
-        seen = []
-        offset_children(parent_node, offset=-offset, seen=seen)
+
+class AlignAboveSibling(SingleInputAlignment):
+    def run(self, source_node: bw_node.Node, target_node: bw_node.Node):
+        try:
+            cd = bw_chain_dimension.calculate_chain_dimension(
+                target_node,
+                source_node.chain,
+                limit_bounds=bw_chain_dimension.Bound(
+                    left=source_node.pos.x
+                )
+            )
+        except bw_chain_dimension.OutOfBoundsError:
+            pass
+        else:
+            new_pos_y = cd.bounds.upper - SPACER - source_node.height / 2
+            source_node.set_position(source_node.pos.x, new_pos_y)
+
+
+class NodeAligner(ABC):
+    on_first_input: SingleInputAlignment
+    on_input: SingleInputAlignment
+    on_finish: SingleInputAlignment
+
+    def run(self, node: bw_node.Node):
+        for i, input_node in enumerate(node.input_nodes_in_same_chain):
+            if i == 0:
+                self.on_first_input.run(input_node, node, i)
+            else:
+                self.on_input.run(input_node, node, i)
+
+            if len(input_node.input_nodes_in_same_chain) >= 1:
+                self.run(input_node)
+
+        self.on_finish.run(node)
+
+
+class StackAlignTop(NodeAligner):
+    on_first_input = AlignLeftOutput()
+    on_input = AlignBelowSibling()
+    on_finish = NoAlignmentAction()
+
+
+class StackAlignBottom(NodeAligner):
+    on_first_input = AlignLeftOutput()
+    on_input = AlignBelowSibling()
+    on_finish = AlignChildrenToBottom()
+
+
+class StackAlignCenter(NodeAligner):
+    on_first_input = AlignLeftOutput()
+    on_input = AlignBelowSibling()
+    on_finish = AlignChildrenToCenter()
 
 
 def populate_queue(node: bw_node.Node, queue_order: List[bw_node.Node]):
@@ -69,12 +156,17 @@ def run(node_selection: bw_node_selection.NodeSelection):
         if node_chain.root.output_node_count != 0:
             continue
 
-        layout_x_axis(node_chain.root)
+        sort_nodes(node_chain.root)
 
     for i, node_chain in enumerate(node_selection.node_chains):
-        layout_y_axis(node_chain.root)
-        IMPLEMENT LOGIC I WROTE IN TEST FILE
-        OVERLAP IS NOT WORKING AGAIN
+        # align = StackAlignTop()
+        # align = StackAlignBottom()
+        align = StackAlignCenter()
+        align.run(node_chain.root)
+
+        # layout_y_axis(node_chain.root)
+        # IMPLEMENT LOGIC I WROTE IN TEST FILE
+        # OVERLAP IS NOT WORKING AGAIN
         # remove_overlap_in_children(node_chain.root)
 
         # queue.clear()
@@ -86,7 +178,7 @@ def run(node_selection: bw_node_selection.NodeSelection):
     # remove_overlap_in_children(root_node)
 
 
-def layout_x_axis(node: bw_node.Node):
+def sort_nodes(node: bw_node.Node):
     for input_node in node.input_nodes:
         output_node = input_node.closest_output_node_in_x
         half_output = output_node.width / 2
@@ -100,7 +192,7 @@ def layout_x_axis(node: bw_node.Node):
         pos = output_node.pos.x - half_output - spacer - half_input
 
         input_node.set_position(pos, input_node.pos.y)
-        layout_x_axis(input_node)
+        sort_nodes(input_node)
 
 
 def layout_y_axis(node: bw_node.Node):
@@ -136,9 +228,9 @@ def layout_y_axis(node: bw_node.Node):
         if len(input_node.input_nodes_in_same_chain) >= 1:
             layout_y_axis(input_node)
 
-    if len(node.input_nodes_in_same_chain) > 1:
-        strategy = AlignChildrenToCenter()
-        strategy.align(node)
+    # if len(node.input_nodes_in_same_chain) > 1:
+    #     strategy = AlignInputsToOutputCenter()
+    #     strategy.align(node)
 
 
 def _get_immediate_siblings(index: int,
@@ -212,7 +304,7 @@ def remove_overlap_in_children(parent_node: bw_node.Node):
             do_align = True
 
     if do_align:
-        strategy = AlignParentToCenter()
+        strategy = AlignToInputsCenter()
         strategy.align(parent_node)
 
      
