@@ -9,6 +9,8 @@ importlib.reload(bw_logging)
 importlib.reload(bw_api_tool)
 
 # TODO: Add tools to menu instead of the current icon
+# TODO: Is it possible to do frame plugin now?
+# TODO: Deprecated function getCurrentGraphSelection in class QtForPythonUIMgrWrapper. This method is deprecated. Please use QtForPythonUIMgrWrapper.getCurrentGraphSelectedNodes instead.
 
 # Add path to sys.path
 if not os.path.realpath(os.path.dirname(__file__)) in sys.path:
