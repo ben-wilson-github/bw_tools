@@ -38,8 +38,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool
 
 def on_clicked_layout_graph(api: bw_api_tool) -> None:
     node_selection = bw_node_selection.NodeSelection(api.current_selection, api.current_graph)
-    # print(node_selection)
-    # run_layout(node_selection, api)
+    run_layout(node_selection, api)
 
 
 def on_graph_view_created(_, api: bw_api_tool.APITool) -> None:

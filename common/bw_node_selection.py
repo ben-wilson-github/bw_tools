@@ -36,6 +36,9 @@ class NodeChain:
         if node not in self.nodes:
             self.nodes.append(node)
             node.node_chain = self
+    
+    def contains(self, node: bw_node):
+        return node in self.nodes
 
     def __str__(self) -> str:
         ret = f'NodeChain(root={self.root.label.encode()}' \
@@ -151,10 +154,10 @@ class NodeSelection:
             self._build_new_node_chain(root_node)
 
     def _build_new_node_chain(self, root_node: bw_node.Node):
-        for output_node in root_node.output_nodes:
-            output_node.remove_node_from_input_connection_data(root_node)
+        # for output_node in root_node.output_nodes:
+        #     output_node.remove_node_from_input_connection_data(root_node)
 
-        root_node.clear_output_connection_data()
+        # root_node.clear_output_connection_data()
 
         chain = NodeChain(root_node)
         self.node_chains.append(chain)
@@ -172,7 +175,7 @@ class NodeSelection:
 
     def _sort_nodes(self):
         for node in self.nodes:
-            if node.is_root or node.output_node_count >= 2:
+            if node.is_root:
                 self.root_nodes.append(node)
 
             if node.is_dot:
@@ -224,7 +227,12 @@ class NodeSelection:
             for api_connection in api_connections:
                 output_api_node = api_connection.getInputPropertyNode()
                 api_identifier = output_api_node.getIdentifier()
-                connection_data.add_node(self.node(api_identifier))
+                try:
+                    output_node = self.node(api_identifier)
+                except NodeNotInSelectionError:
+                    pass
+                else:
+                    connection_data.add_node(output_node)
 
             if connection_data.nodes:
                 node.add_output_connection_data(connection_data)

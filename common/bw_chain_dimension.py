@@ -6,6 +6,11 @@ from typing import Union
 from common import bw_node
 
 
+class OutOfBoundsError(ValueError):
+    def __init__(self):
+        super().__init__('Node not in bounds')
+
+
 @dataclass()
 class Bound:
      left: Union[float, None] = None
@@ -36,7 +41,7 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
         lower=bounds.lower,
     )
     # So we can resolve any undefined bounds
-    # Setting bounds to node position will ensure it passes 
+    # Setting bounds to node position will ensure it passes
     # a bounds check
     if testing_bounds.left is None:
         testing_bounds.left = node.pos.x
@@ -58,7 +63,7 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
 
 def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound, break_on_branch=False):
     if not node_in_bounds(node, limit_bounds):
-        raise AttributeError(f'Node failed a bounds check')
+        raise OutOfBoundsError()
 
     cd = ChainDimension()
     cd.bounds = Bound(
@@ -79,7 +84,7 @@ def calculate_chain_dimension(node: bw_node.Node, limit_bounds: Bound=Bound, bre
         else:
             if node_in_bounds(input_node, limit_bounds):
                 input_cd = calculate_chain_dimension(input_node, limit_bounds=limit_bounds)
-                
+
                 if input_cd.bounds.left <= cd.bounds.left:
                     cd.bounds.left = input_cd.bounds.left
                     cd.left_node = input_cd.left_node

@@ -38,11 +38,22 @@ class AlignParentToCenter(AbstractAlignStrategy, AlignCenter):
 
 class AlignChildrenToCenter(AbstractAlignStrategy, AlignCenter):
     def align(self, parent_node: bw_node.Node):
-        """Aligns the children of a parent node to the center point of those children in Y"""
-        _, y = self.calculate_mid_point(parent_node.input_nodes[0], parent_node.input_nodes[-1])
-        offset = y - parent_node.pos.y
-        seen = []
-        offset_children(parent_node, offset=-offset, seen=seen)
+        """
+        Aligns the children of a parent node to the center point of those
+        children in Y
+        """
+        non_root_input_nodes = []
+        for input_node in parent_node.input_nodes:
+            if input_node.is_root:
+                continue
+            non_root_input_nodes.append(input_node)
+
+        if non_root_input_nodes:
+            _, y = self.calculate_mid_point(non_root_input_nodes[0],
+                                            non_root_input_nodes[-1])
+            offset = y - parent_node.pos.y
+            seen = []
+            offset_children(parent_node, offset=-offset, seen=seen)
 
 
 def populate_queue(node: bw_node.Node, queue_order: List[bw_node.Node]):
@@ -50,22 +61,23 @@ def populate_queue(node: bw_node.Node, queue_order: List[bw_node.Node]):
     for input_node in node.input_nodes:
         populate_queue(input_node, queue_order)
 
+
 def run(node_selection: bw_node_selection.NodeSelection):
-    # TODO: Change to single node selection roots by spliting selections
-    
-    root_node = node_selection.root_nodes[0]
+    for i, node_chain in enumerate(node_selection.node_chains):
 
-    queue = [root_node]
-    while queue:
-        node = queue.pop(0)
-        layout_x_axis(node, queue)
+        # if i
+        queue = [node_chain.root]
+        while queue:
+            node = queue.pop(0)
+            layout_x_axis(node, queue)
 
-    queue.clear()
-    populate_queue(root_node, queue)
-    print(queue)
-    while queue:
-        node = queue.pop(0)
-        layout_y_axis2(node, queue)
+        layout_y_axis(node_chain.root)
+
+        # queue.clear()
+        # populate_queue(node_chain.root, queue)
+        # while queue:
+        #     node = queue.pop(0)
+        #     layout_y_axis(node, queue)
 
     # remove_overlap_in_children(root_node)
 
@@ -82,14 +94,16 @@ def layout_x_axis(parent_node: bw_node.Node, queue: List[bw_node.Node]):
 
 
 def layout_y_axis(node: bw_node.Node):
-    for i, input_node in enumerate(node.input_nodes):
+    for i, input_node in enumerate(node.input_nodes_in_same_chain):
+        if input_node.is_root:
+            continue
         # Default position is inline with the parent
         # If there are multiple parents, the lowest one
         # will become the last one processed
         new_pos_y = node.pos.y
         if i != 0:
             node_above = node.input_nodes[i - 1]
-            
+
             try:
                 above_cd = bw_chain_dimension.calculate_chain_dimension(
                     node_above,
@@ -97,7 +111,7 @@ def layout_y_axis(node: bw_node.Node):
                         left=input_node.pos.x
                     )
                 )
-            except AttributeError:
+            except bw_chain_dimension.OutOfBoundsError:
                 # The node above might be outside of the bounds
                 # so this will fail. This can happen if the
                 # input node outputs to the same parent more than
@@ -105,15 +119,15 @@ def layout_y_axis(node: bw_node.Node):
                 pass
             else:
                 new_pos_y = above_cd.bounds.lower + SPACER + input_node.height / 2
-        
+
         input_node.set_position(input_node.pos.x, new_pos_y)
 
         if input_node.has_input_nodes_connected:
             layout_y_axis(input_node)
-    
-    # if node.input_node_count > 1:
-    #     strategy = AlignChildrenToCenter()
-    #     strategy.align(node)
+
+    if node.input_node_count > 1:
+        strategy = AlignChildrenToCenter()
+        strategy.align(node)
 
 
 def layout_y_axis2(node: bw_node.Node, queue: List[bw_node.Node]):

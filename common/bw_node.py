@@ -143,10 +143,9 @@ class Node:
     def is_root(self) -> bool:
         """
         If a node does not have any outputs, it is considered a root node.
-        An optional node selection can be passed in to limit the output node checks to only
-        those in the selection.
+        If a node outputs to multiple nodes, it is considered a root node.
         """
-        return self.output_node_count == 0
+        return self.output_node_count != 1
 
     @property
     def is_end(self) -> bool:
@@ -225,6 +224,14 @@ class Node:
     @property
     def largest_chain_depth_index(self) -> int:
         return self._calculate_largest_chain_depth()[1]
+
+    @property
+    def input_nodes_in_same_chain(self) -> Tuple['Node']:
+        ret = []
+        for input_node in self.input_nodes:
+            if self.node_chain.contains(input_node) and input_node not in ret:
+                ret.append(input_node)
+        return ret
     
     def clear_input_connection_data(self):
         self._input_connection_data = list()
