@@ -25,6 +25,7 @@ SPACER = 32
 NODE_BOADER_WIDTH = 26.75
 NODE_SLOT_STRIDE = 21.25
 
+
 @dataclass()
 class NodePosition:
     x: float
