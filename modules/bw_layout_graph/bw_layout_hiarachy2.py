@@ -17,28 +17,31 @@ importlib.reload(bw_chain_dimension)
 SPACER = 32
 
 
-class AllInputsAlignment(ABC):
+
+class PostAlignmentBehavior(ABC):
+    """
+    Defines the behavior to execute after alignment of each input node is finished.
+    """
     @abstractmethod
     def run(self, node: bw_node.Node):
         pass
 
 
-class NoAlignmentAction(AllInputsAlignment):
+class NoPostAlignment(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
         pass
 
 
-class AlignChildrenToBottom(AllInputsAlignment):
+class AlignInputsToBottom(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
         if len(node.input_nodes_in_same_chain) > 1:
             bottom_input_node = node.input_nodes_in_same_chain[-1]
 
             offset = bottom_input_node.pos.y - node.pos.y
-            seen = []
-            offset_children(node, offset=-offset, seen=seen)
+            offset_children(node, offset=-offset)
 
 
-class AlignChildrenToCenter(AllInputsAlignment):
+class AlignInputsToCenter(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
         if len(node.input_nodes_in_same_chain) > 1:
             top_input_node = node.input_nodes_in_same_chain[0]
@@ -46,8 +49,7 @@ class AlignChildrenToCenter(AllInputsAlignment):
 
             _, y = self.calculate_mid_point(top_input_node, bottom_input_node)
             offset = y - node.pos.y
-            seen = []
-            offset_children(node, offset=-offset, seen=seen)
+            offset_children(node, offset=-offset)
 
     @staticmethod
     def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> float:
@@ -57,26 +59,64 @@ class AlignChildrenToCenter(AllInputsAlignment):
         return x, y
 
 
-class SingleInputAlignment(ABC):
+class AlignOutputToInputsCenter(PostAlignmentBehavior):
+    def run(self, node: bw_node.Node):
+        if len(node.input_nodes_in_same_chain) > 1:
+            top_input_node = node.input_nodes_in_same_chain[0]
+            bottom_input_node = node.input_nodes_in_same_chain[-1]
+
+            _, y = self.calculate_mid_point(top_input_node, bottom_input_node)
+            offset = y - node.pos.y
+            node.set_position(node.pos.x, y)
+            self.offset_parents(node, offset)
+
+    @staticmethod
+    def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> float:
+        x = (a.pos.x + b.pos.x) / 2
+        y = (a.pos.y + b.pos.y) / 2
+
+        return x, y
+    
+    def offset_parents(self, node: bw_node.Node, offset: float):
+        for output_node in node.output_nodes:
+            output_node.set_position(output_node.pos.x, output_node.pos.y + offset)
+
+
+class InputNodeAlignmentBehavior(ABC):
+    """
+    Defines the behavior for positioning a single input node relative
+    to a connected output noode.
+
+    You must reimplement the run method with the logic for positioning
+    the node.
+    
+    You must pass in the input node, the connected output node and the
+    index in which the input node connects into the output node
+    """
     @abstractmethod
-    def run(self, node: bw_node.Node, target_node: bw_node.Node, index: int):
+    def run(self, input_node: bw_node.Node, output_node: bw_node.Node, index: int):
         pass
 
 
-class AlignLeftOutput(SingleInputAlignment):
-    def run(self, node: bw_node.Node, output_node: bw_node.Node, _):
-        node.set_position(node.pos.x, output_node.pos.y)
+class NoInputNodeAlignment(InputNodeAlignmentBehavior):
+    def run(self, input_node: bw_node.Node, output_node: bw_node.Node, index: int):
+        pass
 
 
-class AlignBelowSibling(SingleInputAlignment):
-    def run(self, node: bw_node.Node, output_node: bw_node.Node, index: int):
+class AlignLeftOutput(InputNodeAlignmentBehavior):
+    def run(self, input_node: bw_node.Node, output_node: bw_node.Node, _):
+        input_node.set_position(input_node.pos.x, output_node.pos.y)
+
+
+class AlignBelowSibling(InputNodeAlignmentBehavior):
+    def run(self, input_node: bw_node.Node, output_node: bw_node.Node, index: int):
         try:
             node_above = output_node.input_nodes_in_same_chain[index - 1]
             cd = bw_chain_dimension.calculate_chain_dimension(
                 node_above,
-                node.chain,
+                input_node.chain,
                 limit_bounds=bw_chain_dimension.Bound(
-                    left=node.pos.x
+                    left=input_node.pos.x
                 )
             )
         except bw_chain_dimension.OutOfBoundsError:
@@ -86,61 +126,114 @@ class AlignBelowSibling(SingleInputAlignment):
             # once
             pass
         else:
-            new_pos_y = cd.bounds.lower + SPACER + node.height / 2
-            node.set_position(node.pos.x, new_pos_y)
+            new_pos_y = cd.bounds.lower + SPACER + input_node.height / 2
+            input_node.set_position(input_node.pos.x, new_pos_y)
 
 
-class AlignAboveSibling(SingleInputAlignment):
-    def run(self, source_node: bw_node.Node, target_node: bw_node.Node):
+class AlignAboveSibling(InputNodeAlignmentBehavior):
+    def run(self, input_node: bw_node.Node, output_node: bw_node.Node, index: int):
         try:
             cd = bw_chain_dimension.calculate_chain_dimension(
-                target_node,
-                source_node.chain,
+                output_node,
+                input_node.chain,
                 limit_bounds=bw_chain_dimension.Bound(
-                    left=source_node.pos.x
+                    left=input_node.pos.x
                 )
             )
         except bw_chain_dimension.OutOfBoundsError:
             pass
         else:
-            new_pos_y = cd.bounds.upper - SPACER - source_node.height / 2
-            source_node.set_position(source_node.pos.x, new_pos_y)
+            new_pos_y = cd.bounds.upper - SPACER - input_node.height / 2
+            input_node.set_position(input_node.pos.x, new_pos_y)
 
 
-class NodeAligner(ABC):
-    on_first_input: SingleInputAlignment
-    on_input: SingleInputAlignment
-    on_finish: SingleInputAlignment
+class AlignChainBelowSibling(InputNodeAlignmentBehavior):
+    def run(self, input_node: bw_node.Node, output_node: bw_node.Node, index: int):
+        node_above = output_node.input_nodes_in_same_chain[index - 1]
+
+        smallest_cd = calculate_smallest_chain_dimension(
+            input_node,
+            node_above,
+            output_node.chain
+        )
+
+        # Find node at highest relevant node from the input chain
+        try:
+            input_cd = bw_chain_dimension.calculate_chain_dimension(
+                input_node,
+                output_node.chain,
+                limit_bounds=bw_chain_dimension.Bound(
+                    left=smallest_cd.bounds.left
+                )
+            )
+        except bw_chain_dimension.OutOfBoundsError:
+            highest_node = input_node
+            input_high_bound = input_node.pos.y - input_node.height / 2
+        else:
+            highest_node = input_cd.upper_node
+            input_high_bound = input_cd.bounds.upper
+
+        try:
+            # Find lowest relevant bound
+            above_cd = bw_chain_dimension.calculate_chain_dimension(
+                node_above,
+                output_node.chain,
+                limit_bounds=bw_chain_dimension.Bound(
+                    left=highest_node.pos.x
+                )
+            )
+        except bw_chain_dimension.OutOfBoundsError:
+            above_low_bound = node_above.pos.y + node_above.height / 2
+        else:
+            above_low_bound = above_cd.bounds.lower
+
+        offset = (above_low_bound + SPACER) - input_high_bound
+        input_node.set_position(input_node.pos.x,
+                                input_node.pos.y + offset)
+        offset_children(input_node, offset=offset)
+
+
+@dataclass
+class InputNodeAligner():
+    """
+    This class is used to align the inputs of a given node.
+
+    on_first_input: InputNodeAlignmentBehavior = Defines the behavior
+    for the first input of a given node.
+
+    on_input_node: InputNodeAlignmentBehavior = Defines the behavior 
+    for all subsequent nodes after the first.
+
+    on_finished_input_nodes: PostAlignmentBehavior = Is called after
+    all inputs have been processed. You can use this behavior to
+    apply logic on the newly updated input node positions. For example,
+    by aligning them to the center point.
+
+    on_finished_alignment: PostAlignmentBehavior = Is called after the
+    entire chain of the given node is processed. This is useful for 
+    applying logic on the newly position chain. For example, by remove
+    overlap left over from the alignment process.
+    """
+    on_first_input_node: InputNodeAlignmentBehavior
+    on_input_node: InputNodeAlignmentBehavior
+    on_finished_input_nodes: PostAlignmentBehavior
+    # on_finished_alignment: PostAlignmentBehavior
 
     def run(self, node: bw_node.Node):
+        self._run_align_on_input_nodes(node)
+        # self.on_finished_alignment.run(node)
+
+    def _run_align_on_input_nodes(self, node: bw_node.Node):
         for i, input_node in enumerate(node.input_nodes_in_same_chain):
             if i == 0:
-                self.on_first_input.run(input_node, node, i)
+                self.on_first_input_node.run(input_node, node, i)
             else:
-                self.on_input.run(input_node, node, i)
+                self.on_input_node.run(input_node, node, i)
 
             if len(input_node.input_nodes_in_same_chain) >= 1:
-                self.run(input_node)
+                self._run_align_on_input_nodes(input_node)
 
-        self.on_finish.run(node)
-
-
-class StackAlignTop(NodeAligner):
-    on_first_input = AlignLeftOutput()
-    on_input = AlignBelowSibling()
-    on_finish = NoAlignmentAction()
-
-
-class StackAlignBottom(NodeAligner):
-    on_first_input = AlignLeftOutput()
-    on_input = AlignBelowSibling()
-    on_finish = AlignChildrenToBottom()
-
-
-class StackAlignCenter(NodeAligner):
-    on_first_input = AlignLeftOutput()
-    on_input = AlignBelowSibling()
-    on_finish = AlignChildrenToCenter()
+        self.on_finished_input_nodes.run(node)
 
 
 def populate_queue(node: bw_node.Node, queue_order: List[bw_node.Node]):
@@ -155,15 +248,24 @@ def run(node_selection: bw_node_selection.NodeSelection):
     for node_chain in node_selection.node_chains:
         if node_chain.root.output_node_count != 0:
             continue
-
         sort_nodes(node_chain.root)
 
     for i, node_chain in enumerate(node_selection.node_chains):
-        # align = StackAlignTop()
-        # align = StackAlignBottom()
-        align = StackAlignCenter()
-        align.run(node_chain.root)
+        aligner = InputNodeAligner(
+            on_first_input_node=AlignLeftOutput(),
+            on_input_node=AlignBelowSibling(),
+            on_finished_input_nodes=AlignInputsToCenter()
+        )
+        aligner.run(node_chain.root)
 
+        aligner = InputNodeAligner(
+            on_first_input_node=NoInputNodeAlignment(),
+            on_input_node=AlignChainBelowSibling(),
+            on_finished_input_nodes=NoPostAlignment()
+        )
+        aligner.run(node_chain.root)
+        MNaybe apåply offset instead of centering
+        
         # layout_y_axis(node_chain.root)
         # IMPLEMENT LOGIC I WROTE IN TEST FILE
         # OVERLAP IS NOT WORKING AGAIN
@@ -250,72 +352,10 @@ def _get_immediate_siblings(index: int,
     return sibling_above, sibling_below    
 
 
-def remove_overlap_in_children(parent_node: bw_node.Node):
-    do_align = False
-    for i, input_node in enumerate(parent_node.input_nodes_in_same_chain):
-        if len(input_node.input_nodes_in_same_chain) > 1:
-            remove_overlap_in_children(input_node)
-
-        if i >= 1:
-            node_above = parent_node.input_nodes_in_same_chain[i - 1]
-
-            smallest_cd = calculate_smallest_chain_dimension(
-                input_node,
-                node_above,
-                parent_node.chain
-            )
-
-            # caluclate chain dimension to find node at highest relevant node
-            # from the input chain
-            try:
-                input_cd = bw_chain_dimension.calculate_chain_dimension(
-                    input_node,
-                    parent_node.chain,
-                    limit_bounds=bw_chain_dimension.Bound(
-                        left=smallest_cd.bounds.left
-                    )
-                )
-            except bw_chain_dimension.OutOfBoundsError:
-                highest_node = input_node
-                input_high_bound = input_node.pos.y - input_node.height / 2
-            else:
-                highest_node = input_cd.upper_node
-                input_high_bound = input_cd.bounds.upper
-
-            try:
-                # calculate chain dimension to find lowest relevant bound
-                above_cd = bw_chain_dimension.calculate_chain_dimension(
-                    node_above,
-                    parent_node.chain,
-                    limit_bounds=bw_chain_dimension.Bound(
-                        left=highest_node.pos.x
-                    )
-                )
-            except bw_chain_dimension.OutOfBoundsError:
-                above_low_bound = node_above.pos.y + node_above.height / 2
-            else:
-                above_low_bound = above_cd.bounds.lower
-
-            offset = (above_low_bound + SPACER) - input_high_bound
-            seen = []
-            offset_children(input_node, offset=offset, seen=seen)
-            input_node.set_position(input_node.pos.x,
-                                    input_node.pos.y + offset)
-            do_align = True
-
-    if do_align:
-        strategy = AlignToInputsCenter()
-        strategy.align(parent_node)
-
-     
-def offset_children(parent_node: bw_node.Node, offset: float, seen: List[bw_node.Node]):
+def offset_children(parent_node: bw_node.Node, offset: float):
     for input_node in parent_node.input_nodes_in_same_chain:
-        if input_node in seen:
-            continue
-
         input_node.set_position(input_node.pos.x, input_node.pos.y + offset)
-        seen.append(input_node)
-        offset_children(input_node, offset, seen)
+        offset_children(input_node, offset)
 
 def calculate_smallest_chain_dimension(a: bw_node.Node,
                                        b: bw_node.Node,
