@@ -29,7 +29,7 @@ class AlignInputsToBottom(PostAlignmentBehavior):
             bottom_input_node = node.input_nodes_in_same_chain[-1]
 
             offset = bottom_input_node.pos.y - node.pos.y
-            bw_layout_utils.offset_children(node, offset=-offset)
+            utils.offset_children(node, offset=-offset)
 
 
 class AlignInputsToCenter(PostAlignmentBehavior):
@@ -38,10 +38,10 @@ class AlignInputsToCenter(PostAlignmentBehavior):
             top_input_node = node.input_nodes_in_same_chain[0]
             bottom_input_node = node.input_nodes_in_same_chain[-1]
 
-            _, y = bw_layout_utils.calculate_mid_point(top_input_node,
-                                                       bottom_input_node)
+            _, y = utils.calculate_mid_point(top_input_node,
+                                             bottom_input_node)
             offset = y - node.pos.y
-            bw_layout_utils.offset_children(node, offset=-offset)
+            utils.offset_children(node, offset=-offset)
 
 
 class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
@@ -51,8 +51,8 @@ class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
 
         top_input_node = node.input_nodes_in_same_chain[0]
         bottom_input_node = node.input_nodes_in_same_chain[-1]
-        _, mid_point = bw_layout_utils.calculate_mid_point(top_input_node,
-                                                           bottom_input_node)
+        _, mid_point = utils.calculate_mid_point(top_input_node,
+                                                 bottom_input_node)
 
         nodes_above, nodes_below = self._get_input_nodes_around_point(
             node,

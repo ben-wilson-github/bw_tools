@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import importlib
+from abc import ABC
 
 import sd
 
@@ -30,7 +30,8 @@ class NodeNotInSelectionError(KeyError):
 class NodeGroupInterface(ABC):
     # Node list is a dictionary of identifier keys with
     # a bw_node.Node object as value
-    _node_list: Dict[int, bw_node.Node] = field(init=False, default_factory=dict)
+    _node_list: Dict[int, bw_node.Node] = field(init=False,
+                                                default_factory=dict)
 
     @property
     def nodes(self) -> Tuple[bw_node.Node]:
@@ -69,7 +70,7 @@ class NodeChain(NodeGroupInterface):
 
     def __post_init__(self):
         self.add_node(self.root)
-    
+
     def add_node(self, node: bw_node.Node):
         super().add_node(node)
         node.chain = self
@@ -77,6 +78,7 @@ class NodeChain(NodeGroupInterface):
     def __str__(self) -> str:
         ret = f'NodeChain(root={self.root.label.encode()}' \
             f':{self.root.identifier}, children=(['
+        node: bw_node.Node
         for node in self.nodes[1:]:
             ret += f'{node.label.encode()}:{node.identifier}, '
         ret += '])'

@@ -1,4 +1,3 @@
-from modules.bw_layout_graph import bw_layout_hiarachy2
 import os
 import math
 import importlib
@@ -12,34 +11,34 @@ import sd
 from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
+from . import input_aligner
 from . import bw_layout_mainline
 from . import bw_layout_horizontal
-from . import input_aligner
-
 
 importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
+importlib.reload(input_aligner)
 importlib.reload(bw_node_selection)
 importlib.reload(bw_layout_mainline)
-importlib.reload(input_aligner)
 importlib.reload(bw_layout_horizontal)
 
 # TODO: Create new node selection and node type for this plugin and inherit
 
 
-def run_layout(node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool) -> None:
+def run_layout(node_selection: bw_node_selection.NodeSelection,
+               api: bw_api_tool.APITool):
     api.log.info('Running layout Graph')
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         input_aligner.run(node_selection)
 
 
-def on_clicked_layout_graph(api: bw_api_tool) -> None:
+def on_clicked_layout_graph(api: bw_api_tool):
     node_selection = bw_node_selection.NodeSelection(api.current_selection, api.current_graph)
     run_layout(node_selection, api)
 
 
-def on_graph_view_created(_, api: bw_api_tool.APITool) -> None:
+def on_graph_view_created(_, api: bw_api_tool.APITool):
     icon = os.path.normpath(
         os.path.join(
             os.path.dirname(__file__),

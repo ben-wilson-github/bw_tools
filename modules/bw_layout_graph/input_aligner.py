@@ -1,5 +1,6 @@
 import importlib
 from dataclasses import dataclass
+from dataclasses import field
 
 from common import bw_node
 from common import bw_node_selection
@@ -36,9 +37,9 @@ class InputNodeAligner():
     apply logic on the newly updated input node positions. For example,
     by aligning them to the center point.
     """
-    on_first_input_node: iab.InputNodeAlignmentBehavior
-    on_input_node: iab.InputNodeAlignmentBehavior
-    on_finished_input_nodes: pab.PostAlignmentBehavior
+    on_first_input_node: iab.InputNodeAlignmentBehavior = field(init=False)
+    on_input_node: iab.InputNodeAlignmentBehavior = field(init=False)
+    on_finished_input_nodes: pab.PostAlignmentBehavior = field(init=False)
 
     def run(self, node: bw_node.Node):
         for i, input_node in enumerate(node.input_nodes_in_same_chain):
@@ -54,14 +55,14 @@ class InputNodeAligner():
 
 @dataclass
 class HiarachyAlign(InputNodeAligner):
-    on_finished_input_nodes = iab.AlignLeftOutput()
+    on_first_input_node = iab.AlignLeftOutput()
     on_input_node = iab.AlignBelowSibling()
     on_finished_input_nodes = pab.AlignInputsToCenter()
 
 
 @dataclass
 class RemoveOverlap(InputNodeAligner):
-    on_finished_input_nodes = iab.NoInputNodeAlignment()
+    on_first_input_node = iab.NoInputNodeAlignment()
     on_input_node = iab.NoInputNodeAlignment()
     on_finished_input_nodes = pab.AlignNoOverlapAverageCenter()
 
@@ -88,8 +89,6 @@ def run(node_selection: bw_node_selection.NodeSelection):
                                      node_chain.root.pos.y + offset)
         utils.offset_children(node_chain.root, offset)
 
-
-
         # aligner = InputNodeAligner(
         #     on_first_input_node=NoInputNodeAlignment(),
         #     on_input_node=AlignChainBelowSibling(),
@@ -97,7 +96,7 @@ def run(node_selection: bw_node_selection.NodeSelection):
         # )
         # aligner.run(node_chain.root)
         # MNaybe apåply offset instead of centering
-        
+
         # layout_y_axis(node_chain.root)
         # IMPLEMENT LOGIC I WROTE IN TEST FILE
         # OVERLAP IS NOT WORKING AGAIN
@@ -111,6 +110,7 @@ def run(node_selection: bw_node_selection.NodeSelection):
 
     # remove_overlap_in_children(root_node)
 
+
 def sort_nodes(node: bw_node.Node):
     for input_node in node.input_nodes:
         output_node = input_node.closest_output_node_in_x
@@ -121,10 +121,8 @@ def sort_nodes(node: bw_node.Node):
             spacer = SPACER * 4
         else:
             spacer = SPACER
-            
+
         pos = output_node.pos.x - half_output - spacer - half_input
 
         input_node.set_position(pos, input_node.pos.y)
         sort_nodes(input_node)
-
-
