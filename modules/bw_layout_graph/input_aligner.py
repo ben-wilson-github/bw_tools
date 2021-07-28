@@ -22,21 +22,7 @@ SPACER = 32
 
 
 @dataclass
-class InputNodeAligner():
-    """
-    This class is used to align the inputs of a given node.
-
-    on_first_input: InputNodeAlignmentBehavior = Defines the behavior
-    for the first input of a given node.
-
-    on_input_node: InputNodeAlignmentBehavior = Defines the behavior
-    for all subsequent nodes after the first.
-
-    on_finished_input_nodes: PostAlignmentBehavior = Is called after
-    all inputs have been processed. You can use this behavior to
-    apply logic on the newly updated input node positions. For example,
-    by aligning them to the center point.
-    """
+class InputFirstTravel():
     on_first: iab.InputNodeAlignmentBehavior = field(init=False)
     on_input: iab.InputNodeAlignmentBehavior = field(init=False)
     on_finished: pab.PostAlignmentBehavior = field(init=False)
@@ -48,8 +34,34 @@ class InputNodeAligner():
             else:
                 self.on_input.run(input_node, node)
 
+        self.on_finished.run(node)
+
+        if node.offset_node is not None:
+            node.update_offset_to_node(node.offset_node)
+        input_node: bw_node.Node
+        for input_node in node.input_nodes:
+            input_node.update_offset_to_node(node)
+
+        for input_node in node.input_nodes_in_chain:
             if input_node.input_nodes_in_chain_count > 0:
                 self.run(input_node)
+
+
+@dataclass
+class BottomUpTravel():
+    on_first: iab.InputNodeAlignmentBehavior = field(init=False)
+    on_input: iab.InputNodeAlignmentBehavior = field(init=False)
+    on_finished: pab.PostAlignmentBehavior = field(init=False)
+
+    def run(self, node: bw_node.Node):
+        for i, input_node in enumerate(node.input_nodes_in_chain):
+            if input_node.input_nodes_in_chain_count > 0:
+                self.run(input_node)
+
+            if i == 0:
+                self.on_first.run(input_node, node)
+            else:
+                self.on_input.run(input_node, node)
 
         self.on_finished.run(node)
 
@@ -61,14 +73,14 @@ class InputNodeAligner():
 
 
 @dataclass
-class HiarachyAlign(InputNodeAligner):
+class HiarachyAlign(InputFirstTravel):
     on_first = iab.AlignWithOutput()
-    on_input = iab.AlignBelowSibling()
-    on_finished = pab.AlignChainInputsToCenterPoint()
+    on_input = iab.AlignBelowSiblingInSameChain()
+    on_finished = pab.AlignInputsToCenterPointOneNode()
 
 
 @dataclass
-class RemoveOverlap(InputNodeAligner):
+class RemoveOverlap(BottomUpTravel):
     on_first = iab.NoInputNodeAlignment()
     on_input = iab.NoInputNodeAlignment()
     on_finished = pab.AlignNoOverlapAverageCenter()

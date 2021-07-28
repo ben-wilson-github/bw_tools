@@ -11,15 +11,19 @@ import sd
 from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
+from . import utils
 from . import node_sorter
+from . import chain_aligner
 from . import input_aligner
 from . import bw_layout_mainline
 from . import bw_layout_horizontal
 
+importlib.reload(utils)
 importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
 importlib.reload(node_sorter)
 importlib.reload(input_aligner)
+importlib.reload(chain_aligner)
 importlib.reload(bw_node_selection)
 importlib.reload(bw_layout_mainline)
 importlib.reload(bw_layout_horizontal)
@@ -30,7 +34,7 @@ SPACER = 32
 # TODO: Create new node selection and node type for this plugin and inherit
 # TODO: Add option to reposition roots or not
 # TODO: Add option to align by main line
-
+# TODO: Remove input aligner to node aligner
 
 
 def run_layout(node_selection: bw_node_selection.NodeSelection,
@@ -45,31 +49,20 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
 
         for node_chain in node_selection.node_chains:
             aligner = input_aligner.HiarachyAlign()
-            aligner.run(node_chain.root)
-
-        
-        # # Position all roots starting from the top of tree
-        # seen = list()
-        # for node_chain in node_selection.node_chains:
-        #     if node_chain.root.output_node_count != 0:
-        #         continue
-        #     aligner = NodeChainAlign()
-        #     aligner.run(node_chain.root, seen)
-
-            # original_pos = node_chain.root.pos.y
-            # aligner = RemoveOverlap()
             # aligner.run(node_chain.root)
 
-            # # move back
-            # offset = original_pos - node_chain.root.pos.y
-            # node_chain.root.set_position(node_chain.root.pos.x,
-            #                              node_chain.root.pos.y + offset)
-            # utils.offset_children(node_chain.root, offset)
-        
-        # for node in node_selection.nodes:
-        #     print(node.offset_node)
-        #     print(node.offset)
+        # Position all roots starting from the top of tree
+        seen = list()
+        for node_chain in node_selection.node_chains:
+            if node_chain.root.output_node_count != 0:
+                continue
+            aligner = chain_aligner.ChainAligner()
+            # aligner.run(node_chain.root)
 
+        for node_chain in node_selection.node_chains:
+            original_pos = node_chain.root.pos.y
+            aligner = input_aligner.RemoveOverlap()
+            # aligner.run(node_chain.root)
 
 
 def on_clicked_layout_graph(api: bw_api_tool):

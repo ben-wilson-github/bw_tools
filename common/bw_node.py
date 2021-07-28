@@ -249,13 +249,13 @@ class Node:
     def closest_output_node_in_x(self) -> 'Node':
         if self.output_node_count == 0:
             raise AttributeError('No output nodes connected.')
-        
+
         closest = self.output_nodes[0]
         for output_node in self.output_nodes:
             if output_node.pos.x < closest.pos.x:
                 closest = output_node
         return closest
-    
+
     # TODO: Move to new class
     def refresh_positions(self):
         self.set_position(
@@ -264,6 +264,16 @@ class Node:
         )
         for input_node in self.input_nodes:
             input_node.refresh_positions()
+    
+    # TODO: Move to new class
+    def refresh_positions_in_chain(self):
+        self.set_position(
+            self.offset_node.pos.x + self.offset.x,
+            self.offset_node.pos.y + self.offset.y
+        )
+        for input_node in self.input_nodes_in_chain:
+            input_node.refresh_positions_in_chain()
+    
             
     def clear_input_connection_data(self):
         self._input_connection_data = list()
