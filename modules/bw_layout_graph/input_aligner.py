@@ -68,7 +68,7 @@ class BottomUpTravel():
         if node.offset_node is not None:
             node.update_offset_to_node(node.offset_node)
         input_node: bw_node.Node
-        for input_node in node.input_nodes:
+        for input_node in node.input_nodes_in_chain:
             input_node.update_offset_to_node(node)
 
 

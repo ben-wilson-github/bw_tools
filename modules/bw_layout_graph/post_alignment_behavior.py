@@ -28,7 +28,7 @@ class NoPostAlignment(PostAlignmentBehavior):
 @dataclass
 class AlignInputsToCenterPoint(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
-        inputs = self.get_inputs(node)
+        inputs = node.input_nodes_in_chain
 
         if len(inputs) < 2:
             return
@@ -50,24 +50,14 @@ class AlignInputsToCenterPoint(PostAlignmentBehavior):
     def on_after_position_node(self, input_node: bw_node.Node):
         pass
 
-    @abstractmethod
-    def get_inputs(self, node: bw_node.Node) -> List[bw_node.Node]:
-        pass
-
 
 class AlignInputsToCenterPointUpdateChain(AlignInputsToCenterPoint):
-    def get_inputs(self, node: bw_node.Node) -> List[bw_node.Node]:
-        return node.input_nodes
-
     def on_after_position_node(self, input_node: bw_node.Node):
         input_node.update_offset_to_node(input_node.offset_node)
         input_node.refresh_positions()
 
 
 class AlignInputsToCenterPointOneNode(AlignInputsToCenterPoint):
-    def get_inputs(self, node: bw_node.Node) -> List[bw_node.Node]:
-        return node.input_nodes_in_chain
-
     def on_after_position_node(self, input_node: bw_node.Node):
         pass
 
@@ -86,6 +76,7 @@ class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
             node,
             mid_point
         )
+
         nodes_above.reverse()
 
         for input_node in nodes_above:

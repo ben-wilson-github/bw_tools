@@ -49,7 +49,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
 
         for node_chain in node_selection.node_chains:
             aligner = input_aligner.HiarachyAlign()
-            # aligner.run(node_chain.root)
+            aligner.run(node_chain.root)
 
         # Position all roots starting from the top of tree
         seen = list()
@@ -57,7 +57,8 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             if node_chain.root.output_node_count != 0:
                 continue
             aligner = chain_aligner.ChainAligner()
-            # aligner.run(node_chain.root)
+            aligner.run(node_chain.root)
+            CHAIN ALIGNER IS NOT UPDATING INPITS. CHECK TEST_CHAIN_3
 
         for node_chain in node_selection.node_chains:
             original_pos = node_chain.root.pos.y

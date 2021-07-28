@@ -244,8 +244,8 @@ class AlignBelowSiblingSmallestChain(AlignSmallestChainBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        i = output_node.input_nodes.index(input_node)
-        return output_node.input_nodes[i - 1]
+        i = output_node.input_nodes_in_chain.index(input_node)
+        return output_node.input_nodes_in_chain[i - 1]
 
 
 class AlignAboveSiblingSmallestChain(AlignSmallestChainBehavior):
@@ -270,5 +270,5 @@ class AlignAboveSiblingSmallestChain(AlignSmallestChainBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        i = output_node.input_nodes.index(input_node)
-        return output_node.input_nodes[i + 1]
+        i = output_node.input_nodes_in_chain.index(input_node)
+        return output_node.input_nodes_in_chain[i + 1]
