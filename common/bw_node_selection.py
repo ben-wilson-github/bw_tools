@@ -175,7 +175,7 @@ class NodeSelection(NodeGroupInterface):
     def _add_children_to_node_chain(self,
                                     node: bw_node.Node,
                                     chain: NodeChain):
-        for input_node in node.input_nodes:
+        for input_node in node.input_nodes():
             if input_node in self.root_nodes:
                 continue
 
@@ -244,4 +244,5 @@ class NodeSelection(NodeGroupInterface):
                     connection_data.add_node(output_node)
 
             if connection_data.nodes:
+                node.offset_node = connection_data.nodes[0]
                 node.add_output_connection_data(connection_data)

@@ -1,5 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
+from dataclasses import dataclass
 
 from typing import Tuple
 
@@ -13,6 +14,7 @@ from . import utils
 SPACER = 32
 
 
+@dataclass
 class InputNodeAlignmentBehavior(ABC):
     """
     Defines the behavior for positioning a single input node relative
@@ -24,6 +26,8 @@ class InputNodeAlignmentBehavior(ABC):
     You must pass in the input node, the connected output node and the
     index in which the input node connects into the output node
     """
+    limit_to_chain: bool = True
+
     @abstractmethod
     def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
         pass
@@ -46,6 +50,7 @@ class NoInputNodeAlignment(InputNodeAlignmentBehavior):
 class AlignLeftOutput(InputNodeAlignmentBehavior):
     def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
         input_node.set_position(input_node.pos.x, output_node.pos.y)
+        # input_node.update_offset_data(output_node)
 
     def get_sibling_node(self, _, __) -> bw_node.Node:
         pass
@@ -71,12 +76,14 @@ class AlignBelowSibling(InputNodeAlignmentBehavior):
         else:
             new_pos_y = cd.bounds.lower + SPACER + input_node.height / 2
             input_node.set_position(input_node.pos.x, new_pos_y)
+            # input_node.update_offset_data(output_node)
 
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        i = utils.get_index_in_input_list(input_node, output_node)
-        return output_node.input_nodes_in_same_chain[i - 1]
+        nodes = output_node.input_nodes(limit_to_chain=self.limit_to_chain)
+        i = nodes.index(input_node)
+        return nodes[i - 1]
 
 
 class AlignAboveSibling(InputNodeAlignmentBehavior):
@@ -95,12 +102,14 @@ class AlignAboveSibling(InputNodeAlignmentBehavior):
         else:
             new_pos_y = cd.bounds.upper - SPACER - input_node.height / 2
             input_node.set_position(input_node.pos.x, new_pos_y)
+            # input_node.update_offset_data(output_node)
 
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        i = utils.get_index_in_input_list(input_node, output_node)
-        return output_node.input_nodes_in_same_chain[i + 1]
+        nodes = output_node.input_nodes(limit_to_chain=self.limit_to_chain)
+        i = nodes.index(input_node)
+        return nodes[i + 1]
 
 
 class ChainAlignBehavior(InputNodeAlignmentBehavior, ABC):
@@ -129,10 +138,9 @@ class ChainAlignBehavior(InputNodeAlignmentBehavior, ABC):
                                        sibling_node,
                                        smallest_cd,
                                        output_node.chain)
-
-        input_node.set_position(input_node.pos.x,
-                                input_node.pos.y + offset)
-        utils.offset_children(input_node, offset=offset)
+        input_node.offset.y += offset
+        input_node.refresh_position_using_offset(recursive=True,
+                                                  limit_to_chain=True)
 
     @staticmethod
     def _calculate_smallest_chain_dimension(
@@ -222,8 +230,9 @@ class AlignChainBelowSibling(ChainAlignBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        i = utils.get_index_in_input_list(input_node, output_node)
-        return output_node.input_nodes_in_same_chain[i - 1]
+        nodes = output_node.input_nodes(limit_to_chain=False)
+        i = nodes.index(input_node)
+        return nodes[i - 1]
 
 
 class AlignChainAboveSibling(ChainAlignBehavior):
@@ -248,5 +257,6 @@ class AlignChainAboveSibling(ChainAlignBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        i = utils.get_index_in_input_list(input_node, output_node)
-        return output_node.input_nodes_in_same_chain[i + 1]
+        nodes = output_node.input_nodes(limit_to_chain=False)
+        i = nodes.index(input_node)
+        return nodes[i + 1]

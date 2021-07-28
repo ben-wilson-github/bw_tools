@@ -1,5 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Tuple
 from typing import List
 
@@ -8,11 +9,13 @@ from . import input_alignment_behavior
 from . import utils
 
 
+@dataclass
 class PostAlignmentBehavior(ABC):
     """
     Defines the behavior to execute after alignment of each input node is
     finished.
     """
+    limit_to_chain: bool = True
     @abstractmethod
     def run(self, node: bw_node.Node):
         pass
@@ -23,34 +26,29 @@ class NoPostAlignment(PostAlignmentBehavior):
         pass
 
 
-class AlignInputsToBottom(PostAlignmentBehavior):
-    def run(self, node: bw_node.Node):
-        if len(node.input_nodes_in_same_chain) > 1:
-            bottom_input_node = node.input_nodes_in_same_chain[-1]
-
-            offset = bottom_input_node.pos.y - node.pos.y
-            utils.offset_children(node, offset=-offset)
-
-
 class AlignInputsToCenter(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
-        if len(node.input_nodes_in_same_chain) > 1:
-            top_input_node = node.input_nodes_in_same_chain[0]
-            bottom_input_node = node.input_nodes_in_same_chain[-1]
+        inputs = node.input_nodes(limit_to_chain=self.limit_to_chain)
+        if len(inputs) > 1:
+            top_input_node = inputs[0]
+            bottom_input_node = inputs[-1]
 
-            _, y = utils.calculate_mid_point(top_input_node,
-                                             bottom_input_node)
-            offset = y - node.pos.y
-            utils.offset_children(node, offset=-offset)
+            _, mid_point = utils.calculate_mid_point(top_input_node,
+                                                     bottom_input_node)
+
+            for input_node in inputs:
+                input_node.offset.y = input_node.pos.y - mid_point
+                input_node.refresh_position_using_offset(recursive=True,
+                                                         limit_to_chain=self.limit_to_chain)
 
 
 class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
-        if len(node.input_nodes_in_same_chain) < 2:
+        if len(node.input_nodes(limit_to_chain=True)) < 2:
             return
 
-        top_input_node = node.input_nodes_in_same_chain[0]
-        bottom_input_node = node.input_nodes_in_same_chain[-1]
+        top_input_node = node.input_nodes(limit_to_chain=True)[0]
+        bottom_input_node = node.input_nodes(limit_to_chain=True)[-1]
         _, mid_point = utils.calculate_mid_point(top_input_node,
                                                  bottom_input_node)
 
@@ -78,7 +76,7 @@ class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
             ) -> Tuple[List[bw_node.Node], List[bw_node.Node]]:
         nodes_above = list()
         nodes_below = list()
-        for input_node in node.input_nodes_in_same_chain:
+        for input_node in node.input_nodes(limit_to_chain=True):
             if input_node.pos.y < point:
                 nodes_above.append(input_node)
             elif input_node.pos.y > point:

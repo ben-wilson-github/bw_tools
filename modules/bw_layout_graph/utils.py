@@ -2,9 +2,13 @@ from common import bw_node
 
 
 def offset_children(parent_node: bw_node.Node, offset: float):
-    for input_node in parent_node.input_nodes_in_same_chain:
+    for input_node in parent_node.input_nodes_in_chain:
         input_node.set_position(input_node.pos.x, input_node.pos.y + offset)
         offset_children(input_node, offset)
+
+def update_input_pos_in_same_chain(parent_node: bw_node.Node):
+    for input_node in parent_node.input_nodes_in_chain:
+        input_node
 
 
 def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> float:
@@ -15,7 +19,8 @@ def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> float:
 
 
 def get_index_in_input_list(input_node: bw_node.Node,
-                            output_node: bw_node.Node) -> int:
-    for i, node in enumerate(output_node.input_nodes_in_same_chain):
+                            output_node: bw_node.Node,
+                            limit_chain: bool = True) -> int:
+    for i, node in enumerate(output_node.input_nodes(limit_chain)):
         if node == input_node:
             return i

@@ -28,8 +28,8 @@ NODE_SLOT_STRIDE = 21.25
 
 @dataclass()
 class NodePosition:
-    x: float
-    y: float
+    x: float = 0.0
+    y: float = 0.0
 
     def __post_init__(self):
         if not any(isinstance(i, float) for i in [self.x, self.y]):
@@ -64,7 +64,9 @@ class Node:
 
     label: str = field(init=False)
     identifier: int = field(init=False)
-    pos: NodePosition = field(init=False, repr=False)
+    pos: NodePosition = field(init=False, repr=False, default_factory=NodePosition)
+    offset_node: 'Node' = field(init=False, default=None, repr=False)
+    offset: NodePosition = field(init=False, repr=False, default_factory=NodePosition)
 
     _input_connection_data: List[InputConnectionData] = field(init=False, default_factory=list, repr=False)
     _output_connection_data: List[OutputConnectionData] = field(init=False, default_factory=list, repr=False)
@@ -176,16 +178,20 @@ class Node:
 
     @property
     def input_node_count(self) -> int:
-        return len(self.input_nodes)
+        return len(self.input_nodes())
 
-    @property
-    def input_nodes(self) -> Tuple['Node', ...]:
+    def input_nodes(self, limit_to_chain=False) -> Tuple['Node']:
         unique_nodes = []
 
         connection_data: InputConnectionData
         for connection_data in self._input_connection_data:
-            if connection_data.input_node not in unique_nodes:
-                unique_nodes.append(connection_data.input_node)
+            input_node = connection_data.input_node
+
+            if limit_to_chain and not self.chain.contains(input_node):
+                continue
+
+            if input_node not in unique_nodes:
+                unique_nodes.append(input_node)
         return tuple(unique_nodes)
 
     @property
@@ -226,14 +232,7 @@ class Node:
     def largest_chain_depth_index(self) -> int:
         return self._calculate_largest_chain_depth()[1]
 
-    @property
-    def input_nodes_in_same_chain(self) -> Tuple['Node']:
-        ret = []
-        for input_node in self.input_nodes:
-            if self.chain.contains(input_node) and input_node not in ret:
-                ret.append(input_node)
-        return ret
-    
+
     # TODO: inherit node class and move to new for plugin
     @property
     def closest_output_node_in_x(self) -> 'Node':
@@ -245,7 +244,19 @@ class Node:
             if output_node.pos.x < closest.pos.x:
                 closest = output_node
         return closest
-    
+
+    def refresh_position_using_offset(self,
+                                      recursive=False,
+                                      limit_to_chain=False):
+        self.set_position(
+            self.offset_node.pos.x + self.offset.x,
+            self.offset_node.pos.y + self.offset.y
+        )
+        if recursive:
+            for input_node in self.input_nodes(limit_to_chain):
+                input_node.refresh_position_using_offset(recursive,
+                                                         limit_to_chain)
+            
     def clear_input_connection_data(self):
         self._input_connection_data = list()
     
@@ -295,6 +306,14 @@ class Node:
             sd.api.sdbasetypes.float2(x, y)
         )
     
+    def update_offset_data(self, output_node: 'Node'):
+        offset_x = output_node.pos.x - self.pos.x
+        offset_y = output_node.pos.y - self.pos.y
+        self.offset_node = output_node
+        self.offset.x = -offset_x
+        self.offset.y = -offset_y
+
+
     def move_to_node(self, other: Node, offset_x: float = 0, offset_y: float = 0):
         """Helper function to position a node to another"""
         self.set_position(other.pos.x + offset_x, other.pos.y + offset_y)
