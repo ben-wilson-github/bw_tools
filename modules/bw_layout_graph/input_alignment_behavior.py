@@ -47,7 +47,7 @@ class NoInputNodeAlignment(InputNodeAlignmentBehavior):
         pass
 
 
-class AlignLeftOutput(InputNodeAlignmentBehavior):
+class AlignWithOutput(InputNodeAlignmentBehavior):
     def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
         input_node.set_position(input_node.pos.x, output_node.pos.y)
         # input_node.update_offset_data(output_node)
@@ -81,9 +81,8 @@ class AlignBelowSibling(InputNodeAlignmentBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        nodes = output_node.input_nodes(limit_to_chain=self.limit_to_chain)
-        i = nodes.index(input_node)
-        return nodes[i - 1]
+        i = output_node.input_nodes_in_chain.index(input_node)
+        return output_node.input_nodes_in_chain[i - 1]
 
 
 class AlignAboveSibling(InputNodeAlignmentBehavior):
@@ -107,9 +106,8 @@ class AlignAboveSibling(InputNodeAlignmentBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
-        nodes = output_node.input_nodes(limit_to_chain=self.limit_to_chain)
-        i = nodes.index(input_node)
-        return nodes[i + 1]
+        i = output_node.input_nodes_in_chain.index(input_node)
+        return output_node.input_nodes_in_chain[i + 1]
 
 
 class ChainAlignBehavior(InputNodeAlignmentBehavior, ABC):
@@ -139,7 +137,7 @@ class ChainAlignBehavior(InputNodeAlignmentBehavior, ABC):
                                        smallest_cd,
                                        output_node.chain)
         input_node.offset.y += offset
-        input_node.refresh_position_using_offset(recursive=True,
+        input_node.refresh_positions(recursive=True,
                                                   limit_to_chain=True)
 
     @staticmethod

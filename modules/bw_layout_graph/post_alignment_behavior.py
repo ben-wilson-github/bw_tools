@@ -15,7 +15,6 @@ class PostAlignmentBehavior(ABC):
     Defines the behavior to execute after alignment of each input node is
     finished.
     """
-    limit_to_chain: bool = True
     @abstractmethod
     def run(self, node: bw_node.Node):
         pass
@@ -26,20 +25,38 @@ class NoPostAlignment(PostAlignmentBehavior):
         pass
 
 
-class AlignInputsToCenter(PostAlignmentBehavior):
+@dataclass
+class AlignInputsToCenterPoint(PostAlignmentBehavior):
     def run(self, node: bw_node.Node):
-        inputs = node.input_nodes(limit_to_chain=self.limit_to_chain)
-        if len(inputs) > 1:
-            top_input_node = inputs[0]
-            bottom_input_node = inputs[-1]
+        print('Running align input to center point')
+        inputs = self.get_inputs(node)
 
-            _, mid_point = utils.calculate_mid_point(top_input_node,
-                                                     bottom_input_node)
+        if len(inputs) < 2:
+            return
 
-            for input_node in inputs:
-                input_node.offset.y = input_node.pos.y - mid_point
-                input_node.refresh_position_using_offset(recursive=True,
-                                                         limit_to_chain=self.limit_to_chain)
+        top_input_node = inputs[0]
+        bottom_input_node = inputs[-1]
+
+        _, mid_point = utils.calculate_mid_point(top_input_node,
+                                                 bottom_input_node)
+
+        for input_node in inputs:
+            input_node.offset.y = input_node.pos.y - mid_point
+            input_node.refresh_positions()
+
+    @abstractmethod
+    def get_inputs(self, node: bw_node.Node) -> List[bw_node.Node]:
+        pass
+
+
+class AlignAllInputsToCenterPoint(AlignInputsToCenterPoint):
+    def get_inputs(self, node: bw_node.Node) -> List[bw_node.Node]:
+        return node.input_nodes
+
+
+class AlignChainInputsToCenterPoint(AlignInputsToCenterPoint):
+    def get_inputs(self, node: bw_node.Node) -> List[bw_node.Node]:
+        return node.input_nodes_in_chain
 
 
 class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
@@ -66,7 +83,7 @@ class AlignNoOverlapAverageCenter(PostAlignmentBehavior):
             align = input_alignment_behavior.AlignChainBelowSibling()
             align.run(input_node, node)
 
-        align = AlignInputsToCenter()
+        align = AlignAllInputsToCenterPoint()
         align.run(node)
 
     def _get_input_nodes_around_point(

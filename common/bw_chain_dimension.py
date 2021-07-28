@@ -89,7 +89,7 @@ def calculate_chain_dimension(node: bw_node.Node,
     cd.upper_node = node
     cd.lower_node = node
 
-    for input_node in node.input_nodes():
+    for input_node in node.input_nodes:
         if not chain.contains(input_node):
             continue
         else:

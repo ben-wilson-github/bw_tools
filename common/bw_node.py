@@ -178,17 +178,28 @@ class Node:
 
     @property
     def input_node_count(self) -> int:
-        return len(self.input_nodes())
+        return len(self.input_nodes)
 
-    def input_nodes(self, limit_to_chain=False) -> Tuple['Node']:
-        unique_nodes = []
+    @property
+    def input_nodes_in_chain(self) -> Tuple['Node']:
+        nodes = list()
+        for input_node in self.input_nodes:
+            if not self.chain.contains(input_node):
+                continue
+            nodes.append(input_node)
+        return tuple(nodes)
+
+    @property
+    def input_nodes_in_chain_count(self) -> int:
+        return len(self.input_nodes_in_chain)
+
+    @property
+    def input_nodes(self) -> Tuple['Node']:
+        unique_nodes = list()
 
         connection_data: InputConnectionData
         for connection_data in self._input_connection_data:
             input_node = connection_data.input_node
-
-            if limit_to_chain and not self.chain.contains(input_node):
-                continue
 
             if input_node not in unique_nodes:
                 unique_nodes.append(input_node)
@@ -244,18 +255,15 @@ class Node:
             if output_node.pos.x < closest.pos.x:
                 closest = output_node
         return closest
-
-    def refresh_position_using_offset(self,
-                                      recursive=False,
-                                      limit_to_chain=False):
+    
+    # TODO: Move to new class
+    def refresh_positions(self):
         self.set_position(
             self.offset_node.pos.x + self.offset.x,
             self.offset_node.pos.y + self.offset.y
         )
-        if recursive:
-            for input_node in self.input_nodes(limit_to_chain):
-                input_node.refresh_position_using_offset(recursive,
-                                                         limit_to_chain)
+        for input_node in self.input_nodes:
+            input_node.refresh_positions()
             
     def clear_input_connection_data(self):
         self._input_connection_data = list()
@@ -306,7 +314,7 @@ class Node:
             sd.api.sdbasetypes.float2(x, y)
         )
     
-    def update_offset_data(self, output_node: 'Node'):
+    def update_offset_to_node(self, output_node: 'Node'):
         offset_x = output_node.pos.x - self.pos.x
         offset_y = output_node.pos.y - self.pos.y
         self.offset_node = output_node
