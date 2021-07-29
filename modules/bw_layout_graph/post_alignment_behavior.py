@@ -210,6 +210,10 @@ def remove_overlap2(node: bw_node.Node, node_list: List[bw_node.Node], seen: Lis
     for input_node in node_list:
         input_node.update_offset_to_node(node)
         input_node.refresh_positions()
+        # if input_node not in seen:
+        #     seen.append(input_node)
+
+    TRY TESTING LOGIC INFO IN CHAIN 6 ON CHAIN 4 
 
     # for n in seen:
     #     n.refresh_positions_in_chain()

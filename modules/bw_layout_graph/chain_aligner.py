@@ -38,8 +38,6 @@ class ChainAligner():
             node.refresh_positions_in_chain()
             return
 
-        
-
         for i, output_node in enumerate(output_nodes):
             if i == 0:
                 print(f'This is first time running')

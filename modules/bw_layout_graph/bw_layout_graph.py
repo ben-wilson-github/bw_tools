@@ -35,6 +35,8 @@ SPACER = 32
 # TODO: Add option to reposition roots or not
 # TODO: Add option to align by main line
 # TODO: Remove input aligner to node aligner
+# TODO: Remove dot nodes
+# TODO: Position chains in x better during sorting (use chain bounds instead of flat offset)
 
 
 def run_layout(node_selection: bw_node_selection.NodeSelection,
@@ -42,6 +44,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
     api.log.info('Running layout Graph')
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
+        
         api.log.debug('Sorting Nodes...')
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
@@ -60,7 +63,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             if node_chain.root.output_node_count != 0:
                 continue
             aligner = chain_aligner.ChainAligner()
-            aligner.run(node_chain.root, seen)
+            # aligner.run(node_chain.root, seen)
 
         api.log.debug('Removing overlap...')
         seen = list()
@@ -68,7 +71,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             if node_chain.root.output_node_count != 0:
                 continue
             aligner = input_aligner.RemoveOverlap()
-            aligner.run2(node_chain.root, seen)
+            # aligner.run2(node_chain.root, seen)
 
         
 
