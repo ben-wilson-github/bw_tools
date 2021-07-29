@@ -42,28 +42,31 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
     api.log.info('Running layout Graph')
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
+        api.log.debug('Sorting Nodes...')
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
             node_sorter.sort_nodes(node_chain.root)
 
+        api.log.debug('Aligning by hiararchy...')
         for node_chain in node_selection.node_chains:
             aligner = input_aligner.HiarachyAlign()
             aligner.run(node_chain.root)
 
         # Position all roots starting from the top of tree
+        api.log.debug('Aligning node chains...')
         seen = list()
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
             aligner = chain_aligner.ChainAligner()
-            aligner.run(node_chain.root)
-            CHAIN ALIGNER IS NOT UPDATING INPITS. CHECK TEST_CHAIN_3
+            # aligner.run(node_chain.root, seen)
 
+        api.log.debug('Removing overlap...')
         for node_chain in node_selection.node_chains:
             original_pos = node_chain.root.pos.y
             aligner = input_aligner.RemoveOverlap()
-            # aligner.run(node_chain.root)
+            aligner.run(node_chain.root)
 
 
 def on_clicked_layout_graph(api: bw_api_tool):

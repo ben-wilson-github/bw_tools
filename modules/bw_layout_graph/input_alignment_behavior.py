@@ -9,6 +9,7 @@ from common import bw_node_selection
 from common import bw_chain_dimension
 
 from . import utils
+from . import post_alignment_behavior as pab
 
 
 SPACER = 32
@@ -26,61 +27,89 @@ class InputNodeAlignmentBehavior(ABC):
     You must pass in the input node, the connected output node and the
     index in which the input node connects into the output node
     """
-    limit_to_chain: bool = True
-
     @abstractmethod
-    def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
-        pass
-
-    @abstractmethod
-    def get_sibling_node(self,
-                         input_node: bw_node.Node,
-                         output_node: bw_node.Node) -> bw_node.Node:
+    def run(self, input_node: bw_node.Node, other_node: bw_node.Node):
         pass
 
 
 class NoInputNodeAlignment(InputNodeAlignmentBehavior):
-    def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
-        pass
-
-    def get_sibling_node(self, _, __) -> bw_node.Node:
+    def run(self, _, __):
         pass
 
 
-class AlignWithOutput(InputNodeAlignmentBehavior):
-    def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
-        input_node.set_position(input_node.pos.x, output_node.pos.y)
-
-    def get_sibling_node(self, _, __) -> bw_node.Node:
-        pass
+def align_in_line(input_node: bw_node.Node, target_node: bw_node.Node):
+    input_node.set_position(input_node.pos.x, target_node.pos.y)
 
 
-class AlignBelowSibling(InputNodeAlignmentBehavior):
-    def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
-        node_above = self.get_sibling_node(input_node, output_node)
-        try:
-            cd = bw_chain_dimension.calculate_chain_dimension(
-                node_above,
-                output_node.chain,
-                limit_bounds=bw_chain_dimension.Bound(
-                    left=input_node.pos.x
-                )
-            )
-        except bw_chain_dimension.OutOfBoundsError:
-            # The node above might be outside of the bounds
-            # so this will fail. This can happen if the
-            # input node outputs to the same parent more than
-            # once
-            pass
-        else:
-            new_pos_y = cd.bounds.lower + SPACER + input_node.height / 2
-            input_node.set_position(input_node.pos.x, new_pos_y)
+def align_below(node: bw_node.Node, target_node: bw_node.Node):
+    y = target_node.pos.y + (target_node.height / 2) + SPACER + (node.height / 2)
+    node.set_position(node.pos.x, y)
 
-    def get_sibling_node(self,
-                         input_node: bw_node.Node,
-                         output_node: bw_node.Node) -> bw_node.Node:
-        i = output_node.input_nodes.index(input_node)
-        return output_node.input_nodes[i - 1]
+
+def align_above(node: bw_node.Node, target_node: bw_node.Node):
+    y = target_node.pos.y - (target_node.height / 2) - SPACER - (node.height / 2)
+    node.set_position(node.pos.x, y)
+
+
+def align_node_above_chain(node: bw_node.Node, target_node: bw_node.Node, limit_bound=bw_chain_dimension.Bound):
+    cd = bw_chain_dimension.calculate_chain_dimension(
+        target_node,
+        target_node.chain,
+        limit_bounds=limit_bound
+    )
+    y = cd.bounds.upper - SPACER - (node.height / 2)
+    node.set_position(node.pos.x, y)
+
+def align_above_bound(node: bw_node.Node, lower_bound: float, upper_bound: float):
+    offset = (upper_bound - SPACER) - lower_bound
+    node.set_position(node.pos.x, node.pos.y + offset)
+
+
+def align_node_below_chain(node: bw_node.Node, target_node: bw_node.Node, limit_bound=bw_chain_dimension.Bound):
+    cd = bw_chain_dimension.calculate_chain_dimension(
+        target_node,
+        target_node.chain,
+        limit_bounds=limit_bound
+    )
+    y = cd.bounds.lower + SPACER + (node.height / 2)
+    node.set_position(node.pos.x, y)
+
+
+def align_below_bound(node: bw_node.Node, lower_bound: float, upper_bound: float):
+    offset = (lower_bound + SPACER) - upper_bound
+    node.set_position(node.pos.x, node.pos.y + offset)
+
+
+def align_node_between(node: bw_node.Node, top: bw_node.Node, bottom: bw_node.Node):
+    _, mid_point = utils.calculate_mid_point(top, bottom)
+    node.set_position(node.pos.x, mid_point)
+
+# class AlignBelowSiblingOLD(InputNodeAlignmentBehavior):
+#     def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
+#         node_above = self.get_sibling_node(input_node, output_node)
+#         try:
+#             cd = bw_chain_dimension.calculate_chain_dimension(
+#                 node_above,
+#                 output_node.chain,
+#                 limit_bounds=bw_chain_dimension.Bound(
+#                     left=input_node.pos.x
+#                 )
+#             )
+#         except bw_chain_dimension.OutOfBoundsError:
+#             # The node above might be outside of the bounds
+#             # so this will fail. This can happen if the
+#             # input node outputs to the same parent more than
+#             # once
+#             pass
+#         else:
+#             new_pos_y = cd.bounds.lower + SPACER + input_node.height / 2
+#             input_node.set_position(input_node.pos.x, new_pos_y)
+
+#     def get_sibling_node(self,
+#                          input_node: bw_node.Node,
+#                          output_node: bw_node.Node) -> bw_node.Node:
+#         i = output_node.input_nodes.index(input_node)
+#         return output_node.input_nodes[i - 1]
 
 
 class AlignBelowSiblingInSameChain(AlignBelowSibling):
@@ -92,27 +121,9 @@ class AlignBelowSiblingInSameChain(AlignBelowSibling):
 
 
 class AlignAboveSibling(InputNodeAlignmentBehavior):
-    def run(self, input_node: bw_node.Node, output_node: bw_node.Node):
-        node_below = self.get_sibling_node(input_node, output_node)
-        try:
-            cd = bw_chain_dimension.calculate_chain_dimension(
-                node_below,
-                output_node.chain,
-                limit_bounds=bw_chain_dimension.Bound(
-                    left=input_node.pos.x
-                )
-            )
-        except bw_chain_dimension.OutOfBoundsError:
-            pass
-        else:
-            new_pos_y = cd.bounds.upper - SPACER - input_node.height / 2
-            input_node.set_position(input_node.pos.x, new_pos_y)
-
-    def get_sibling_node(self,
-                         input_node: bw_node.Node,
-                         output_node: bw_node.Node) -> bw_node.Node:
-        i = output_node.input_nodes.index(input_node)
-        return output_node.input_nodes[i + 1]
+    def run(self, node: bw_node.Node, other_node: bw_node.Node):
+        y = other_node.pos.y - (other_node.height / 2) - SPACER - (node.height / 2)
+        node.set_position(node.pos.x, y)
 
 
 class AlignAboveSiblingInSameChain(AlignAboveSibling):
@@ -244,6 +255,13 @@ class AlignBelowSiblingSmallestChain(AlignSmallestChainBehavior):
     def get_sibling_node(self,
                          input_node: bw_node.Node,
                          output_node: bw_node.Node) -> bw_node.Node:
+        i = output_node.input_nodes.index(input_node)
+        return output_node.input_nodes[i - 1]
+
+class AlignBelowSiblingSmallestChainSameChainInputs(AlignBelowSiblingSmallestChain):
+    def get_sibling_node(self,
+                         input_node: bw_node.Node,
+                         output_node: bw_node.Node) -> bw_node.Node:
         i = output_node.input_nodes_in_chain.index(input_node)
         return output_node.input_nodes_in_chain[i - 1]
 
@@ -272,3 +290,5 @@ class AlignAboveSiblingSmallestChain(AlignSmallestChainBehavior):
                          output_node: bw_node.Node) -> bw_node.Node:
         i = output_node.input_nodes_in_chain.index(input_node)
         return output_node.input_nodes_in_chain[i + 1]
+
+
