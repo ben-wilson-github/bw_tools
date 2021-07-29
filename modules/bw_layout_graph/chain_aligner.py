@@ -6,7 +6,9 @@ from typing import Tuple
 from common import bw_chain_dimension, bw_node
 from . import input_alignment_behavior as iab
 from . import post_alignment_behavior as pab
+from . import utils
 
+SPACER = 32
 
 @dataclass
 class ChainAligner():
@@ -26,12 +28,17 @@ class ChainAligner():
         #     return
 
         output_nodes = self._get_output_nodes_with_multiple_outputs(node)
-        if not output_nodes:
-            # Align all inputs to center
-            return
-
         output_nodes.sort(key=lambda node: node.pos.x, reverse=True)
         print(f'Found output nodes with multiple inputs: {output_nodes}')
+        if not output_nodes:
+            print('Moving to mid point')
+            _, y = utils.calculate_mid_point(node.output_nodes[0], node.output_nodes[-1])
+            node.set_position(node.pos.x, y)
+            node.update_offset_to_node(node.offset_node)
+            node.refresh_positions_in_chain()
+            return
+
+        
 
         for i, output_node in enumerate(output_nodes):
             if i == 0:
@@ -41,7 +48,7 @@ class ChainAligner():
                 # run output node
                 pass
 
-        top_right_output = output_nodes[0]
+        top_right_output = output_nodes[0]  # Aligning to this is gives us the straighest lines visually
         print(f'Done with work on outputs. Now align all the inputs for {top_right_output}')
         pab.average_positions_relative_to_node(top_right_output.input_nodes, top_right_output)
 
@@ -60,9 +67,6 @@ class ChainAligner():
 
         seen.append(node)
 
-        if node.identifier == 1419649033:
-            raise AttributeError()
-
     def _on_first_output_node(self,
                               node: bw_node.Node,
                               output_node: bw_node.Node):
@@ -75,12 +79,17 @@ class ChainAligner():
             iab.align_node_between(node, node_above, node_below)
         elif node_below is not None:    # Input is above
             print(f'Gonna move above chain for {node_below}')
-            # TODO: Change to bound function
-            iab.align_node_above_chain(node, node_below, bw_chain_dimension.Bound(left=node.pos.x))
+            node_below_cd = bw_chain_dimension.calculate_chain_dimension(node_below, node_below.chain, limit_bounds=bw_chain_dimension.Bound(left=node.pos.x))
+            lower_bound = node.pos.y + node.height / 2
+            upper_bound = node_below_cd.bounds.upper - SPACER
+            iab.align_above_bound(node, lower_bound, upper_bound)
         else:   # Input is below
-            print(f'Gonna move below chain {output_node}')
-            iab.align_node_below_chain(node, node_above, bw_chain_dimension.Bound(left=node.pos.x))
-
+            print(f'Gonna move below chain for {node_above}')
+            node_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain, limit_bounds=bw_chain_dimension.Bound(left=node.pos.x))
+            lower_bound = node_above_cd.bounds.lower + SPACER
+            upper_bound = node.pos.y - node.height / 2
+            iab.align_below_bound(node, lower_bound, upper_bound)
+             
     def _get_output_nodes_with_multiple_outputs(self,
                                                 node: bw_node.Node
                                                 ) -> List[bw_node.Node]:

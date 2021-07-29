@@ -60,14 +60,17 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             if node_chain.root.output_node_count != 0:
                 continue
             aligner = chain_aligner.ChainAligner()
-            # aligner.run(node_chain.root, seen)
+            aligner.run(node_chain.root, seen)
 
         api.log.debug('Removing overlap...')
+        seen = list()
         for node_chain in node_selection.node_chains:
-            original_pos = node_chain.root.pos.y
+            if node_chain.root.output_node_count != 0:
+                continue
             aligner = input_aligner.RemoveOverlap()
-            aligner.run(node_chain.root)
+            aligner.run2(node_chain.root, seen)
 
+        
 
 def on_clicked_layout_graph(api: bw_api_tool):
     node_selection = bw_node_selection.NodeSelection(api.current_selection, api.current_graph)

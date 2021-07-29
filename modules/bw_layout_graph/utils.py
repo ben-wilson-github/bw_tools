@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from common import bw_node
 
 
@@ -11,7 +13,7 @@ def update_input_pos_in_same_chain(parent_node: bw_node.Node):
         input_node
 
 
-def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> float:
+def calculate_mid_point(a: bw_node.Node, b: bw_node.Node) -> Tuple[float, float]:
     x = (a.pos.x + b.pos.x) / 2
     y = (a.pos.y + b.pos.y) / 2
 
