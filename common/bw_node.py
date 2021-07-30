@@ -27,7 +27,7 @@ NODE_SLOT_STRIDE = 21.25
 
 
 @dataclass()
-class NodePosition:
+class Float2:
     x: float = 0.0
     y: float = 0.0
 
@@ -64,9 +64,9 @@ class Node:
 
     label: str = field(init=False)
     identifier: int = field(init=False)
-    pos: NodePosition = field(init=False, repr=False, default_factory=NodePosition)
+    pos: Float2 = field(init=False, repr=False, default_factory=Float2)
     offset_node: 'Node' = field(init=False, default=None, repr=False)
-    offset: NodePosition = field(init=False, repr=False, default_factory=NodePosition)
+    offset: Float2 = field(init=False, repr=False, default_factory=Float2)
 
     _input_connection_data: List[InputConnectionData] = field(init=False, default_factory=list, repr=False)
     _output_connection_data: List[OutputConnectionData] = field(init=False, default_factory=list, repr=False)
@@ -83,7 +83,7 @@ class Node:
         #     raise TypeError(bw_utils.invalid_type_error(self.__init__, self.api_node))
         self.label = self.api_node.getDefinition().getLabel()
         self.identifier = int(self.api_node.getIdentifier())
-        self.pos = NodePosition(self.api_node.getPosition().x, self.api_node.getPosition().y)
+        self.pos = Float2(self.api_node.getPosition().x, self.api_node.getPosition().y)
 
     def add_input_connection_data(self, data: ConnectionData):
         self._input_connection_data.append(data)
