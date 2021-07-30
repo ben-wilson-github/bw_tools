@@ -32,9 +32,9 @@ class NodeResults:
 class TestNodePosition(unittest.TestCase):
     def test_throws_type_error(self):
         with self.assertRaises(TypeError):
-            bw_node.NodePosition(1, 1)
+            bw_node.Float2(1, 1)
 
-        pos = bw_node.NodePosition(0.0, 5.5)
+        pos = bw_node.Float2(0.0, 5.5)
         self.assertEqual(0.0, pos.x)
         self.assertEqual(5.5, pos.y)
 

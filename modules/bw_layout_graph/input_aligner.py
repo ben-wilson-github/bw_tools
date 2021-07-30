@@ -45,6 +45,50 @@ class HiarachyAlign():
                 self.run(input_node)
 
 
+
+
+    
+# go to bottom of the chain
+# if node is branching input node
+#     for each input in all the input nodes (Stacking the inputs)
+#         if it is the first time
+#             move inline with the branching node
+#             refresh the chain (not the root)
+#             add to averaging list
+#         else
+#             if it is a root
+#                 and at least one of its outputs is normal (not branching)
+#                     and it only has 1 farest output
+#                         and processing node is not the that farest output
+#                             add to excluded list
+#             else
+#                 move node below the chain above, using smallest cd
+#                 refresh the chain (not the root)
+#                 add to averaging list
+
+#     if averaging list is 2 or more
+#         calculate the mid point
+#             for each input in the averaging list
+#                 try to add offset to align behavior
+#                     mvoe it to get new pos
+#                     add offset to align behavior
+
+#                 move it by align behavior (if its static it will offset, if not it will average)
+#                 refresh the chain (not including the root)
+#                 if new pos is not old pos
+#                     add it to a moved list
+                    
+#         then update any previously seen roots
+#             for each seen root
+#                 move by align behavior
+#                 refresh the chain (including the root)
+    
+#     then add any roots to seen root list
+#         for each input
+#             if its a root and in the moved list
+#                 then add it to seen root list
+            
+
 @dataclass
 class RemoveOverlap():
     def run(self, node: bw_node.Node):
