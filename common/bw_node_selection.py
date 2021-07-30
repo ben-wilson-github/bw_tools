@@ -84,6 +84,15 @@ class NodeChain(NodeGroupInterface):
         ret += '])'
         return ret
 
+    def update(self):
+        def _on_update(node: bw_node.Node):
+            node.update_position()
+        for input_node in self.root.input_nodes:
+            if not self.contains(input_node):
+                continue
+            _on_update(input_node)
+
+
 
 @dataclass()
 class NodeSelection(NodeGroupInterface):

@@ -4,7 +4,7 @@ from typing import List
 from typing import Tuple
 
 from common import bw_chain_dimension, bw_node
-from . import input_alignment_behavior as iab
+from . import alignment_behavior as iab
 from . import post_alignment_behavior as pab
 from . import utils
 

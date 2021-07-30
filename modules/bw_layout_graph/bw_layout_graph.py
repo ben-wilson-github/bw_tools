@@ -12,17 +12,17 @@ from common import bw_node
 from common import bw_api_tool
 from common import bw_node_selection
 from . import utils
-from . import node_sorter
+from . import node_sorting
 from . import chain_aligner
-from . import input_aligner
+from . import aligner
 from . import bw_layout_mainline
 from . import bw_layout_horizontal
 
 importlib.reload(utils)
 importlib.reload(bw_node)
 importlib.reload(bw_api_tool)
-importlib.reload(node_sorter)
-importlib.reload(input_aligner)
+importlib.reload(node_sorting)
+importlib.reload(aligner)
 importlib.reload(chain_aligner)
 importlib.reload(bw_node_selection)
 importlib.reload(bw_layout_mainline)
@@ -37,6 +37,7 @@ SPACER = 32
 # TODO: Remove input aligner to node aligner
 # TODO: Remove dot nodes
 # TODO: Position chains in x better during sorting (use chain bounds instead of flat offset)
+# TODO: Move node types to enum?
 
 
 def run_layout(node_selection: bw_node_selection.NodeSelection,
@@ -45,32 +46,53 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         
+        old_pos = dict()
+        for node in node_selection.nodes:
+            old_pos[node.identifier] = (node.pos.x, node.pos.y)
+
         api.log.debug('Sorting Nodes...')
+        already_processed = list()
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
-            node_sorter.sort_nodes(node_chain.root)
+            node_sorting.run_sort(node_chain.root, already_processed)
 
-        api.log.debug('Aligning by hiararchy...')
-        for node_chain in node_selection.node_chains:
-            aligner = input_aligner.HiarachyAlign()
-            aligner.run(node_chain.root)
+        for node in node_selection.nodes:
+            # continue
+            # node.add_comment(str(node.alignment_behavior))
+            # node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
+            node.set_position(node.pos.x, old_pos[node.identifier][1])
 
-        # Position all roots starting from the top of tree
-        api.log.debug('Aligning node chains...')
+        
+        api.log.debug('Aligning Nodes...')
         seen = list()
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
-            aligner = chain_aligner.ChainAligner()
-            # aligner.run(node_chain.root, seen)
+            aligner.begin(node_chain.root, seen)
 
-        api.log.debug('Removing overlap...')
-        seen = list()
-        for node_chain in node_selection.node_chains:
-            if node_chain.root.output_node_count != 0:
-                continue
-            aligner = input_aligner.RemoveOverlap()
+        
+
+        # api.log.debug('Aligning by hiararchy...')
+        # for node_chain in node_selection.node_chains:
+        #     aligner = input_aligner.HiarachyAlign()
+        #     aligner.run(node_chain.root)
+
+        # # Position all roots starting from the top of tree
+        # api.log.debug('Aligning node chains...')
+        # seen = list()
+        # for node_chain in node_selection.node_chains:
+        #     if node_chain.root.output_node_count != 0:
+        #         continue
+        #     aligner = chain_aligner.ChainAligner()
+        #     # aligner.run(node_chain.root, seen)
+
+        # api.log.debug('Removing overlap...')
+        # seen = list()
+        # for node_chain in node_selection.node_chains:
+        #     if node_chain.root.output_node_count != 0:
+        #         continue
+        #     aligner = input_aligner.RemoveOverlap()
             # aligner.run2(node_chain.root, seen)
 
         

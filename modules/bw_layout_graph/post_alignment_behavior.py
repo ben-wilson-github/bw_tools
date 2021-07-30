@@ -6,7 +6,7 @@ from typing import List
 
 from common import bw_node
 from common import bw_chain_dimension
-from . import input_alignment_behavior as iab
+from . import alignment_behavior as iab
 from . import utils
 
 SPACER = 32
@@ -27,14 +27,14 @@ SPACER = 32
 #         pass
 
 
-def average_positions_relative_to_node(node_list: List[bw_node.Node], target_node: bw_node.Node):
-    _, mid_point = utils.calculate_mid_point(node_list[0],
-                                             node_list[-1])
-    offset = target_node.pos.y - mid_point
+# def average_positions_relative_to_node(node_list: List[bw_node.Node], target_node: bw_node.Node):
+#     _, mid_point = utils.calculate_mid_point(node_list[0],
+#                                              node_list[-1])
+#     offset = target_node.pos.y - mid_point
 
-    node: bw_node.Node
-    for node in node_list:
-        node.set_position(node.pos.x, node.pos.y + offset)
+#     node: bw_node.Node
+#     for node in node_list:
+#         node.set_position(node.pos.x, node.pos.y + offset)
 
 
 # @dataclass
@@ -213,8 +213,6 @@ def remove_overlap2(node: bw_node.Node, node_list: List[bw_node.Node], seen: Lis
         # if input_node not in seen:
         #     seen.append(input_node)
 
-    TRY TESTING LOGIC INFO IN CHAIN 6 ON CHAIN 4 
-
     # for n in seen:
     #     n.refresh_positions_in_chain()
     
@@ -224,20 +222,20 @@ def remove_overlap2(node: bw_node.Node, node_list: List[bw_node.Node], seen: Lis
     print(f'Finished')
 
 
-def calculate_smallest_chain_dimension(
-        a_cd: bw_chain_dimension.ChainDimension,
-        b_cd: bw_chain_dimension.ChainDimension) -> bw_chain_dimension.ChainDimension:
-    smallest = a_cd
-    if a_cd.bounds.left > b_cd.bounds.left:
-        smallest = a_cd
-    elif a_cd.bounds.left == b_cd.bounds.left:
-        if a_cd.bounds.upper >= b_cd.bounds.upper:
-            smallest = a_cd
-        else:
-            smallest = b_cd
-    else:
-        smallest = b_cd
-    return smallest
+# def calculate_smallest_chain_dimension(
+#         a_cd: bw_chain_dimension.ChainDimension,
+#         b_cd: bw_chain_dimension.ChainDimension) -> bw_chain_dimension.ChainDimension:
+#     smallest = a_cd
+#     if a_cd.bounds.left > b_cd.bounds.left:
+#         smallest = a_cd
+#     elif a_cd.bounds.left == b_cd.bounds.left:
+#         if a_cd.bounds.upper >= b_cd.bounds.upper:
+#             smallest = a_cd
+#         else:
+#             smallest = b_cd
+#     else:
+#         smallest = b_cd
+#     return smallest
 
 
 # class AlignNoOverlapAverageCenter(PostAlignmentBehavior):

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
+# TODO: Move to inherited class
+from modules.bw_layout_graph import alignment_behavior
 from typing import Union
 from typing import Tuple
 from typing import TypeVar
@@ -65,15 +67,16 @@ class Node:
     label: str = field(init=False)
     identifier: int = field(init=False)
     pos: Float2 = field(init=False, repr=False, default_factory=Float2)
-    offset_node: 'Node' = field(init=False, default=None, repr=False)
-    offset: Float2 = field(init=False, repr=False, default_factory=Float2)
+    # offset_node: 'Node' = field(init=False, default=None, repr=False)
+    # offset: Float2 = field(init=False, repr=False, default_factory=Float2)
 
+    _alignment_behavior: alignment_behavior.NodeAlignmentBehavior = field(init=False, repr=False, default=None)
     _input_connection_data: List[InputConnectionData] = field(init=False, default_factory=list, repr=False)
     _output_connection_data: List[OutputConnectionData] = field(init=False, default_factory=list, repr=False)
 
     # closest_output_node: 'Node' = field(init=False, default=None, repr=None)
-    mainline: bool = field(init=False, default=False, repr=False)
-    chain_dimension: ChainDimension = field(init=False, default=None, repr=False)
+    # mainline: bool = field(init=False, default=False, repr=False)
+    # chain_dimension: ChainDimension = field(init=False, default=None, repr=False)
     # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
     # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
@@ -273,8 +276,7 @@ class Node:
         )
         for input_node in self.input_nodes_in_chain:
             input_node.refresh_positions_in_chain()
-    
-            
+       
     def clear_input_connection_data(self):
         self._input_connection_data = list()
     
@@ -323,6 +325,34 @@ class Node:
         self.api_node.setPosition(
             sd.api.sdbasetypes.float2(x, y)
         )
+        
+    def update_position(self):
+        self.alignment_behavior.exec()
+    
+    def update_chain_positions(self):
+        for input_node in self.input_nodes:
+            input_node.alignment_behavior.exec()
+    
+    # TODO: Move to inherited
+    @property
+    def farthest_output_nodes(self) -> List['Node']:
+        farthest = [self.output_nodes[0]]
+        output_node: 'Node'
+        for output_node in self.output_nodes[1:]:
+            if output_node.pos.x > farthest[0].pos.x:
+                farthest = [output_node]
+            elif output_node.pos.x == farthest[0].pos.x:
+                farthest.append(output_node)
+        return farthest
+    
+    @property
+    def alignment_behavior(self):
+        return self._alignment_behavior
+    
+    @alignment_behavior.setter
+    def alignment_behavior(self, behavior: alignment_behavior.NodeAlignmentBehavior):
+        self._alignment_behavior = behavior
+        self._alignment_behavior.parent = self
     
     def update_offset_to_node(self, output_node: 'Node'):
         offset_x = output_node.pos.x - self.pos.x
@@ -330,7 +360,6 @@ class Node:
         self.offset_node = output_node
         self.offset.x = -offset_x
         self.offset.y = -offset_y
-
 
     def move_to_node(self, other: Node, offset_x: float = 0, offset_y: float = 0):
         """Helper function to position a node to another"""
