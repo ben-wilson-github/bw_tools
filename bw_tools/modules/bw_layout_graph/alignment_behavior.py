@@ -5,10 +5,10 @@ from dataclasses import Field, dataclass, field, fields
 from typing import Tuple
 from typing import List
 
-from common.bw_node import Node
-from common.bw_node import Float2
-from common import bw_node_selection
-from common import bw_chain_dimension
+from bw_tools.common.bw_node import Node
+from bw_tools.common.bw_node import Float2
+from bw_tools.common import bw_node_selection
+from bw_tools.common import bw_chain_dimension
 
 from . import utils
 from . import post_alignment_behavior as pab
@@ -94,6 +94,7 @@ def align_node_between(node: Node, top: Node, bottom: Node):
     _, mid_point = utils.calculate_mid_point(top, bottom)
     node.set_position(node.pos.x, mid_point)
 
+
 def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: int):
     node_list = output_node.input_nodes
     node_above = node_list[index - 1]
@@ -103,7 +104,7 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
 
     node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
     nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain)
-    
+
     smallest_cd = calculate_smallest_chain_dimension(node_to_move_cd, nove_above_cd)
     print(f'The smallest chain dimension is {smallest_cd.right_node}')
 
@@ -130,10 +131,9 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
         lower_bound = lower_bound_cd.bounds.lower
     print(f'lower bound : {lower_bound}')
 
-    
     print(f'Aligning below')
     ab.align_below_bound(node_to_move, lower_bound + SPACER, upper_bound)
-    
+
 
 def calculate_smallest_chain_dimension(
         a_cd: bw_chain_dimension.ChainDimension,

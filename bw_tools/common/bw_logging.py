@@ -1,8 +1,12 @@
-import logging
 import os
+import logging
+from pathlib import Path
+from typing import Dict
+
 import sd
 
-def create_logger(log_file):
+
+def create_logger(log_file: Path) -> Dict:
     ret = {}
 
     # need to remove existing handlers otherwise the logger doesnt create files

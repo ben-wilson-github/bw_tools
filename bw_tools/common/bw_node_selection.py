@@ -11,7 +11,7 @@ from typing import Tuple
 from typing import TypeVar
 from typing import Dict
 
-from common import bw_node
+from bw_tools.common import bw_node
 
 importlib.reload(bw_node)
 

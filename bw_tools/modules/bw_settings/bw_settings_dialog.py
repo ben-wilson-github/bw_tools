@@ -1,11 +1,10 @@
 import importlib
-import os
 import json
-from PySide2 import QtWidgets
-from PySide2 import QtGui
-from PySide2 import QtCore
-from common import bw_ui_tools
-from modules.bw_settings import bw_settings_model
+import os
+
+from bw_tools.common import bw_ui_tools
+from bw_tools.modules.bw_settings import bw_settings_model
+from PySide2 import QtCore, QtGui, QtWidgets
 
 importlib.reload(bw_ui_tools)
 importlib.reload(bw_settings_model)

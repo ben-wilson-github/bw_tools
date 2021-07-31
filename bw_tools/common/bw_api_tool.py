@@ -1,22 +1,20 @@
-import sd
-import os
-import logging
 import importlib
 import inspect
+import logging
+import os
 from dataclasses import dataclass, field
-from typing import List
-from typing import TypeVar
-from common import bw_toolbar
-from common import bw_utils
-from PySide2 import QtWidgets
-from PySide2 import QtCore
+from typing import List, TypeVar
+
+import sd
+from bw_tools.common import bw_toolbar, bw_utils
+from PySide2 import QtCore, QtWidgets
 
 importlib.reload(bw_toolbar)
 importlib.reload(bw_utils)
 
 # Types for type hinting
 TYPE_MODULES = TypeVar('modules')
-SDContext = TypeVar('sd.context.Context')
+SDContext = TypeVar('SDContext')
 SDNode = TypeVar('SDNode')
 SDSBSCompGraph = TypeVar('SDSBSCompGraph')
 
@@ -102,12 +100,13 @@ class APITool:
         self.loaded_modules.remove(module.__name__)
 
     def add_top_toolbar(self) -> bool:
-        self.logger.info('Creating top toolbar...')
+        self.logger.info('Creating top toolbar')
         self.toolbar = bw_toolbar.BWToolbar(self.main_window)
         self.main_window.addToolBar(QtCore.Qt.TopToolBarArea, self.toolbar)
         return True
 
     def add_toolbar_to_graph_view(self) -> bool:
+        self.logger.info('Registering on graph view created callback')
         self.register_on_graph_view_created_callback(
             self._create_graph_view_toolbar
         )

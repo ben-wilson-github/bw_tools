@@ -1,8 +1,7 @@
-import sd
-
 from functools import partial
 
-from common import bw_api_tool
+import sd
+from bw_tools.common import bw_api_tool
 
 
 def print_node_info(api: bw_api_tool.APITool):

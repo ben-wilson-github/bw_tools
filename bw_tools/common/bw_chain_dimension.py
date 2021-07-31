@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Union
 
-from common import bw_node, bw_node_selection
+from bw_tools.common import bw_node, bw_node_selection
 
 
 class OutOfBoundsError(ValueError):

@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Tuple
 from typing import List
 
-from common import bw_node
-from common import bw_chain_dimension
+from bw_tools.common import bw_node
+from bw_tools.common import bw_chain_dimension
 from . import alignment_behavior as iab
 from . import utils
 

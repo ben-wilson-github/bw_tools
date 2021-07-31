@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from common import bw_node
+from bw_tools.common import bw_node
 
 
 def offset_children(parent_node: bw_node.Node, offset: float):

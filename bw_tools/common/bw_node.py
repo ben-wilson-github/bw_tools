@@ -2,15 +2,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
 # TODO: Move to inherited class
-from modules.bw_layout_graph import alignment_behavior
 from typing import Union
 from typing import Tuple
 from typing import TypeVar
 from typing import List
 
-from common import bw_connection, bw_node_selection
-from common import bw_utils
-from common import bw_chain_dimension
+from bw_tools.common import bw_connection, bw_node_selection
+from bw_tools.common import bw_utils
+from bw_tools.common import bw_chain_dimension
 
 import sd
 
@@ -332,6 +331,7 @@ class Node:
     def update_chain_positions(self):
         for input_node in self.input_nodes:
             input_node.alignment_behavior.exec()
+            input_node.update_chain_positions()
     
     # TODO: Move to inherited
     @property

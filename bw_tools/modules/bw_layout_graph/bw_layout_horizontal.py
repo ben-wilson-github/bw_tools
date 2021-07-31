@@ -1,5 +1,5 @@
-from common import bw_node
-from common import bw_node_selection
+from bw_tools.common import bw_node
+from bw_tools.common import bw_node_selection
 
 SPACER = 32
 

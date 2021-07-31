@@ -1,9 +1,9 @@
 from typing import Tuple
 from typing import Union
 
-from common import bw_node
-from common import bw_node_selection
-from common import bw_chain_dimension
+from bw_tools.common import bw_node
+from bw_tools.common import bw_node_selection
+from bw_tools.common import bw_chain_dimension
 
 SPACER = 32
 

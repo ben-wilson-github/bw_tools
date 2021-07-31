@@ -1,6 +1,6 @@
 from typing import List
 
-from common import bw_node
+from bw_tools.common import bw_node
 from . import alignment_behavior
 
 

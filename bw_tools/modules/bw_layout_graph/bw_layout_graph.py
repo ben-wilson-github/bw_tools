@@ -1,22 +1,15 @@
-import os
-import math
 import importlib
+import math
+import os
 from functools import partial
-
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from pathlib import Path
 
 import sd
+from bw_tools.common import bw_api_tool, bw_node, bw_node_selection
+from PySide2 import QtGui, QtWidgets
 
-from common import bw_node
-from common import bw_api_tool
-from common import bw_node_selection
-from . import utils
-from . import node_sorting
-from . import chain_aligner
-from . import aligner
-from . import bw_layout_mainline
-from . import bw_layout_horizontal
+from . import (aligner, bw_layout_horizontal, bw_layout_mainline,
+               chain_aligner, node_sorting, utils)
 
 importlib.reload(utils)
 importlib.reload(bw_node)
@@ -45,7 +38,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
     api.log.info('Running layout Graph')
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-        
+
         old_pos = dict()
         for node in node_selection.nodes:
             old_pos[node.identifier] = (node.pos.x, node.pos.y)
@@ -58,9 +51,9 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             node_sorting.run_sort(node_chain.root, already_processed)
 
         for node in node_selection.nodes:
-            # continue
-            # node.add_comment(str(node.alignment_behavior))
-            # node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
+            node.add_comment(str(node.alignment_behavior))
+            node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
+            continue
             node.set_position(node.pos.x, old_pos[node.identifier][1])
 
         
@@ -69,7 +62,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
-            aligner.begin(node_chain.root, seen)
+            # aligner.begin(node_chain.root, seen)
 
         
 
@@ -103,13 +96,8 @@ def on_clicked_layout_graph(api: bw_api_tool):
 
 
 def on_graph_view_created(_, api: bw_api_tool.APITool):
-    icon = os.path.normpath(
-        os.path.join(
-            os.path.dirname(__file__),
-            'resources\\icons\\bwLayoutGraphIcon.png'
-        )
-    )
-    action = api.graph_view_toolbar.addAction(QtGui.QIcon(icon), '')
+    icon_path = Path(__file__).parent / 'resources/icons/bwLayoutGraphIcon.png'
+    action = api.graph_view_toolbar.addAction(QtGui.QIcon(str(icon_path.resolve())), '')
     action.setToolTip('Layout Graph')
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
 

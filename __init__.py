@@ -1,23 +1,21 @@
+import importlib
 import os
 import sys
-import importlib
+from pathlib import Path
 
-from common import bw_logging
-from common import bw_api_tool
+# Add path to sys.path
+ROOT_DIR = Path(__file__).parent
+if not ROOT_DIR.resolve() in sys.path:
+    sys.path.append(ROOT_DIR.resolve())
 
-importlib.reload(bw_logging)
-importlib.reload(bw_api_tool)
+from bw_tools.common import bw_api_tool, bw_logging
 
 # TODO: Add tools to menu instead of the current icon
 # TODO: Is it possible to do frame plugin now?
 # TODO: Deprecated function getCurrentGraphSelection in class QtForPythonUIMgrWrapper. This method is deprecated. Please use QtForPythonUIMgrWrapper.getCurrentGraphSelectedNodes instead.
 
-# Add path to sys.path
-if not os.path.realpath(os.path.dirname(__file__)) in sys.path:
-    sys.path.append(os.path.realpath(os.path.dirname(__file__)))
 
-
-LOGGER = bw_logging.create_logger(f'{os.path.dirname(__file__)}\\bwtools.log')
+LOGGER = bw_logging.create_logger(ROOT_DIR / 'bwtools.log')
 API_TOOL = bw_api_tool.APITool(LOGGER['logger'])
 
 
@@ -25,11 +23,14 @@ def initializeSDPlugin():
     API_TOOL.add_top_toolbar()
     API_TOOL.add_toolbar_to_graph_view()
 
-    modules_dir = f'{os.path.dirname(__file__)}\\modules'
+    modules_dir = ROOT_DIR / 'bw_tools/modules'
     for name in os.listdir(modules_dir):
         try:
-            module = importlib.import_module(f'.{name}', f'modules.{name}')
+            module_path = f'bw_tools.modules.{name}.{name}'
+            API_TOOL.logger.debug(f'Attempting to import {module_path}')
+            module = importlib.import_module(module_path)
         except ModuleNotFoundError:
+            API_TOOL.logger.debug('Failed...')
             continue
         else:
             API_TOOL.initialize(module)

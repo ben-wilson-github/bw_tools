@@ -1,14 +1,14 @@
 import importlib
-from common import bw_node
-from common import bw_node_selection
-from common import bw_chain_dimension
-from modules.bw_layout_graph import utils
-from modules.bw_layout_graph import node_sorting
-from modules.bw_layout_graph import aligner
-from modules.bw_layout_graph import chain_aligner
-from modules.bw_layout_graph import bw_layout_graph
-from modules.bw_layout_graph import post_alignment_behavior
-from modules.bw_layout_graph import alignment_behavior
+from bw_tools.common import bw_node
+from bw_tools.common import bw_node_selection
+from bw_tools.common import bw_chain_dimension
+from bw_tools.modules.bw_layout_graph import utils
+from bw_tools.modules.bw_layout_graph import node_sorting
+from bw_tools.modules.bw_layout_graph import aligner
+from bw_tools.modules.bw_layout_graph import chain_aligner
+from bw_tools.modules.bw_layout_graph import bw_layout_graph
+from bw_tools.modules.bw_layout_graph import post_alignment_behavior
+from bw_tools.modules.bw_layout_graph import alignment_behavior
 importlib.reload(utils)
 importlib.reload(bw_node)
 importlib.reload(node_sorting)

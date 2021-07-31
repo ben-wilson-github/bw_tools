@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import List
 
-from common.bw_node import Node, Float2
-from common import bw_node_selection
-from common import bw_chain_dimension
+from bw_tools.common.bw_node import Node, Float2
+from bw_tools.common import bw_node_selection
+from bw_tools.common import bw_chain_dimension
 
 from . import utils
 from . import post_alignment_behavior as pab
@@ -117,9 +117,19 @@ def begin(node: Node, seen: List[Node]):
 
     if node.input_node_count >= 2 and node not in seen:
         nodes_to_stack, nodes_to_skip = stack_inputs(node)
-        align_back(node, nodes_to_stack, nodes_to_skip)
+        moved_nodes = resolve_alignment(node, nodes_to_stack, nodes_to_skip)
+        
+        for root_node in seen:
+            root_node.alignment_behavior.exec()
+            root_node.update_chain_positions()
 
-def align_back(node: Node, nodes_to_stack, nodes_to_skip):
+        for input_node in node.input_nodes:
+            if input_node.is_root and input_node in moved_nodes:
+                seen.append(input_node)
+
+        
+
+def resolve_alignment(node: Node, nodes_to_stack, nodes_to_skip) -> List[Node]:
     print(f'Aligning back')
     _, mid_point = utils.calculate_mid_point(node.input_nodes[0],
                                              node.input_nodes[-1])
@@ -144,16 +154,15 @@ def align_back(node: Node, nodes_to_stack, nodes_to_skip):
         input_node.alignment_behavior.exec()
         input_node.update_chain_positions()
 
+        if input_node.identifier == 1:
+            raise ArithmeticError()
+
         if input_node.pos != old_pos:
             moved.append(input_node)
     
-    if node.identifier == 1419655428:
-        raise AttributeError()
+    return moved
     
-    # then update any previously seen roots
-    # for each seen root
-    #     move by align behavior
-    #     refresh the chain (including the root)
+
 
 
 
@@ -170,18 +179,29 @@ def stack_inputs(node: Node):
             include.append(input_node)
         else:
             print(f'Next input -> Attempting to align below')
+
             if (input_node.is_root
-                    # Any output is not of type branching input
+                    # Be a root y
+                    # Check shoudl also happen before the first input check!!!
+                    # The condition should have 2 trues or more to be exluded
+                    # The outputs chain does not contain a root (not including the one I came from) = y
+                    # The output node has 3 or more inputs = n
+                    # I am going to be pushed down later (in any outputs not already processed, I have something above me) = n
+                    # The node is dynamic = y
+
+                    # Test chain 3 is failing
+
+      
+                    ######## All outputs are of type branching input
                     and any(output_node.input_node_count < 2 for output_node in input_node.input_nodes)
-                    # There is a problem with this logic, its not valid
-                    and len(input_node.farthest_output_nodes) == 1
-                    and input_node.farthest_output_nodes[0] is not node):
-                exclude.append(input_node)
+                    # Need another logic here to solve test_chain 7 the blend to warp should be included (ie the test should fail here)
+                    and node is not input_node.farthest_output_nodes[0]):
                 print(f'Added to exclude instead : {input_node}')
             else:
                 print(f'Doing align...')
                 ab.align_below_shortest_chain_dimension(input_node, node, i)
                 input_node.update_chain_positions()
+
                 include.append(input_node)
     
     return include, exclude

@@ -1,7 +1,7 @@
-import os
 import importlib
+import os
 
-from modules.bw_settings import bw_settings_dialog
+from bw_tools.modules.bw_settings import bw_settings_dialog
 from PySide2 import QtGui
 
 importlib.reload(bw_settings_dialog)

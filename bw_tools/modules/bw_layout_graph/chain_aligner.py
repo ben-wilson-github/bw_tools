@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List
 from typing import Tuple
 
-from common import bw_chain_dimension, bw_node
+from bw_tools.common import bw_chain_dimension, bw_node
 from . import alignment_behavior as iab
 from . import post_alignment_behavior as pab
 from . import utils
