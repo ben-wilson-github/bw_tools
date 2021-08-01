@@ -42,14 +42,14 @@ class StaticAlignment(NodeAlignmentBehavior):
         )
 
     def setup(self, node: Node):
+        """Updates the offset node if the node passed in is further forward than the current offset parent.
+        Updates the offset"""
         if self.offset_node is None:
             self.offset_node = node
         elif node.pos.x > self.offset_node.pos.x:
             self.offset_node = node
-        
-        self.offset.x = self.parent.pos.x - self.offset_node.pos.x
-        self.offset.y = self.parent.pos.y - self.offset_node.pos.y
-    
+        self.update_offset(self.parent.pos)
+
     def update_offset(self, new_pos: Float2):
         self.offset.x =  new_pos.x - self.offset_node.pos.x
         self.offset.y =  new_pos.y - self.offset_node.pos.y

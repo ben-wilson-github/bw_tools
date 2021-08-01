@@ -184,12 +184,15 @@ def stack_inputs(node: Node):
                     # Be a root y
                     # Check shoudl also happen before the first input check!!!
                     # The condition should have 2 trues or more to be exluded
-                    # The outputs chain does not contain a root (not including the one I came from) = y
+                    # The outputs chain does not contain a root (not including the one I came from) = n
                     # The output node has 3 or more inputs = n
-                    # I am going to be pushed down later (in any outputs not already processed, I have something above me) = n
-                    # The node is dynamic = y
+                    # The root i going to be processed again later = y
+                    # The node is dynamic = n
 
+                    # I am going to be pushed down later (in any outputs not already processed, I have something above me) = y
                     # Test chain 3 is failing
+
+
 
       
                     ######## All outputs are of type branching input

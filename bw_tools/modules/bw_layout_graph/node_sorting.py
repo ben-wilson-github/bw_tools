@@ -1,19 +1,33 @@
 from typing import List
 
-from bw_tools.common import bw_node
-from . import alignment_behavior
+from bw_tools.common.bw_node import Node
 
+from .alignment_behavior import (AverageToOutputsYAxis, NodeAlignmentBehavior,
+                                 StaticAlignment)
 
 SPACER = 32
 
 
-def run_sort(node: bw_node.Node, already_processed: List[bw_node.Node]):
+def run_sort(node: Node, already_processed: List[Node]):
     for input_node in node.input_nodes:
         process_node(input_node, node, already_processed)
         run_sort(input_node, already_processed)
 
 
-def get_offset_value(node: bw_node.Node, output_node: bw_node.Node) -> float:
+def process_node(node: Node, output_node: Node, already_processed: List[Node]):
+    offset = get_offset_value(node, node.closest_output_node_in_x)
+    node.set_position(node.closest_output_node_in_x.pos.x - offset,
+                      node.closest_output_node_in_x.pos.y)
+
+    if node not in already_processed:
+        behavior = calculate_behavior(node, output_node)
+        node.alignment_behavior = behavior
+        already_processed.append(node)
+
+    node.alignment_behavior.setup(output_node)
+
+
+def get_offset_value(node: Node, output_node: Node) -> float:
     if node.is_root:
         spacer = SPACER * 4
     else:
@@ -23,30 +37,16 @@ def get_offset_value(node: bw_node.Node, output_node: bw_node.Node) -> float:
     return half_output + spacer + half_input
 
 
-def calculate_behavior(node: bw_node.Node) -> alignment_behavior.NodeAlignmentBehavior:
+def calculate_behavior(node: Node, output_node: Node) -> NodeAlignmentBehavior:
     if not node.is_root:
-        return alignment_behavior.StaticAlignment()
+        return StaticAlignment()
 
-    # If one of the input nodes has multiple inputs connected,
-    # then it is likely to expand later.
-    # Make it static
-    for output_node in node.output_nodes:
-        for input_node in output_node.input_nodes:
-            if input_node is node:
-                continue
-            if input_node.input_node_count > 1:
-                return alignment_behavior.StaticAlignment()
-    return alignment_behavior.AverageToOutputsYAxis()
+    # There is another root node in the chain
+    indices = node.indices_in_output(output_node)
+    if (output_node.chain_contains_root(skip_indices=indices)
+            or output_node.chain_contains_branching_inputs(skip_indices=indices)):
+        return StaticAlignment()
+    return AverageToOutputsYAxis()
 
 
-def process_node(node: bw_node.Node, output_node: bw_node.Node, already_processed: List[bw_node.Node]):
-    offset = get_offset_value(node, node.closest_output_node_in_x)
-    node.set_position(node.closest_output_node_in_x.pos.x - offset,
-                      node.closest_output_node_in_x.pos.y)
 
-    if node not in already_processed:
-        behavior = calculate_behavior(node)
-        node.alignment_behavior = behavior
-        already_processed.append(node)
-
-    node.alignment_behavior.setup(output_node)
