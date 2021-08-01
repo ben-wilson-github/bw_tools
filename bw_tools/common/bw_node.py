@@ -310,11 +310,12 @@ class Node:
     def connects_to_center(self, target_node: Node) -> bool:
         return target_node.center_input_index in self.indices_in_target(target_node)
 
-    def indices_in_target(self, target_node: Node) -> List[int]:
+    def indices_in_output(self, output_node: Node) -> List[int]:
         """Returns all the indices that this node connects to in target node"""
         indices = []
-        for connection_data in target_node._input_connection_data:
-            if connection_data.nodes is self:
+        connection_data: InputConnectionData
+        for connection_data in output_node._input_connection_data:
+            if connection_data.input_node is self:
                 indices.append(connection_data.index)
         return indices
 
@@ -449,6 +450,53 @@ class Node:
                 index = cd.index
         return largest, index
 
+    # Move to node class
+    def chain_contains_root(self, skip_indices: List[int]):
+        queue = list()
+        for i, input_node in enumerate(self.input_nodes):
+            if i in skip_indices:
+                continue
+            queue.append(input_node)
+
+        while queue:
+            input_node = queue.pop(0)
+            ret = self._check_input_nodes_for_roots(input_node, queue)
+            if ret:
+                return True
+        return False
+    
+    def chain_contains_branching_inputs(self, skip_indices: List[int]):
+        # If one of the input nodes has multiple inputs connected,
+        # then it is likely to expand later.
+        # Make it static
+        queue = list()
+        for i, input_node in enumerate(self.input_nodes):
+            if i in skip_indices:
+                continue
+            queue.append(input_node)
+
+        while queue:
+            input_node = queue.pop(0)
+            ret = self._check_input_nodes_for_branching_inputs(input_node, queue)
+            if ret:
+                return True
+        return False
+
+    @staticmethod
+    def _check_input_nodes_for_branching_inputs(node: 'Node', queue: List['Node']):
+        for input_node in node.input_nodes:
+            if input_node.input_node_count > 1:
+                return True
+            queue.append(input_node)
+        return False
+
+    @staticmethod
+    def _check_input_nodes_for_roots(node: 'Node', queue: List['Node']):
+        for input_node in node.input_nodes:
+            if input_node.is_root:
+                return True
+            queue.append(input_node)
+        return False
     # ====================================================
     # To refactor
     # ====================================================
