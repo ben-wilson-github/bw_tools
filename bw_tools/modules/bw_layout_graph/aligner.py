@@ -9,10 +9,10 @@ from bw_tools.common import bw_chain_dimension
 
 from . import utils
 from . import post_alignment_behavior as pab
-from . import alignment_behavior as ab
+from . import alignment_behavior
 
 importlib.reload(pab)
-importlib.reload(ab)
+importlib.reload(alignment_behavior)
 importlib.reload(utils)
 importlib.reload(bw_node_selection)
 importlib.reload(bw_chain_dimension)
@@ -107,25 +107,33 @@ class RemoveOverlap():
 #             if its a root and in the moved list
 #                 then add it to seen root list
 
+MOST IMPLEMENTATION IS IN BUT NOT WORKING PROPERLY:NEED TO DEBUG THIS ALIGNER
 
-def begin(node: Node, seen: List[Node]):
+def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List[Node]):
     if not node.has_input_nodes_connected:
         return
 
     for input_node in node.input_nodes:
-        begin(input_node, seen)
+        run_aligner(input_node, already_processed, roots_to_update)
 
-    if node.input_node_count >= 2 and node not in seen:
-        nodes_to_stack, nodes_to_skip = stack_inputs(node)
-        moved_nodes = resolve_alignment(node, nodes_to_stack, nodes_to_skip)
-        
-        for root_node in seen:
-            root_node.alignment_behavior.exec()
-            root_node.update_chain_positions()
+    if node.has_branching_inputs and node not in already_processed:
+        process_node(node, already_processed, roots_to_update)
+        already_processed.append(node)
 
-        for input_node in node.input_nodes:
-            if input_node.is_root and input_node in moved_nodes:
-                seen.append(input_node)
+
+def process_node(node: Node, already_processed: List[Node], roots_to_update: List[Node]):
+    nodes_to_stack, nodes_to_skip = stack_inputs(node, already_processed)
+    moved_nodes = resolve_alignment(node, nodes_to_stack, nodes_to_skip)
+
+    for root_node in roots_to_update:
+        root_node.alignment_behavior.exec()
+        root_node.update_chain_positions()
+
+    for input_node in node.input_nodes:
+        if input_node.is_root and input_node in moved_nodes:
+            roots_to_update.append(input_node)
+
+
 
         
 
@@ -163,50 +171,61 @@ def resolve_alignment(node: Node, nodes_to_stack, nodes_to_skip) -> List[Node]:
     return moved
     
 
+def exclude_from_alignment(node: Node, output_node: Node, index_in_output: int, already_processed: List[Node]):
+    """
+    Logic for determining if a node should be excluded from alignment caluclations.
+    If 2 or more conditions are true, it will be excluded.
+    """
+    count = 0
+    # The output chain does not contain a root node (not including the input we are currently processing)
+    if output_node.chain_contains_root(skip_indices=[index_in_output]):
+        count += 1
+    print(f'The output chain does not contain a root node = {count}')
+
+    # The output node has 3 or more inputs
+    if output_node.input_node_count >= 3:
+        count += 1
+    print(f'The output node has 3 or more inputs = {count}')
+
+    # The root node is going to be processed again later
+    if any(out not in already_processed for out in node.output_nodes):
+        count += 1
+    print(f'The root node is going to be processed again later = {count}')
+
+    # The root node is dynamic
+    # TODO: Switch to dynamic abstract class
+    if isinstance(node.alignment_behavior, alignment_behavior.AverageToOutputsYAxis):
+        count += 1
+    print(f'The root node dynamic = {count}')
+
+    return True if count >= 2 else False
 
 
-
-def stack_inputs(node: Node):
+def stack_inputs(node: Node, already_processed: List[Node]):
     print(f'Stacking inputs for {node}')
 
     include: List[Node] = list()
     exclude: List[Node] = list()
     for i, input_node in enumerate(node.input_nodes):
+        if input_node.is_root:
+            print(f'Input node is a root : {input_node}')
+            print(f'Checking if it should be excluded...')
+            if exclude_from_alignment(input_node, node, i, already_processed):
+                print(f'Excluding')
+                exclude.append(input_node)
+                continue
+            print(f'Including')
         if i == 0:
             print(f'First input -> Moving inline with {node}')
-            ab.align_in_line(input_node, node)
+            alignment_behavior.align_in_line(input_node, node)
             input_node.update_chain_positions()
             include.append(input_node)
         else:
             print(f'Next input -> Attempting to align below')
+            alignment_behavior.align_below_shortest_chain_dimension(input_node, node, i)
+            input_node.update_chain_positions()
+            include.append(input_node)
 
-            if (input_node.is_root
-                    # Be a root y
-                    # Check shoudl also happen before the first input check!!!
-                    # The condition should have 2 trues or more to be exluded
-                    # The outputs chain does not contain a root (not including the one I came from) = n
-                    # The output node has 3 or more inputs = n
-                    # The root i going to be processed again later = y
-                    # The node is dynamic = n
-
-                    # I am going to be pushed down later (in any outputs not already processed, I have something above me) = y
-                    # Test chain 3 is failing
-
-
-
-      
-                    ######## All outputs are of type branching input
-                    and any(output_node.input_node_count < 2 for output_node in input_node.input_nodes)
-                    # Need another logic here to solve test_chain 7 the blend to warp should be included (ie the test should fail here)
-                    and node is not input_node.farthest_output_nodes[0]):
-                print(f'Added to exclude instead : {input_node}')
-            else:
-                print(f'Doing align...')
-                ab.align_below_shortest_chain_dimension(input_node, node, i)
-                input_node.update_chain_positions()
-
-                include.append(input_node)
-    
     return include, exclude
 
 # for each input in all the input nodes (Stacking the inputs)
