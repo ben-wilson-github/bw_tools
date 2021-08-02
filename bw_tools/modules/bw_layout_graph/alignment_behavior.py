@@ -60,10 +60,12 @@ class AverageToOutputsYAxis(NodeAlignmentBehavior):
     bottom_node: Node = None
 
     def exec(self):
-        pass
+        _, y = utils.calculate_mid_point(self.top_node, self.bottom_node)
+        self.parent.set_position(self.parent.pos.x, y)
 
-    def setup(self, node: Node):
-        pass
+    def setup(self, _: Node):
+        self.top_node = self.parent.output_nodes[0]
+        self.bottom_node = self.parent.output_nodes[-1]
 
 
 def align_in_line(input_node: Node, target_node: Node):

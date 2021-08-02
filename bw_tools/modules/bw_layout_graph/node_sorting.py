@@ -41,6 +41,7 @@ def calculate_behavior(node: Node) -> NodeAlignmentBehavior:
     if not node.is_root:
         return StaticAlignment()
 
+    NEED TO FIX THIS LOGIC, TEST CHAIN 6 IS NOT OUTPUTING AN AVERAGE ALIGNMENT
     for output_node in node.output_nodes:
         # There is another root node in the chain
         indices = node.indices_in_output(output_node)

@@ -330,7 +330,7 @@ class Node:
         self.alignment_behavior.exec()
     
     def update_chain_positions(self):
-        for input_node in self.input_nodes:
+        for input_node in self.input_nodes_in_chain:
             input_node.alignment_behavior.exec()
             input_node.update_chain_positions()
     

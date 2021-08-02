@@ -107,7 +107,6 @@ class RemoveOverlap():
 #             if its a root and in the moved list
 #                 then add it to seen root list
 
-MOST IMPLEMENTATION IS IN BUT NOT WORKING PROPERLY:NEED TO DEBUG THIS ALIGNER
 
 def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List[Node]):
     if not node.has_input_nodes_connected:
@@ -117,13 +116,15 @@ def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List
         run_aligner(input_node, already_processed, roots_to_update)
 
     if node.has_branching_inputs and node not in already_processed:
-        process_node(node, already_processed, roots_to_update)
         already_processed.append(node)
+        process_node(node, already_processed, roots_to_update)
+        
 
 
 def process_node(node: Node, already_processed: List[Node], roots_to_update: List[Node]):
     nodes_to_stack, nodes_to_skip = stack_inputs(node, already_processed)
     moved_nodes = resolve_alignment(node, nodes_to_stack, nodes_to_skip)
+    
 
     for root_node in roots_to_update:
         root_node.alignment_behavior.exec()
@@ -156,14 +157,11 @@ def resolve_alignment(node: Node, nodes_to_stack, nodes_to_skip) -> List[Node]:
             print(f'After updating {input_node.alignment_behavior}')
         except AttributeError:  # Dynamic behaviors do not have an update_offset function
             pass
-        
+
         print(f'Moving {input_node}')
         old_pos = Float2(input_node.pos.x, input_node.pos.y)
         input_node.alignment_behavior.exec()
         input_node.update_chain_positions()
-
-        if input_node.identifier == 1:
-            raise ArithmeticError()
 
         if input_node.pos != old_pos:
             moved.append(input_node)
@@ -178,7 +176,7 @@ def exclude_from_alignment(node: Node, output_node: Node, index_in_output: int, 
     """
     count = 0
     # The output chain does not contain a root node (not including the input we are currently processing)
-    if output_node.chain_contains_root(skip_indices=[index_in_output]):
+    if not output_node.chain_contains_root(skip_indices=[index_in_output]):
         count += 1
     print(f'The output chain does not contain a root node = {count}')
 
@@ -188,7 +186,7 @@ def exclude_from_alignment(node: Node, output_node: Node, index_in_output: int, 
     print(f'The output node has 3 or more inputs = {count}')
 
     # The root node is going to be processed again later
-    if any(out not in already_processed for out in node.output_nodes):
+    if any(out not in already_processed and out.has_branching_inputs for out in node.output_nodes):
         count += 1
     print(f'The root node is going to be processed again later = {count}')
 
