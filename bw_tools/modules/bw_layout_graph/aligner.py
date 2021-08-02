@@ -176,7 +176,7 @@ def exclude_from_alignment(node: Node, output_node: Node, index_in_output: int, 
     """
     count = 0
     # The output chain does not contain a root node (not including the input we are currently processing)
-    if not output_node.chain_contains_root(skip_indices=[index_in_output]):
+    if not output_node.chain_contains_another_root(skip_indices=[index_in_output]):
         count += 1
     print(f'The output chain does not contain a root node = {count}')
 

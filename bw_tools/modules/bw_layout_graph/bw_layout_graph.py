@@ -51,7 +51,6 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             node_sorting.run_sort(node_chain.root, already_processed)
 
         for node in node_selection.nodes:
-            continue
             node.add_comment(str(node.alignment_behavior))
             node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
             continue
@@ -64,7 +63,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
-            aligner.run_aligner(node_chain.root, already_processed, roots_to_update)
+            # aligner.run_aligner(node_chain.root, already_processed, roots_to_update)
 
         
 

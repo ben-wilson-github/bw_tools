@@ -451,7 +451,7 @@ class Node:
         return largest, index
 
     # Move to node class
-    def chain_contains_root(self, skip_indices: List[int]):
+    def chain_contains_another_root(self, skip_indices: List[int] = [], skip_nodes: List['Node'] = []):
         queue = list()
         for i, input_node in enumerate(self.input_nodes):
             if i in skip_indices:
@@ -460,11 +460,39 @@ class Node:
 
         while queue:
             input_node = queue.pop(0)
-            ret = self._check_input_nodes_for_roots(input_node, queue)
+            ret = self._check_input_nodes_for_roots(input_node, skip_nodes, queue)
             if ret:
                 return True
         return False
-    
+
+    def find_node_in_chain(self, target_node: 'Node', skip_indices: List[int]):
+        queue = list()
+        for i, input_node in enumerate(self.input_nodes):
+            if i in skip_indices:
+                continue
+            queue.append(input_node)
+
+        while queue:
+            input_node = queue.pop(0)
+            ret = self._check_for_node(input_node, target_node, queue)
+            if ret:
+                return True
+        return False
+
+    def chain_contains_specific_root(self, target_root: 'Node', skip_indices: List[int]):
+        queue = list()
+        for i, input_node in enumerate(self.input_nodes):
+            if i in skip_indices:
+                continue
+            queue.append(input_node)
+
+        while queue:
+            input_node = queue.pop(0)
+            ret = self._check_for_node(input_node, target_root, queue)
+            if ret:
+                return True
+        return False
+
     def chain_contains_branching_inputs(self, skip_indices: List[int]):
         # If one of the input nodes has multiple inputs connected,
         # then it is likely to expand later.
@@ -484,6 +512,9 @@ class Node:
 
     @staticmethod
     def _check_input_nodes_for_branching_inputs(node: 'Node', queue: List['Node']):
+        if node.has_branching_inputs:
+            return True
+
         for input_node in node.input_nodes:
             if input_node.input_node_count > 1:
                 return True
@@ -491,9 +522,23 @@ class Node:
         return False
 
     @staticmethod
-    def _check_input_nodes_for_roots(node: 'Node', queue: List['Node']):
+    def _check_input_nodes_for_roots(node: 'Node', skip_nodes: List['Node'], queue: List['Node']):
         for input_node in node.input_nodes:
+            if input_node in skip_nodes:
+                continue
+
             if input_node.is_root:
+                return True
+            queue.append(input_node)
+        return False
+    
+    @staticmethod
+    def _check_for_node(node: 'Node', target_node: 'Node', queue: List['Node']):
+        if node is target_node:
+            return True
+
+        for input_node in node.input_nodes:
+            if input_node is target_node:
                 return True
             queue.append(input_node)
         return False
