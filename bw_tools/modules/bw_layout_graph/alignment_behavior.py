@@ -105,10 +105,15 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
     node_above = node_list[index - 1]
     node_to_move = node
 
-    node_to_move_chain = [node_to_move]
-    get_chain(node_to_move, node_to_move_chain)
-    node_above_chain = [node_above]
-    get_chain(node_above, node_above_chain, nodes_to_ignore=node_to_move_chain)
+    if output_node.identifier == 1419714690:
+        print('a')
+    # node_to_move_chain = [node_to_move]
+    # get_chain(node_to_move, node_to_move_chain)
+    # node_above_chain = [node_above]
+    # get_chain(node_above, node_above_chain, nodes_to_ignore=node_to_move_chain)
+    node_above_chain, roots = get_chain(node_above)
+    node_to_move_chain, _ = get_chain(node_to_move, nodes_to_ignore=roots)
+
     # node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
     # nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain)
     node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move_chain)
@@ -147,13 +152,26 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
 
     ab.align_below_bound(node_to_move, lower_bound + SPACER, upper_bound)
 
-def get_chain(node: Node, nodes, nodes_to_ignore=[]):
-    for input_node in node.input_nodes:
-        if input_node in nodes_to_ignore:
-            continue
-        if input_node.alignment_behavior.offset_node is node and input_node not in nodes and input_node:
-            nodes.append(input_node)
-        get_chain(input_node, nodes, nodes_to_ignore)
+def get_chain(node: Node, nodes_to_ignore=[]):
+    def _get_chain(node, nodes, roots, nodes_to_ignore):
+        for input_node in node.input_nodes:
+            if input_node in nodes_to_ignore:
+                continue
+
+            if input_node.is_root and input_node not in roots:
+                roots.append(input_node)
+            
+            if input_node.alignment_behavior.offset_node is node and input_node not in nodes:
+                nodes.append(input_node)
+            _get_chain(input_node, nodes, roots, nodes_to_ignore)
+    
+    nodes = [node]
+    roots = []
+    _get_chain(node, nodes, roots, nodes_to_ignore)
+    return nodes, roots
+
+CHAIN 7 not working
+    
 
 def calculate_smallest_chain_dimension(
         a_cd: bw_chain_dimension.ChainDimension,

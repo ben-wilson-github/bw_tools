@@ -87,6 +87,7 @@ def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List
 
     inputs = list(node.input_nodes)
     inputs.reverse()
+    # inputs.reverse()
     for input_node in inputs:
         run_aligner(input_node, already_processed, roots_to_update, node_selection)
 
