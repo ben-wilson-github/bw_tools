@@ -85,7 +85,9 @@ def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List
     if not node.has_input_nodes_connected:
         return
 
-    for input_node in node.input_nodes:
+    inputs = list(node.input_nodes)
+    inputs.reverse()
+    for input_node in inputs:
         run_aligner(input_node, already_processed, roots_to_update, node_selection)
 
     if node.has_branching_inputs and node not in already_processed:
@@ -147,9 +149,13 @@ def stack_inputs(node: Node, already_process: List[Node], node_selection):
             input_node.alignment_behavior.update_offset(new_pos)
             # input_node.update_chain_positions()
             input_node.update_all_chain_positions()
+            if node.identifier == 1:
+                raise AttributeError()
         else:
             print(f'Next input -> Attempting to align below')
             alignment_behavior.align_below_shortest_chain_dimension(input_node, node, i, node_selection)
+            if node.identifier == 1:
+                raise AttributeError()
             # input_node.update_chain_positions()
             input_node.alignment_behavior.offset_node = node
             new_pos = Float2(input_node.pos.x, input_node.pos.y)

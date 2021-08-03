@@ -1,5 +1,4 @@
 from __future__ import annotations
-from bw_tools.modules.bw_layout_graph import node_sorting
 from dataclasses import dataclass
 from dataclasses import field
 # TODO: Move to inherited class
@@ -58,7 +57,7 @@ class OutputConnectionData(ConnectionData):
 
 
 
-@dataclass()
+@dataclass
 class Node:
     api_node: 'SDSBSCompNode' = field(repr=False)
     # node_selection: bw_node_selection = field(init=False, repr=False)
@@ -484,16 +483,16 @@ class Node:
         return roots
 
 
-    def find_routes_to_node(self, target_node: 'Node', skip_indices: List[int]):
-        routes = list()
-        for i, input_node in enumerate(self.input_nodes):
-            if i in skip_indices:
-                continue
+    # def find_routes_to_node(self, target_node: 'Node', skip_indices: List[int]):
+    #     routes = list()
+    #     for i, input_node in enumerate(self.input_nodes):
+    #         if i in skip_indices:
+    #             continue
 
-            route = node_sorting.Route(self, target_node, i)
-            if self._check_for_node(input_node, target_node, route):
-                routes.append(route)
-        return routes
+    #         route = node_sorting.Route(self, target_node, i)
+    #         if self._check_for_node(input_node, target_node, route):
+    #             routes.append(route)
+    #     return routes
 
     def chain_contains_branching_inputs(self, skip_indices: List[int]):
         # If one of the input nodes has multiple inputs connected,
@@ -541,17 +540,17 @@ class Node:
             queue.append(input_node)
     
 
-    def _check_for_node(self, node: 'Node', target_node: 'Node', route: node_sorting.Route):
-        if node is target_node:
-            return True
+    # def _check_for_node(self, node: 'Node', target_node: 'Node', route: node_sorting.Route):
+    #     if node is target_node:
+    #         return True
 
-        if node.has_branching_inputs:
-            route.branching_nodes.append(node)
+    #     if node.has_branching_inputs:
+    #         route.branching_nodes.append(node)
 
-        for input_node in node.input_nodes:
-            if self._check_for_node(input_node, target_node, route):
-                return True
-        return False
+    #     for input_node in node.input_nodes:
+    #         if self._check_for_node(input_node, target_node, route):
+    #             return True
+    #     return False
 
     # ====================================================
     # To refactor

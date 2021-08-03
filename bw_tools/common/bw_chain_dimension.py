@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Union
+from typing import Union, List
 
 from bw_tools.common import bw_node, bw_node_selection
 
@@ -66,12 +66,11 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
 
 
 def calculate_chain_dimension(node: bw_node.Node,
-                              chain: Union[bw_node_selection.NodeChain,
-                                           bw_node_selection.NodeSelection],
+                              chain: List[bw_node.Node],
                               limit_bounds: Bound = Bound
                               ) -> ChainDimension:
 
-    if not chain.contains(node):
+    if node not in chain:
         raise NotInChainError()
     if not node_in_bounds(node, limit_bounds):
         raise OutOfBoundsError()
@@ -90,7 +89,7 @@ def calculate_chain_dimension(node: bw_node.Node,
     cd.lower_node = node
 
     for input_node in node.input_nodes:
-        if not chain.contains(input_node):
+        if input_node not in chain:
             continue
         else:
             if node_in_bounds(input_node, limit_bounds):
