@@ -1,4 +1,5 @@
 from __future__ import annotations
+from bw_tools.modules.bw_layout_graph import node_sorting
 from dataclasses import dataclass
 from dataclasses import field
 # TODO: Move to inherited class
@@ -451,47 +452,27 @@ class Node:
         return largest, index
 
     # Move to node class
-    def chain_contains_another_root(self, skip_indices: List[int] = [], skip_nodes: List['Node'] = []):
+    def chain_contains_a_root(self, root_to_ignore):
         queue = list()
         for i, input_node in enumerate(self.input_nodes):
-            if i in skip_indices:
-                continue
             queue.append(input_node)
 
         while queue:
             input_node = queue.pop(0)
-            ret = self._check_input_nodes_for_roots(input_node, skip_nodes, queue)
-            if ret:
+            if self._check_for_root(input_node, root_to_ignore, queue):
                 return True
         return False
 
-    def find_node_in_chain(self, target_node: 'Node', skip_indices: List[int]):
-        queue = list()
+    def find_routes_to_node(self, target_node: 'Node', skip_indices: List[int]):
+        routes = list()
         for i, input_node in enumerate(self.input_nodes):
             if i in skip_indices:
                 continue
-            queue.append(input_node)
 
-        while queue:
-            input_node = queue.pop(0)
-            ret = self._check_for_node(input_node, target_node, queue)
-            if ret:
-                return True
-        return False
-
-    def chain_contains_specific_root(self, target_root: 'Node', skip_indices: List[int]):
-        queue = list()
-        for i, input_node in enumerate(self.input_nodes):
-            if i in skip_indices:
-                continue
-            queue.append(input_node)
-
-        while queue:
-            input_node = queue.pop(0)
-            ret = self._check_for_node(input_node, target_root, queue)
-            if ret:
-                return True
-        return False
+            route = node_sorting.Route(self, target_node, i)
+            if self._check_for_node(input_node, target_node, route):
+                routes.append(route)
+        return routes
 
     def chain_contains_branching_inputs(self, skip_indices: List[int]):
         # If one of the input nodes has multiple inputs connected,
@@ -522,26 +503,28 @@ class Node:
         return False
 
     @staticmethod
-    def _check_input_nodes_for_roots(node: 'Node', skip_nodes: List['Node'], queue: List['Node']):
-        for input_node in node.input_nodes:
-            if input_node in skip_nodes:
-                continue
-
-            if input_node.is_root:
-                return True
-            queue.append(input_node)
-        return False
-    
-    @staticmethod
-    def _check_for_node(node: 'Node', target_node: 'Node', queue: List['Node']):
-        if node is target_node:
+    def _check_for_root(node: 'Node', root_to_ignore, queue: List['Node']):
+        if node.is_root and node is not root_to_ignore:
             return True
 
         for input_node in node.input_nodes:
-            if input_node is target_node:
-                return True
             queue.append(input_node)
+        
         return False
+    
+
+    def _check_for_node(self, node: 'Node', target_node: 'Node', route: node_sorting.Route):
+        if node is target_node:
+            return True
+
+        if node.has_branching_inputs:
+            route.branching_nodes.append(node)
+
+        for input_node in node.input_nodes:
+            if self._check_for_node(input_node, target_node, route):
+                return True
+        return False
+
     # ====================================================
     # To refactor
     # ====================================================

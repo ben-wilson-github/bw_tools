@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import List
 from enum import IntEnum
 
@@ -37,58 +38,74 @@ def get_offset_value(node: Node, output_node: Node) -> float:
     half_input = node.width / 2
     return half_output + spacer + half_input
 
-
-
+@dataclass
+class Route:
+    root_node: Node
+    target_node: Node
+    index: int
+    branching_nodes: List[Node] = field(init=False, default_factory=list)
 
 
 def calculate_behavior(node: Node) -> NodeAlignmentBehavior:
     if not node.is_root:
         return StaticAlignment()
-    
-    if node.chain_contains_another_root():
+
+    if node.chain_contains_a_root(None):
         return StaticAlignment()
 
     # Find branching output nodes
-    # for all output nodes, does one have a chain which connect to myself
-        # no = Average
-        # yes
-            # branch inbetween?
+    # 0 branching outputs = Average
+    # Multiple branching outputs = Static
+    # 1 Branching output
+        # Does one of the routes connect to myself?
+            # no = average
+            # yes - Does the one remaining output node have 3 or more inputs?
                 # no = Static
                 # yes
-                    # for all the branches inbetween, does one connect to another root
-                        # yes = Static
-                        # no
-                            # Does output node have 3 or more inputs
-                                # yes = average
-                                #  no = static
-        
-           
+                    # collect all the branching nodes inbtween the output and root for each route
+                    # branch inbetween?
+                        # no = Average
+                        # yes
+                            # for all the branches inbetween, does one of the branch ndoes connect to another root
+                                # yes = Static
+                                # no = Average
 
-    # One of the output nodes inputs routes back to myself 
-    # And there are no other loops involved. None of the outputs inputs contain another root = Static
-    # under the index
-
-    
-
+    # For all branching output nodes and their routes
+    Branching_output_nodes: List[Node] = list()
     for output_node in node.output_nodes:
-        indices = node.indices_in_output(output_node)
-        if not output_node.find_node_in_chain(node, skip_indices=indices):
-            return AverageToOutputsYAxis()
-    return StaticAlignment()
+        if not output_node.has_branching_inputs:
+            continue
+        Branching_output_nodes.append(output_node)
+        
 
+    # There are no branching nodes
+    if len(Branching_output_nodes) == 0:   
+        return AverageToOutputsYAxis()
+    # There are multiple branching output nodes
+    elif len(Branching_output_nodes) > 1:
+        return StaticAlignment()
+    
+    # There is only 1 branching output node now
+    output_node = Branching_output_nodes[0]
+    # Do any of the routes lead back to myself?
+    indices = node.indices_in_output(output_node)
+    routes = output_node.find_routes_to_node(node, skip_indices=indices)
+    if len(routes) == 0:
+        return AverageToOutputsYAxis()
 
-    # for output_node in node.output_nodes:
-    #     indices = node.indices_in_output(output_node)
+    # Does the otuput node have 3 or more inputs?
+    if output_node.input_node_count < 3:
+        return StaticAlignment()
 
-    #     # One of my outputs inputs are going to expand, ignoring the chain I came from
-    #     if output_node.chain_contains_branching_inputs(skip_indices=indices):
-    #         return StaticAlignment()
+    branching_nodes_in_routes: List[Node] = list()
+    for route in routes:
+        branching_nodes_in_routes += route.branching_nodes
+    # Are there any branching nodes between the output and the root node?
+    if len(branching_nodes_in_routes) == 0:
+        AverageToOutputsYAxis()
 
-    # for output_node in node.output_nodes:
-    #     indices = node.indices_in_output(output_node)
-
-    #     # One of my outputs inputs doesnt have another root (exlcude myself)
-    #     if output_node.chain_contains_another_root(skip_indices=indices, skip_nodes=[node]):
-    #         return AverageToOutputsYAxis()
-
-    return StaticAlignment()
+    # Does one of the branching nodes connect to another root?
+    if any(branch.chain_contains_a_root(root_to_ignore=node) for branch in branching_nodes_in_routes):
+        return StaticAlignment()
+    else:
+        return AverageToOutputsYAxis()
