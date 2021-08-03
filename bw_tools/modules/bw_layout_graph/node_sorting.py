@@ -31,7 +31,7 @@ def process_node(node: Node, output_node: Node, already_processed: List[Node]):
 
 def get_offset_value(node: Node, output_node: Node) -> float:
     if node.is_root:
-        spacer = SPACER * 4
+        spacer = SPACER# * 4
     else:
         spacer = SPACER
     half_output = output_node.width / 2
@@ -47,10 +47,12 @@ class Route:
 
 
 def calculate_behavior(node: Node) -> NodeAlignmentBehavior:
-    if not node.is_root:
+    return StaticAlignment()
+    if not node.is_root or node.chain_contains_a_root():
         return StaticAlignment()
+    return AverageToOutputsYAxis()
 
-    if node.chain_contains_a_root(None):
+    if node.chain_contains_a_root():
         return StaticAlignment()
 
     # Find branching output nodes

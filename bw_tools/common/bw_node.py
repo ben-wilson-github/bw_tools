@@ -335,6 +335,11 @@ class Node:
             input_node.alignment_behavior.exec()
             input_node.update_chain_positions()
     
+    def update_all_chain_positions(self):
+        for input_node in self.input_nodes:
+            input_node.alignment_behavior.exec()
+            input_node.update_chain_positions()
+    
     # TODO: Move to inherited
     @property
     def farthest_output_nodes(self) -> List['Node']:
@@ -452,9 +457,11 @@ class Node:
         return largest, index
 
     # Move to node class
-    def chain_contains_a_root(self, root_to_ignore):
+    def chain_contains_a_root(self, root_to_ignore=None, skip_indices=[]):
         queue = list()
         for i, input_node in enumerate(self.input_nodes):
+            if i in skip_indices:
+                continue
             queue.append(input_node)
 
         while queue:
@@ -462,6 +469,20 @@ class Node:
             if self._check_for_root(input_node, root_to_ignore, queue):
                 return True
         return False
+    
+    def find_root_nodes_in_chain(self):
+        queue = list()
+        for input_node in self.input_nodes:
+            queue.append(input_node)
+
+        roots = list()
+        while queue:
+            input_node = queue.pop(0)
+            root = self._find_roots(input_node, queue)
+            if root and root not in roots:
+                roots.append(root)
+        return roots
+
 
     def find_routes_to_node(self, target_node: 'Node', skip_indices: List[int]):
         routes = list()
@@ -511,6 +532,13 @@ class Node:
             queue.append(input_node)
         
         return False
+    
+    @staticmethod
+    def _find_roots(node: 'Node', queue: List['Node']):
+        if node.is_root:
+            return node
+        for input_node in node.input_nodes:
+            queue.append(input_node)
     
 
     def _check_for_node(self, node: 'Node', target_node: 'Node', route: node_sorting.Route):

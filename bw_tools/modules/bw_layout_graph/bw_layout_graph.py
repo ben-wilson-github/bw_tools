@@ -55,7 +55,6 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
             # node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
             continue
             node.set_position(node.pos.x, old_pos[node.identifier][1])
-
         
         api.log.debug('Aligning Nodes...')
         already_processed = list()
@@ -63,9 +62,9 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
         for node_chain in node_selection.node_chains:
             if node_chain.root.output_node_count != 0:
                 continue
-            aligner.run_aligner(node_chain.root, already_processed, roots_to_update)
+            aligner.run_aligner(node_chain.root, already_processed, roots_to_update, node_selection)
 
-        
+        #TODO: A post pass to fix overlapping roots
 
         # api.log.debug('Aligning by hiararchy...')
         # for node_chain in node_selection.node_chains:
@@ -87,7 +86,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
         #     if node_chain.root.output_node_count != 0:
         #         continue
         #     aligner = input_aligner.RemoveOverlap()
-            # aligner.run2(node_chain.root, seen)
+        #     aligner.run2(node_chain.root, seen)
 
         
 

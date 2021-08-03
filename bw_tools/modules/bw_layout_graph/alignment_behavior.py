@@ -51,8 +51,8 @@ class StaticAlignment(NodeAlignmentBehavior):
         self.update_offset(self.parent.pos)
 
     def update_offset(self, new_pos: Float2):
-        self.offset.x =  new_pos.x - self.offset_node.pos.x
-        self.offset.y =  new_pos.y - self.offset_node.pos.y
+        self.offset.x = new_pos.x - self.offset_node.pos.x
+        self.offset.y = new_pos.y - self.offset_node.pos.y
 
 @dataclass
 class AverageToOutputsYAxis(NodeAlignmentBehavior):
@@ -64,8 +64,11 @@ class AverageToOutputsYAxis(NodeAlignmentBehavior):
         self.parent.set_position(self.parent.pos.x, y)
 
     def setup(self, _: Node):
-        self.top_node = self.parent.output_nodes[0]
-        self.bottom_node = self.parent.output_nodes[-1]
+        if self.top_node is None or self.bottom_node is None:
+            sorted_outputs = sorted(list(self.parent.output_nodes), key=lambda x: x.pos.y)
+            self.top_node = sorted_outputs[0]
+            self.bottom_node = sorted_outputs[-1]
+    
 
 
 def align_in_line(input_node: Node, target_node: Node):
@@ -97,22 +100,22 @@ def align_node_between(node: Node, top: Node, bottom: Node):
     node.set_position(node.pos.x, mid_point)
 
 
-def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: int):
+def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: int, node_selection):
     node_list = output_node.input_nodes
     node_above = node_list[index - 1]
     node_to_move = node
 
-    print(f'Moving {node_to_move} below the chain for {node_above}')
-
-    node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
-    nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain)
+    # node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
+    # nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain)
+    node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_selection)
+    nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_selection)
 
     smallest_cd = calculate_smallest_chain_dimension(node_to_move_cd, nove_above_cd)
-    print(f'The smallest chain dimension is {smallest_cd.right_node}')
-
+    
     try:
         limit_bounds = bw_chain_dimension.Bound(left=smallest_cd.bounds.left)
-        upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, chain=node_to_move.chain, limit_bounds=limit_bounds)
+        # upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, chain=node_to_move.chain, limit_bounds=limit_bounds)
+        upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, chain=node_selection, limit_bounds=limit_bounds)
     except bw_chain_dimension.OutOfBoundsError:
         # This occur when the node to move is behind the chain above. This happens because the node to move is a root
         upper_bound = node_to_move.pos.y - node_to_move.height / 2
@@ -120,22 +123,36 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
     else:
         upper_bound = upper_bound_cd.bounds.upper
         upper_node = upper_bound_cd.upper_node
-    print(f'upper bound : {upper_bound}')
-    print(f'upper node : {upper_node}')
+    
+    # if output_node.identifier == 1420079326:
+    #     upper_node.add_comment('I am upper node')
 
     try:
+        chain = bw_node_selection.NodeChain(node_above)
+        nodes = get_chain(node_above, [])
+        for n in nodes:
+            chain.add_node(n)
         limit_bounds = bw_chain_dimension.Bound(left=upper_node.pos.x)
-        lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_above, chain=node_above.chain, limit_bounds=limit_bounds)
+        # limit_bounds = bw_chain_dimension.Bound(left=smallest_cd.bounds.left) # This is for stacking
+        # lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_above, chain=node_above.chain, limit_bounds=limit_bounds)
+        lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_above, chain=chain, limit_bounds=limit_bounds)
     except bw_chain_dimension.OutOfBoundsError:
         # This can also happen when the node above is a root
         lower_bound = node_above.pos.y + node_above.height / 2
     else:
         lower_bound = lower_bound_cd.bounds.lower
-    print(f'lower bound : {lower_bound}')
+    
+    # if output_node.identifier == 1420079326:
+    #     lower_bound_cd.lower_node.add_comment('I am lower node')
 
-    print(f'Aligning below')
     ab.align_below_bound(node_to_move, lower_bound + SPACER, upper_bound)
 
+def get_chain(node: Node, nodes):
+    for input_node in node.input_nodes:
+        if input_node.alignment_behavior.offset_node is node and input_node not in nodes:
+            nodes.append(input_node)
+        nodes += get_chain(input_node, nodes)
+    return nodes
 
 def calculate_smallest_chain_dimension(
         a_cd: bw_chain_dimension.ChainDimension,
