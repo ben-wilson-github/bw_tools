@@ -339,15 +339,26 @@ class Node:
             input_node.alignment_behavior.exec()
             input_node.update_all_chain_positions()
     
-    def update_all_chain_positions_with_override(self):
+    def update_all_chain_positions_if_offset_parent(self):
         for input_node in self.input_nodes:
-            if input_node.alignment_behavior.offset_node is not self:
-                input_node.alignment_behavior.offset_node = self
-                new_pos = Float2(input_node.pos.x, self.pos.y)
-                input_node.alignment_behavior.update_offset(new_pos)
+            if input_node.alignment_behavior.offset_node is self:
+                input_node.alignment_behavior.exec()
+                input_node.update_all_chain_positions_if_offset_parent()
 
-            input_node.alignment_behavior.exec()
-            # if self.identifier == 1420164410 and input_node.identifier == 1420164402:
+    def update_all_chain_positions_with_override(self):
+        inputs = list(self.input_nodes)
+        # inputs.reverse()
+        for input_node in inputs:
+            # if self.identifier == 1420168548 and input_node.identifier == 1420168546:
+            #     print('a')
+            if input_node.alignment_behavior.offset_node is not self:
+                input_node.set_position(input_node.pos.x, self.pos.y)
+                # input_node.alignment_behavior.offset_node = self
+                # new_pos = Float2(input_node.pos.x, self.pos.y)
+                # input_node.alignment_behavior.update_offset(new_pos)
+            else:
+                input_node.alignment_behavior.exec()
+            # if self.identifier == 1420168548 and input_node.identifier == 1420168546:
             #     raise AttributeError()
             input_node.update_all_chain_positions_with_override()
     

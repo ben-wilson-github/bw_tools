@@ -86,7 +86,7 @@ def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List
         return
 
     inputs = list(node.input_nodes)
-    inputs.reverse()
+    # inputs.reverse()
     # inputs.reverse()
     for input_node in inputs:
         run_aligner(input_node, already_processed, roots_to_update, node_selection)
@@ -100,6 +100,7 @@ def process_node(node: Node, already_processed: List[Node], roots_to_update: Lis
     if node.identifier == 1:
         print(node)
     stack_inputs(node, roots_to_update, node_selection)
+    # stack_inputs_upwards(node, roots_to_update, node_selection)
     if node.identifier == 1:
         raise AttributeError()
     # resolve_alignment_stack(node, roots_to_update)
@@ -107,15 +108,15 @@ def process_node(node: Node, already_processed: List[Node], roots_to_update: Lis
     # for root_node in roots_to_update:
     #     root_node.alignment_behavior.exec()
     #     root_node.update_chain_positions()
-    
-    for input_node in node.input_nodes:
-        root_nodes = input_node.find_root_nodes_in_chain()
-        for root in root_nodes:
-            if root not in roots_to_update:
-                roots_to_update.append(root)
-
     if node.identifier == 1:
         raise AttributeError()
+    
+    # for input_node in node.input_nodes:
+    #     root_nodes = input_node.find_root_nodes_in_chain()
+    #     for root in root_nodes:
+    #         if root not in roots_to_update:
+    #             roots_to_update.append(root)
+
 
 def resolve_alignment_average(node: Node):
     _, mid_point = utils.calculate_mid_point(node.input_nodes[0],
@@ -123,14 +124,15 @@ def resolve_alignment_average(node: Node):
     offset = node.pos.y - mid_point
 
     for input_node in node.input_nodes:
-        # if node is not input_node.alignment_behavior.offset_node:
-        #     input_node.alignment_behavior.exec()
-
-        new_pos = Float2(input_node.pos.x, input_node.pos.y + offset)
-        input_node.alignment_behavior.offset_node = node
-        input_node.alignment_behavior.update_offset(new_pos)
-        input_node.alignment_behavior.exec()
-        input_node.update_all_chain_positions()
+        if node is not input_node.alignment_behavior.offset_node:
+            input_node.alignment_behavior.exec()
+        else:
+            new_pos = Float2(input_node.pos.x, input_node.pos.y + offset)
+            input_node.alignment_behavior.offset_node = node
+            input_node.alignment_behavior.update_offset(new_pos)
+            input_node.alignment_behavior.exec()
+        # input_node.update_all_chain_positions()
+        input_node.update_all_chain_positions_if_offset_parent()
     return
 
 def resolve_alignment_stack(node: Node, roots_to_update) -> List[Node]:
@@ -143,11 +145,15 @@ def resolve_alignment_stack(node: Node, roots_to_update) -> List[Node]:
         input_node.update_chain_positions()
     return
 
-def stack_inputs(node: Node, already_process: List[Node], node_selection):
+def stack_inputs_upwards(node: Node, already_process: List[Node], node_selection):
     if node.identifier == 1:
         print('a')
-    for i, input_node in enumerate(node.input_nodes):
+    
+    inputs = list(node.input_nodes)
+    inputs.reverse()
+    for i, input_node in enumerate(inputs):
         if i == 0:
+            continue
             if node.identifier == 1:
                 raise AttributeError()
             print(f'First input -> Moving inline with {node}')
@@ -155,6 +161,7 @@ def stack_inputs(node: Node, already_process: List[Node], node_selection):
             input_node.alignment_behavior.offset_node = node
             new_pos = Float2(input_node.pos.x, input_node.pos.y)
             input_node.alignment_behavior.update_offset(new_pos)
+            continue
             # TODO: If I didnt move, then I dont need to update everything
             # input_node.update_chain_positions()
             # input_node.update_all_chain_positions()
@@ -165,7 +172,11 @@ def stack_inputs(node: Node, already_process: List[Node], node_selection):
             if node.identifier == 1:
                 print(node)
             print(f'Next input -> Attempting to align below')
-            alignment_behavior.align_below_shortest_chain_dimension(input_node, node, i, node_selection)
+
+            # Actually just need to move the root nodes inline if the parent is the offset node
+            input_node.update_all_chain_positions_with_override()
+
+            alignment_behavior.align_above_shortest_chain_dimension(input_node, node, i, node_selection)
             if node.identifier == 1:
                 raise AttributeError()
             # input_node.update_chain_positions(),
@@ -174,6 +185,47 @@ def stack_inputs(node: Node, already_process: List[Node], node_selection):
             new_pos = Float2(input_node.pos.x, input_node.pos.y)
             input_node.alignment_behavior.update_offset(new_pos)
             input_node.update_all_chain_positions()
+            if node.identifier == 1:
+                raise AttributeError()
+    return
+
+def stack_inputs(node: Node, already_process: List[Node], node_selection):
+    if node.identifier == 1:
+        print('a')
+    for i, input_node in enumerate(node.input_nodes):
+        if i == 0:
+            
+            if node.identifier == 1:
+                raise AttributeError()
+            print(f'First input -> Moving inline with {node}')
+            alignment_behavior.align_in_line(input_node, node)
+            # input_node.alignment_behavior.offset_node = node
+            # new_pos = Float2(input_node.pos.x, input_node.pos.y)
+            # input_node.alignment_behavior.update_offset(new_pos)
+            # Move the one node inline, this is in the event that its a root node that was previous moved
+            # input_node.update_all_chain_positions_if_offset_parent()
+            
+            # TODO: If I didnt move, then I dont need to update everything
+            # input_node.update_chain_positions()
+            # input_node.update_all_chain_positions()
+            # input_node.update_all_chain_positions_with_override()
+            if node.identifier == 1:
+                raise AttributeError()
+            continue
+        else:
+            if node.identifier == 1:
+                print(node)
+            print(f'Next input -> Attempting to align below')
+            alignment_behavior.align_below_shortest_chain_dimension(input_node, node, i, node_selection)
+            if node.identifier == 1:
+                raise AttributeError()
+            # input_node.update_chain_positions(),
+            # TODO: If I didnt move, then I dont need to update everything
+            if input_node.alignment_behavior.offset_node is node:
+                new_pos = Float2(input_node.pos.x, input_node.pos.y)
+                input_node.alignment_behavior.update_offset(new_pos)
+            # input_node.update_all_chain_positions_with_override()
+            input_node.update_all_chain_positions_if_offset_parent()
             if node.identifier == 1:
                 raise AttributeError()
     return
