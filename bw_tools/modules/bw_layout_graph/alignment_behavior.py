@@ -105,14 +105,21 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
     node_above = node_list[index - 1]
     node_to_move = node
 
-    if output_node.identifier == 1419714690:
+    if output_node.identifier == 1419826112:
         print('a')
-    # node_to_move_chain = [node_to_move]
-    # get_chain(node_to_move, node_to_move_chain)
-    # node_above_chain = [node_above]
-    # get_chain(node_above, node_above_chain, nodes_to_ignore=node_to_move_chain)
-    node_above_chain, roots = get_chain(node_above)
+
+    node_above_chain, roots = get_chain(node_above, nodes_to_ignore=[node_to_move])
     node_to_move_chain, _ = get_chain(node_to_move, nodes_to_ignore=roots)
+
+    # node_above_chain, roots = get_chain(node_above)
+    # node_to_move_chain, _ = get_chain(node_to_move, nodes_to_ignore=roots)
+    # if node_to_move in roots:
+    #     node_to_move_chain = [node_to_move]
+
+    # node_to_move_chain, roots = get_chain(node_to_move)
+    # node_above_chain, _ = get_chain(node_above, nodes_to_ignore=roots)
+
+
 
     # node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
     # nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain)
@@ -137,8 +144,8 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
     #     upper_node.add_comment('I am upper node')
 
     try:
-        limit_bounds = bw_chain_dimension.Bound(left=upper_node.pos.x)
-        # limit_bounds = bw_chain_dimension.Bound(left=smallest_cd.bounds.left) # This is for stacking
+        # limit_bounds = bw_chain_dimension.Bound(left=upper_node.pos.x)
+        limit_bounds = bw_chain_dimension.Bound(left=smallest_cd.bounds.left) # This is for stacking
         # lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_above, chain=node_above.chain, limit_bounds=limit_bounds)
         lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_above, chain=node_above_chain, limit_bounds=limit_bounds)
     except bw_chain_dimension.OutOfBoundsError:
@@ -170,9 +177,7 @@ def get_chain(node: Node, nodes_to_ignore=[]):
     _get_chain(node, nodes, roots, nodes_to_ignore)
     return nodes, roots
 
-CHAIN 7 not working
     
-
 def calculate_smallest_chain_dimension(
         a_cd: bw_chain_dimension.ChainDimension,
         b_cd: bw_chain_dimension.ChainDimension) -> bw_chain_dimension.ChainDimension:

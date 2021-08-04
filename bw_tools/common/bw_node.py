@@ -337,7 +337,19 @@ class Node:
     def update_all_chain_positions(self):
         for input_node in self.input_nodes:
             input_node.alignment_behavior.exec()
-            input_node.update_chain_positions()
+            input_node.update_all_chain_positions()
+    
+    def update_all_chain_positions_with_override(self):
+        for input_node in self.input_nodes:
+            if input_node.alignment_behavior.offset_node is not self:
+                input_node.alignment_behavior.offset_node = self
+                new_pos = Float2(input_node.pos.x, self.pos.y)
+                input_node.alignment_behavior.update_offset(new_pos)
+
+            input_node.alignment_behavior.exec()
+            # if self.identifier == 1420164410 and input_node.identifier == 1420164402:
+            #     raise AttributeError()
+            input_node.update_all_chain_positions_with_override()
     
     # TODO: Move to inherited
     @property
