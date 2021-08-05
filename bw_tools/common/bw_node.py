@@ -7,7 +7,9 @@ from typing import Tuple
 from typing import TypeVar
 from typing import List
 
-from bw_tools.common import bw_connection, bw_node_selection
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from bw_tools.common import bw_node_selection
 from bw_tools.common import bw_utils
 from bw_tools.common import bw_chain_dimension
 
@@ -27,22 +29,14 @@ NODE_BOADER_WIDTH = 26.75
 NODE_SLOT_STRIDE = 21.25
 
 
-@dataclass()
+@dataclass
 class Float2:
     x: float = 0.0
     y: float = 0.0
 
-    def __post_init__(self):
-        if not any(isinstance(i, float) for i in [self.x, self.y]):
-            raise TypeError(bw_utils.invalid_type_error(self.__init__, self.x, self.y))
-
-
-@dataclass()
+@dataclass
 class ConnectionData:
     index: int
-    # height: int = field(init=False, default=0)
-    # chain_depth: int = field(init=False, default=0)
-    # branches: List['Node'] = field(init=False, default_factory=list)
 
 @dataclass
 class InputConnectionData(ConnectionData):
@@ -60,29 +54,17 @@ class OutputConnectionData(ConnectionData):
 @dataclass
 class Node:
     api_node: 'SDSBSCompNode' = field(repr=False)
-    # node_selection: bw_node_selection = field(init=False, repr=False)
-    chain: bw_node_selection.NodeChain = field(init=False, repr=False, compare=False)
+    chain: bw_node_selection.NodeGroupInterface = field(init=False, repr=False, compare=False)
 
     label: str = field(init=False)
     identifier: int = field(init=False)
     pos: Float2 = field(init=False, repr=False, default_factory=Float2)
-    # offset_node: 'Node' = field(init=False, default=None, repr=False)
-    # offset: Float2 = field(init=False, repr=False, default_factory=Float2)
 
     _alignment_behavior: alignment_behavior.NodeAlignmentBehavior = field(init=False, repr=False, default=None)
     _input_connection_data: List[InputConnectionData] = field(init=False, default_factory=list, repr=False)
     _output_connection_data: List[OutputConnectionData] = field(init=False, default_factory=list, repr=False)
 
-    # closest_output_node: 'Node' = field(init=False, default=None, repr=None)
-    # mainline: bool = field(init=False, default=False, repr=False)
-    # chain_dimension: ChainDimension = field(init=False, default=None, repr=False)
-    # _output_nodes: dict = field(init=False, default_factory=dict, repr=False)
-    # _input_nodes: dict = field(init=False, default_factory=dict, repr=False)
-    # _input_node_heights: dict = field(init=False, default_factory=dict, repr=False)
-
     def __post_init__(self):
-        # if not isinstance(self.api_node, sd.api.sbs.sdsbscompnode.SDSBSCompNode):
-        #     raise TypeError(bw_utils.invalid_type_error(self.__init__, self.api_node))
         self.label = self.api_node.getDefinition().getLabel()
         self.identifier = int(self.api_node.getIdentifier())
         self.pos = Float2(self.api_node.getPosition().x, self.api_node.getPosition().y)
@@ -92,13 +74,6 @@ class Node:
 
     def add_output_connection_data(self, data: ConnectionData):
         self._output_connection_data.append(data)
-
-    @property
-    def has_label(self) -> bool:
-        if not self.label:
-            return False
-        else:
-            return True
 
     @property
     def height(self) -> float:
@@ -113,14 +88,6 @@ class Node:
     @property
     def width(self) -> float:
         return 96.0
-
-    @property
-    def referenced_graph_identifier(self) -> Union[int, None]:
-        rsc = self.api_node.getReferencedResource()
-        if rsc is None:
-            return None
-        else:
-            return int(rsc.getIdentifier())
 
     @property
     def input_connectable_properties_count(self) -> int:
@@ -151,10 +118,6 @@ class Node:
         If a node outputs to multiple nodes, it is considered a root node.
         """
         return self.output_node_count != 1
-
-    @property
-    def is_end(self) -> bool:
-        return self.input_node_count == 0
 
     @property
     def has_branching_outputs(self) -> bool:
@@ -223,28 +186,8 @@ class Node:
         return sum
 
     @property
-    def largest_input_chain_depth(self) -> int:
-        return self._calculate_largest_chain_depth()[0]
-
-    @property
-    def input_node_with_largest_chain_depth(self) -> 'Node':
-        index = self.largest_chain_depth_index
-        return self.input_node_in_index(index)
-
-    @property
-    def input_chains_are_equal_depth(self) -> bool:
-        largest = self.largest_input_chain_depth
-        for cd in self._input_connection_data:
-            if cd.chain_depth == 0:
-                continue
-            if cd.chain_depth != largest:
-                return False
-        return True
-
-    @property
     def largest_chain_depth_index(self) -> int:
         return self._calculate_largest_chain_depth()[1]
-
 
     # TODO: inherit node class and move to new for plugin
     @property
@@ -486,63 +429,7 @@ class Node:
                 largest = cd.chain_depth
                 index = cd.index
         return largest, index
-
-    # Move to node class
-    def chain_contains_a_root(self, root_to_ignore=None, skip_indices=[]):
-        queue = list()
-        for i, input_node in enumerate(self.input_nodes):
-            if i in skip_indices:
-                continue
-            queue.append(input_node)
-
-        while queue:
-            input_node = queue.pop(0)
-            if self._check_for_root(input_node, root_to_ignore, queue):
-                return True
-        return False
     
-    def find_root_nodes_in_chain(self):
-        queue = list()
-        for input_node in self.input_nodes:
-            queue.append(input_node)
-
-        roots = list()
-        while queue:
-            input_node = queue.pop(0)
-            root = self._find_roots(input_node, queue)
-            if root and root not in roots:
-                roots.append(root)
-        return roots
-
-
-    # def find_routes_to_node(self, target_node: 'Node', skip_indices: List[int]):
-    #     routes = list()
-    #     for i, input_node in enumerate(self.input_nodes):
-    #         if i in skip_indices:
-    #             continue
-
-    #         route = node_sorting.Route(self, target_node, i)
-    #         if self._check_for_node(input_node, target_node, route):
-    #             routes.append(route)
-    #     return routes
-
-    def chain_contains_branching_inputs(self, skip_indices: List[int]):
-        # If one of the input nodes has multiple inputs connected,
-        # then it is likely to expand later.
-        # Make it static
-        queue = list()
-        for i, input_node in enumerate(self.input_nodes):
-            if i in skip_indices:
-                continue
-            queue.append(input_node)
-
-        while queue:
-            input_node = queue.pop(0)
-            ret = self._check_input_nodes_for_branching_inputs(input_node, queue)
-            if ret:
-                return True
-        return False
-
     @staticmethod
     def _check_input_nodes_for_branching_inputs(node: 'Node', queue: List['Node']):
         if node.has_branching_inputs:

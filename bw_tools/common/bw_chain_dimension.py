@@ -1,26 +1,28 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Union, List
 
-from bw_tools.common import bw_node, bw_node_selection
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, List, Union
+
+if TYPE_CHECKING:
+    from bw_tools.common import bw_node
 
 
 class OutOfBoundsError(ValueError):
     def __init__(self):
-        super().__init__('Node not in bounds.')
+        super().__init__("Node not in bounds.")
+
 
 class NotInChainError(AttributeError):
     def __init__(self):
-        super().__init__('Node is not in chain.')
+        super().__init__("Node is not in chain.")
 
 
 @dataclass()
 class Bound:
-     left: Union[float, None] = None
-     right: Union[float, None] = None
-     upper: Union[float, None] = None
-     lower: Union[float, None] = None
+    left: Union[float, None] = None
+    right: Union[float, None] = None
+    upper: Union[float, None] = None
+    lower: Union[float, None] = None
 
 
 @dataclass()
@@ -56,19 +58,20 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
     if testing_bounds.lower is None:
         testing_bounds.lower = node.pos.y
 
-    if (node.pos.x >= testing_bounds.left
-            and node.pos.x <= testing_bounds.right
-            and node.pos.y >= testing_bounds.upper
-            and node.pos.y <= testing_bounds.lower):
+    if (
+        node.pos.x >= testing_bounds.left
+        and node.pos.x <= testing_bounds.right
+        and node.pos.y >= testing_bounds.upper
+        and node.pos.y <= testing_bounds.lower
+    ):
         return True
     else:
         return False
 
 
-def calculate_chain_dimension(node: bw_node.Node,
-                              chain: List[bw_node.Node],
-                              limit_bounds: Bound = Bound
-                              ) -> ChainDimension:
+def calculate_chain_dimension(
+    node: bw_node.Node, chain: List[bw_node.Node], limit_bounds: Bound = Bound
+) -> ChainDimension:
 
     if node not in chain:
         raise NotInChainError()
@@ -80,7 +83,7 @@ def calculate_chain_dimension(node: bw_node.Node,
         right=node.pos.x + (node.width / 2),
         left=node.pos.x - (node.width / 2),
         lower=node.pos.y + (node.height / 2),
-        upper=node.pos.y - (node.height / 2)
+        upper=node.pos.y - (node.height / 2),
     )
 
     cd.left_node = node
@@ -93,9 +96,9 @@ def calculate_chain_dimension(node: bw_node.Node,
             continue
         else:
             if node_in_bounds(input_node, limit_bounds):
-                input_cd = calculate_chain_dimension(input_node,
-                                                     chain,
-                                                     limit_bounds=limit_bounds)
+                input_cd = calculate_chain_dimension(
+                    input_node, chain, limit_bounds=limit_bounds
+                )
 
                 if input_cd.bounds.left <= cd.bounds.left:
                     cd.bounds.left = input_cd.bounds.left

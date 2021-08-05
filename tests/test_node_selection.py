@@ -1,14 +1,12 @@
+import importlib
 import os
 import shutil
 import unittest
-import importlib
-
 from pathlib import Path
 
 import sd
+from bw_tools.common import bw_node, bw_node_selection
 
-from common import bw_node
-from common import bw_node_selection
 importlib.reload(bw_node)
 importlib.reload(bw_node_selection)
 
@@ -63,7 +61,7 @@ class MyTestCase(unittest.TestCase):
         temp_file = temp_file.joinpath(
             'tmp/__test_can_remove_dot_nodes.sbs'
         )
-        temp_file =  str(temp_file.resolve())
+        temp_file = str(temp_file.resolve())
         self._create_temp_file(temp_file)
 
         package = self.pkg_mgr.loadUserPackage(temp_file)
@@ -71,7 +69,7 @@ class MyTestCase(unittest.TestCase):
         node_selection = bw_node_selection.NodeSelection(graph.getNodes(),
                                                          graph)
 
-        node_selection.remove_dot_nodes()
+        bw_node_selection.remove_dot_nodes(node_selection)
 
         self.assertEqual(6, len(graph.getNodes()))
         node = graph.getNodeFromId('1407882793')

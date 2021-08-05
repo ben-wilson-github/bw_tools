@@ -1,9 +1,9 @@
 import importlib
 import unittest
-from tests import test_nodes
+#from tests import test_nodes
 from tests import test_node_selection
 
-importlib.reload(test_nodes)
+#importlib.reload(test_nodes)
 importlib.reload(test_node_selection)
 
 

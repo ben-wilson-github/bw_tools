@@ -1,5 +1,7 @@
 {
     "python.linting.enabled": true,
     "python.linting.flake8Enabled": true,
-    "python.envFile": ".env"
+    "python.linting.pylintEnabled": false,
+    "python.envFile": ".env",
+    "python.formatting.provider": "black"
 }
