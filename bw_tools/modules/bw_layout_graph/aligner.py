@@ -102,7 +102,8 @@ def process_node(node: Node, already_processed: List[Node], roots_to_update: Lis
     stack_inputs(node, roots_to_update, node_selection)
     # stack_inputs_upwards(node, roots_to_update, node_selection)
     if node.identifier == 1:
-        raise AttributeError()
+        print('a')
+        # raise AttributeError()
     # resolve_alignment_stack(node, roots_to_update)
     resolve_alignment_average(node)
     # for root_node in roots_to_update:

@@ -18,8 +18,9 @@ def run_sort(node: Node, already_processed: List[Node]):
 
 def process_node(node: Node, output_node: Node, already_processed: List[Node]):
     offset = get_offset_value(node, node.closest_output_node_in_x)
+    
     node.set_position(node.closest_output_node_in_x.pos.x - offset,
-                      node.closest_output_node_in_x.pos.y)
+                      node.farthest_output_nodes[0].pos.y)
 
     if node not in already_processed:
         behavior = calculate_behavior(node)
