@@ -84,7 +84,7 @@ def process_node_remove_overlap(node, already_processed):
 def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List[Node], node_selection):
     if not node.has_input_nodes_connected or node in already_processed:
         return
-
+    
     inputs = list(node.input_nodes)
     # inputs.reverse()
     # inputs.reverse()
@@ -99,11 +99,12 @@ def run_aligner(node: Node, already_processed: List[Node], roots_to_update: List
 def process_node(node: Node, already_processed: List[Node], roots_to_update: List[Node], node_selection):
     if node.identifier == 1:
         print(node)
+        raise ArithmeticError()
     stack_inputs(node, roots_to_update, node_selection)
     # stack_inputs_upwards(node, roots_to_update, node_selection)
     if node.identifier == 1:
         print('a')
-        # raise AttributeError()
+        raise AttributeError()
     # resolve_alignment_stack(node, roots_to_update)
     resolve_alignment_average(node)
     # for root_node in roots_to_update:
@@ -124,6 +125,9 @@ def resolve_alignment_average(node: Node):
                                              node.input_nodes[-1])
     offset = node.pos.y - mid_point
 
+    if node.identifier == 1420215771:
+        print('a')
+
     for input_node in node.input_nodes:
         if node is not input_node.alignment_behavior.offset_node:
             input_node.alignment_behavior.exec()
@@ -133,7 +137,7 @@ def resolve_alignment_average(node: Node):
             input_node.alignment_behavior.update_offset(new_pos)
             input_node.alignment_behavior.exec()
         # input_node.update_all_chain_positions()
-        input_node.update_all_chain_positions_if_offset_parent()
+        input_node.update_all_chain_positions_only_for_offset_parent()
     return
 
 def resolve_alignment_stack(node: Node, roots_to_update) -> List[Node]:
@@ -200,16 +204,10 @@ def stack_inputs(node: Node, already_process: List[Node], node_selection):
                 raise AttributeError()
             print(f'First input -> Moving inline with {node}')
             alignment_behavior.align_in_line(input_node, node)
-            # input_node.alignment_behavior.offset_node = node
-            # new_pos = Float2(input_node.pos.x, input_node.pos.y)
-            # input_node.alignment_behavior.update_offset(new_pos)
-            # Move the one node inline, this is in the event that its a root node that was previous moved
-            # input_node.update_all_chain_positions_if_offset_parent()
             
-            # TODO: If I didnt move, then I dont need to update everything
-            # input_node.update_chain_positions()
-            # input_node.update_all_chain_positions()
+            # Must force update everything as some nodes might not be in line (because they are inline with another real root chain)
             # input_node.update_all_chain_positions_with_override()
+            input_node.update_all_chain_positions_only_for_offset_parent()
             if node.identifier == 1:
                 raise AttributeError()
             continue
@@ -218,15 +216,16 @@ def stack_inputs(node: Node, already_process: List[Node], node_selection):
                 print(node)
             print(f'Next input -> Attempting to align below')
             alignment_behavior.align_below_shortest_chain_dimension(input_node, node, i, node_selection)
-            if node.identifier == 1:
-                raise AttributeError()
+            if node.identifier == 1419561067:
+                print('a')
+                # raise AttributeError()
             # input_node.update_chain_positions(),
             # TODO: If I didnt move, then I dont need to update everything
             if input_node.alignment_behavior.offset_node is node:
                 new_pos = Float2(input_node.pos.x, input_node.pos.y)
                 input_node.alignment_behavior.update_offset(new_pos)
             # input_node.update_all_chain_positions_with_override()
-            input_node.update_all_chain_positions_if_offset_parent()
+            input_node.update_all_chain_positions_only_for_offset_parent()
             if node.identifier == 1:
                 raise AttributeError()
     return

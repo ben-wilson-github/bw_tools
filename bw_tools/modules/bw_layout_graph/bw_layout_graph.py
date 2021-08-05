@@ -52,7 +52,7 @@ def run_layout(node_selection: bw_node_selection.NodeSelection,
 
         for node in node_selection.nodes:
             # node.add_comment(str(node.alignment_behavior))
-            # node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
+            node.set_position(old_pos[node.identifier][0], old_pos[node.identifier][1])
             continue
             node.set_position(node.pos.x, old_pos[node.identifier][1])
         

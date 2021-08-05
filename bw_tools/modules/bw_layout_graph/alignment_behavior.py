@@ -156,17 +156,32 @@ def align_below_shortest_chain_dimension(node: Node, output_node: Node, index: i
     node_above = node_list[index - 1]
     node_to_move = node
 
-    if output_node.identifier == 1419479846:
+    if output_node.identifier == 1420163229:
         print('a')
-    
+        # raise ArithmeticError()
 
+    # If the node_to_move connects to the node above, the want to ignore it.
+    # Instead we want to move the node_to_move to the next chain above it in the node_above
+    if node_above in node_to_move.output_nodes:
+        if node_above.input_node_count > 1: # If the node above only has the one input, it has to be the node_to_move.
+            # and therefore, no sibling chain to move too
+            for i, input_node in enumerate(node_above.input_nodes):
+                if input_node is node_to_move:
+                    node_above = node_above.input_nodes[i - 1]
+    
+    
     node_above_chain, roots = get_chain(node_above, nodes_to_ignore=[node_to_move])
     # roots = [] # chain 3 doesnt want roots, because vector warp grayscale is in the chain we are moving below
     node_to_move_chain, _ = get_chain(node_to_move, nodes_to_ignore=roots)
 
+    # node_to_move.update_all_chain_positions_only_for_offset_parent()
+
+    if output_node.identifier == 1:
+        raise ArithmeticError()
+
     # This is to remove uneceassy padding
-    if node_to_move.alignment_behavior.offset_node is not output_node:
-        node_to_move_chain = [node_to_move]
+    # if node_to_move.alignment_behavior.offset_node is not output_node:
+    #     node_to_move_chain = [node_to_move]
     
 
     # node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
@@ -212,18 +227,22 @@ def get_chain(node: Node, nodes_to_ignore=[]):
         input_node: Node
         for input_node in node.input_nodes:
             if input_node in nodes_to_ignore:
-                if input_node.alignment_behavior.offset_node is node:
-                    nodes.append(input_node)
+                # if input_node.alignment_behavior.offset_node is node:
+                #     nodes.append(input_node)
                 continue
 
-            if input_node.is_root and input_node not in roots:
+            if input_node.is_root and input_node not in roots and input_node.alignment_behavior.offset_node is node:
                 roots.append(input_node)
+            # if input_node.is_root and input_node not in roots:
+            #     roots.append(input_node)
             
-            # if input_node.alignment_behavior.offset_node is node and input_node not in nodes:
-            #     nodes.append(input_node)
-            if input_node not in nodes:
+            if input_node.alignment_behavior.offset_node is node and input_node not in nodes:
                 nodes.append(input_node)
-            _get_chain(input_node, nodes, roots, nodes_to_ignore)
+                _get_chain(input_node, nodes, roots, nodes_to_ignore)
+
+            # if input_node not in nodes:
+            #     nodes.append(input_node)
+            # _get_chain(input_node, nodes, roots, nodes_to_ignore)
     
     nodes = [node]
     roots = []
