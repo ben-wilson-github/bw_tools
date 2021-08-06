@@ -46,9 +46,6 @@ class OutputConnectionData(ConnectionData):
 @dataclass
 class Node:
     api_node: "SDSBSCompNode" = field(repr=False)
-    chain: bw_node_selection.NodeGroupInterface = field(
-        init=False, repr=False, compare=False
-    )
 
     label: str = field(init=False)
     identifier: int = field(init=False)
@@ -149,10 +146,6 @@ class Node:
 
     @property
     def is_root(self) -> bool:
-        """
-        If a node does not have any outputs, it is considered a root node.
-        If a node outputs to multiple nodes, it is considered a root node.
-        """
         return self.output_node_count == 0
 
     @property

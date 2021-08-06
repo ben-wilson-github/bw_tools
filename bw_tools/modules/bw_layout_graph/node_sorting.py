@@ -4,11 +4,6 @@ from .layout_node import LayoutNode
 SPACER = 32
 
 
-def run_sort(node: LayoutNode):
-    position_nodes(node)
-    build_alignment_behaviors(node)
-
-
 def position_nodes(output_node: LayoutNode):
     input_node: LayoutNode
     for input_node in output_node.input_nodes:

@@ -15,6 +15,7 @@ SPACER = 32
 # TODO: Add option to align by main line
 # TODO: Remove dot nodes
 
+
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
 

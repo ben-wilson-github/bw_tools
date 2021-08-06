@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Tuple, TYPE_CHECKING, List
 
+from bw_tools.common.bw_node import Float2
 from bw_tools.common import bw_chain_dimension
-from bw_tools.common.bw_node import Float2, Node
 
 if TYPE_CHECKING:
     from .layout_node import LayoutNode
@@ -50,22 +50,6 @@ def calculate_mid_point(a: LayoutNode, b: LayoutNode) -> Tuple[float, float]:
     return x, y
 
 
-# @dataclass
-# class AverageToOutputsYAxis(NodeAlignmentBehavior):
-#     top_node: Node = None
-#     bottom_node: Node = None
-
-#     def exec(self):
-#         _, y = utils.calculate_mid_point(self.top_node, self.bottom_node)
-#         self._parent.set_position(self._parent.pos.x, y)
-
-#     def setup(self, _: Node):
-#         if self.top_node is None or self.bottom_node is None:
-#             sorted_outputs = sorted(list(self._parent.output_nodes), key=lambda x: x.pos.y)
-#             self.top_node = sorted_outputs[0]
-#             self.bottom_node = sorted_outputs[-1]
-
-
 def align_in_line(input_node: LayoutNode, target_node: LayoutNode):
     input_node.set_position(input_node.pos.x, target_node.pos.y)
 
@@ -109,85 +93,93 @@ def align_node_between(node: LayoutNode, top: LayoutNode, bottom: LayoutNode):
     node.set_position(node.pos.x, mid_point)
 
 
-def align_below_shortest_chain_dimension(
-    node_to_move: LayoutNode, output_node: LayoutNode, index: int
+def _calculate_smallest_chain_dimension(
+    node_to_move: LayoutNode,
+    node_above: LayoutNode,
+    node_to_move_chain: bw_chain_dimension.ChainDimension,
+    node_above_chain: bw_chain_dimension.ChainDimension
 ):
-    node_above = calculate_node_above(node_to_move, output_node, index)
-
-    node_above_chain, roots = get_node_chain(
-        node_above, nodes_to_ignore=[node_to_move]
-    )
-    node_to_move_chain, _ = get_node_chain(node_to_move, nodes_to_ignore=roots)
-
-
-    if output_node.identifier == 1:
-        raise ArithmeticError()
-
-    # This is to remove uneceassy padding
-    # if node_to_move.alignment_behavior.offset_node is not output_node:
-    #     node_to_move_chain = [node_to_move]
-
-    # node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, node_to_move.chain)
-    # nove_above_cd = bw_chain_dimension.calculate_chain_dimension(node_above, node_above.chain)
     node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(
         node_to_move, node_to_move_chain
     )
     nove_above_cd = bw_chain_dimension.calculate_chain_dimension(
         node_above, node_above_chain
     )
-
-    smallest_cd = calculate_smallest_chain_dimension(
+    return calculate_smallest_chain_dimension(
         node_to_move_cd, nove_above_cd
     )
 
+
+def align_below_shortest_chain_dimension(
+    node_to_move: LayoutNode, output_node: LayoutNode, index: int
+):
+    node_above = _calculate_node_above(node_to_move, output_node, index)
+    node_above_node_list, roots = _calculate_node_list(
+        node_above, nodes_to_ignore=[node_to_move]
+    )
+    node_to_move_node_list, _ = _calculate_node_list(
+        node_to_move, nodes_to_ignore=roots
+    )
+    smallest_cd = _calculate_smallest_chain_dimension(
+        node_to_move, node_above, node_to_move_node_list, node_above_node_list
+    )
+    upper_bound = _calculate_upper_bounds(
+        node_to_move, node_to_move_node_list, smallest_cd
+    )
+    lower_bound = _calculate_lower_bounds(
+        node_above, node_above_node_list, smallest_cd
+    )
+    align_below_bound(node_to_move, lower_bound + SPACER, upper_bound)
+
+
+def _calculate_upper_bounds(
+    node_to_move: LayoutNode,
+    node_to_move_chain: bw_chain_dimension.ChainDimension,
+    smallest_cd: bw_chain_dimension.ChainDimension
+):
     try:
         limit_bounds = bw_chain_dimension.Bound(left=smallest_cd.bounds.left)
-        # upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_to_move, chain=node_to_move.chain, limit_bounds=limit_bounds)
         upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(
             node_to_move, chain=node_to_move_chain, limit_bounds=limit_bounds
         )
     except bw_chain_dimension.OutOfBoundsError:
-        # This occur when the node to move is behind the chain above. This happens because the node to move is a root
-        upper_bound = node_to_move.pos.y - node_to_move.height / 2
-        upper_node = node_to_move
+        # This occurs when the node to move is behind the chain above.
+        # This happens because the node to move is a root
+        return node_to_move.pos.y - node_to_move.height / 2
     else:
-        upper_bound = upper_bound_cd.bounds.upper
-        upper_node = upper_bound_cd.upper_node
+        return upper_bound_cd.bounds.upper
 
-    # if output_node.identifier == 1420079326:
-    #     upper_node.add_comment('I am upper node')
 
+def _calculate_lower_bounds(
+    node_above: LayoutNode,
+    node_above_chain: bw_chain_dimension.ChainDimension,
+    smallest_cd: bw_chain_dimension.ChainDimension
+):
     try:
-        # limit_bounds = bw_chain_dimension.Bound(left=upper_node.pos.x)
         limit_bounds = bw_chain_dimension.Bound(
             left=smallest_cd.bounds.left
-        )  # This is for stacking
-        # lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(node_above, chain=node_above.chain, limit_bounds=limit_bounds)
+        )
         lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(
             node_above, chain=node_above_chain, limit_bounds=limit_bounds
         )
     except bw_chain_dimension.OutOfBoundsError:
         # This can also happen when the node above is a root
-        lower_bound = node_above.pos.y + node_above.height / 2
+        return node_above.pos.y + node_above.height / 2
     else:
-        lower_bound = lower_bound_cd.bounds.lower
-
-    # if output_node.identifier == 1420079326:
-    #     lower_bound_cd.lower_node.add_comment('I am lower node')
-
-    align_below_bound(node_to_move, lower_bound + SPACER, upper_bound)
+        return lower_bound_cd.bounds.lower
 
 
-def get_node_chain(node: LayoutNode, nodes_to_ignore=[]) -> Tuple[List[LayoutNode], List[LayoutNode]]:
+def _calculate_node_list(node: LayoutNode, nodes_to_ignore=[]) -> Tuple[List[LayoutNode], List[LayoutNode]]:
     nodes = [node]
     roots = []
     if node.is_root or node.has_branching_outputs:
         roots.append(node)
-    
-    _populate_chain(node, nodes, roots, nodes_to_ignore)
+
+    _populate_node_list(node, nodes, roots, nodes_to_ignore)
     return nodes, roots
 
-def _populate_chain(
+
+def _populate_node_list(
     output_node: LayoutNode,
     nodes: List[LayoutNode],
     roots: List[LayoutNode],
@@ -208,11 +200,7 @@ def _populate_chain(
         if (input_node not in nodes
         ):
             nodes.append(input_node)
-            _populate_chain(input_node, nodes, roots, nodes_to_ignore)
-
-        # if input_node not in nodes:
-        #     nodes.append(input_node)
-        # _get_chain(input_node, nodes, roots, nodes_to_ignore)
+            _populate_node_list(input_node, nodes, roots, nodes_to_ignore)
 
 
 def calculate_smallest_chain_dimension(
@@ -232,7 +220,7 @@ def calculate_smallest_chain_dimension(
     return smallest
 
 
-def calculate_node_above(
+def _calculate_node_above(
     node_to_move: LayoutNode, output_node: LayoutNode, index: int
 ):
     node_above = output_node.input_nodes[index - 1]
@@ -244,10 +232,10 @@ def calculate_node_above(
         node_above in node_to_move.output_nodes
         and node_above.has_branching_inputs
     ):
-        # If the node above only has the one input, it has to be the node_to_move.
-        # and therefore, no sibling chain to move too
+        # If the node above only has the one input, it has to be the
+        # node_to_move. Therefore, no sibling chain to move too
         for i, input_node in enumerate(node_above.input_nodes):
             if input_node is node_to_move:
                 node_above = node_above.input_nodes[i - 1]
-    
+
     return node_above
