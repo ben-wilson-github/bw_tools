@@ -26,7 +26,6 @@ def run_aligner(node: LayoutNode, already_processed: List[LayoutNode]):
 
 def process_node(node: LayoutNode):
     stack_inputs(node)
-    # resolve_alignment_stack(node)
     resolve_alignment_average(node)
 
 

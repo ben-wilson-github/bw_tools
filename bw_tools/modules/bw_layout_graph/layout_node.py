@@ -25,7 +25,10 @@ class LayoutNode(Node):
         self._alignment_behavior._parent = self
 
     @property
-    def closest_output_node_in_x(self) -> 'LayoutNode':
+    def closest_output_node_in_x(self) -> Optional['LayoutNode']:
+        if self.is_root:
+            return None
+
         closest = self.output_nodes[0]
         for output_node in self.output_nodes:
             if output_node.pos.x < closest.pos.x:
@@ -33,7 +36,9 @@ class LayoutNode(Node):
         return closest
 
     @property
-    def farthest_output_nodes_in_x(self) -> List['LayoutNode']:
+    def farthest_output_nodes_in_x(self) -> Optional[List['LayoutNode']]:
+        if self.is_root:
+            return None
         farthest = [self.output_nodes[0]]
 
         output_node: 'LayoutNode'

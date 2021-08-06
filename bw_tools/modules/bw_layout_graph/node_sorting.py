@@ -6,30 +6,30 @@ from .layout_node import LayoutNode
 SPACER = 32
 
 
-def run_sort(node: LayoutNode, already_processed: List[LayoutNode]):
+def run_sort(node: LayoutNode):
+    position_nodes(node)
+    build_alignment_behaviors(node)
+
+
+def position_nodes(node: LayoutNode):
     for input_node in node.input_nodes:
-        process_node(input_node, node, already_processed)
-        run_sort(input_node, already_processed)
+        node.set_position(
+            node.closest_output_node_in_x.pos.x
+            - get_offset_value(node, node.closest_output_node_in_x),
+            node.farthest_output_nodes_in_x[0].pos.y,
+        )
+        position_nodes(input_node)
 
 
-def process_node(
-    node: LayoutNode,
-    output_node: LayoutNode,
-    already_processed: List[LayoutNode],
-):
-    node.set_position(
-        node.closest_output_node_in_x.pos.x
-        - get_offset_value(node, node.closest_output_node_in_x),
-        node.farthest_output_nodes_in_x[0].pos.y,
-    )
+def build_alignment_behaviors(node: LayoutNode):
+    for input_node in node.input_nodes:
+        if node.alignment_behavior is None:
+            node.alignment_behavior = StaticAlignment(node)
 
-    if node not in already_processed:
-        node.alignment_behavior = StaticAlignment(node)
-        already_processed.append(node)
-
-    if output_node.pos.x > node.alignment_behavior.offset_node.pos.x:
-        node.alignment_behavior.offset_node = output_node
-        node.alignment_behavior.update_offset(node.pos)
+        if node.pos.x > node.alignment_behavior.offset_node.pos.x:
+            node.alignment_behavior.offset_node = node
+            node.alignment_behavior.update_offset(node.pos)
+        build_alignment_behaviors(input_node)
 
 
 def get_offset_value(node: LayoutNode, output_node: LayoutNode) -> float:

@@ -15,15 +15,13 @@ SPACER = 32
 # TODO: Add option to align by main line
 # TODO: Remove dot nodes
 
-
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         api.log.debug("Sorting Nodes...")
-        already_processed = list()
         for root_node in node_selection.root_nodes:
-            node_sorting.run_sort(root_node, already_processed)
+            node_sorting.run_sort(root_node)
 
         api.log.debug("Aligning Nodes...")
         already_processed = list()
