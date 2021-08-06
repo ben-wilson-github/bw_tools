@@ -1,33 +1,12 @@
-import importlib
 from functools import partial
 from pathlib import Path
 
 import sd
-from bw_tools.common import bw_api_tool, bw_node, bw_node_selection
+from bw_tools.common.bw_api_tool import APITool
 from PySide2 import QtGui, QtWidgets
 
-from .layout_node import LayoutNode, LayoutNodeSelection
-from . import (
-    aligner,
-    bw_layout_horizontal,
-    bw_layout_mainline,
-    chain_aligner,
-    node_sorting,
-    utils,
-    layout_node,
-)
-
-importlib.reload(utils)
-importlib.reload(layout_node)
-importlib.reload(bw_node)
-importlib.reload(bw_api_tool)
-importlib.reload(node_sorting)
-importlib.reload(aligner)
-importlib.reload(chain_aligner)
-importlib.reload(bw_node_selection)
-importlib.reload(bw_layout_mainline)
-importlib.reload(bw_layout_horizontal)
-
+from . import node_sorting, aligner
+from .layout_node import LayoutNodeSelection
 
 SPACER = 32
 
@@ -37,43 +16,29 @@ SPACER = 32
 # TODO: Remove dot nodes
 
 
-def run_layout(
-    node_selection: bw_node_selection.NodeSelection, api: bw_api_tool.APITool
-):
+def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
 
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-
         api.log.debug("Sorting Nodes...")
         already_processed = list()
-        for node_chain in node_selection.node_chains:
-            if node_chain.root.output_node_count != 0:
-                continue
-            node_sorting.run_sort(node_chain.root, already_processed)
+        for root_node in node_selection.root_nodes:
+            node_sorting.run_sort(root_node, already_processed)
 
         api.log.debug("Aligning Nodes...")
         already_processed = list()
-        roots_to_update = list()
-        for node_chain in node_selection.node_chains:
-            if node_chain.root.output_node_count != 0:
-                continue
-            aligner.run_aligner(
-                node_chain.root,
-                already_processed,
-                roots_to_update,
-                node_selection,
-            )
+        for root_node in node_selection.root_nodes:
+            aligner.run_aligner(root_node, already_processed)
 
 
-def on_clicked_layout_graph(api: bw_api_tool):
+def on_clicked_layout_graph(api: APITool):
     node_selection = LayoutNodeSelection(
         api.current_selection, api.current_graph
     )
-    print(node_selection)
     run_layout(node_selection, api)
 
 
-def on_graph_view_created(_, api: bw_api_tool.APITool):
+def on_graph_view_created(_, api: APITool):
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon_path.resolve())), ""
@@ -82,10 +47,11 @@ def on_graph_view_created(_, api: bw_api_tool.APITool):
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
 
 
-def on_initialize(api: bw_api_tool.APITool):
+def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
+
 
 #
 # def writeDefaultSettings(aSettingsFilePath):

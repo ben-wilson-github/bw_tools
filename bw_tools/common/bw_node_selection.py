@@ -1,4 +1,3 @@
-import importlib
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Tuple, TypeVar, Union
@@ -54,38 +53,6 @@ class NodeGroupInterface(ABC):
             return True
 
 
-@dataclass
-class NodeChain(NodeGroupInterface):
-    root: Node
-
-    def __post_init__(self):
-        self.add_node(self.root)
-
-    def add_node(self, node: Node):
-        super().add_node(node)
-        node.chain = self
-
-    def __str__(self) -> str:
-        ret = (
-            f"NodeChain(root={self.root.label.encode()}"
-            f":{self.root.identifier}, children=(["
-        )
-        node: Node
-        for node in self.nodes[1:]:
-            ret += f"{node.label.encode()}:{node.identifier}, "
-        ret += "])"
-        return ret
-
-    def update(self):
-        def _on_update(node: Node):
-            node.update_position()
-
-        for input_node in self.root.input_nodes:
-            if not self.contains(input_node):
-                continue
-            _on_update(input_node)
-
-
 @dataclass()
 class NodeSelection(NodeGroupInterface):
     """
@@ -101,40 +68,9 @@ class NodeSelection(NodeGroupInterface):
     api_nodes: List[SDNode] = field(repr=False)
     api_graph: SDSBSCompGraph = field(repr=False)
 
-    node_chains: List[NodeChain] = field(
-        init=False, default_factory=list, repr=False
-    )
-    dot_nodes: List[Node] = field(init=False, default_factory=list, repr=False)
-    root_nodes: List[Node] = field(
-        init=False, default_factory=list, repr=False
-    )
-
     def __post_init__(self):
         self._create_nodes()
         self._build_node_tree()
-        self._sort_nodes()
-        self._build_node_chains()
-
-    @property
-    def node_chain_count(self) -> int:
-        return len(self.node_chains)
-
-    def _build_node_chains(self):
-        for root_node in self.root_nodes:
-            self._build_new_node_chain(root_node)
-
-    def _build_new_node_chain(self, root_node: Node):
-        chain = NodeChain(root_node)
-        self.node_chains.append(chain)
-        self._add_children_to_node_chain(root_node, chain)
-
-    def _add_children_to_node_chain(self, node: Node, chain: NodeChain):
-        for input_node in node.input_nodes:
-            if input_node in self.root_nodes:
-                continue
-
-            chain.add_node(input_node)
-            self._add_children_to_node_chain(input_node, chain)
 
     def _sort_nodes(self):
         for node in self.nodes:
@@ -201,7 +137,7 @@ class NodeSelection(NodeGroupInterface):
                 node.add_output_connection_data(connection_data)
 
 
-def remove_dot_nodes(node_selection: Union[NodeSelection, NodeChain]) -> bool:
+def remove_dot_nodes(node_selection: NodeGroupInterface) -> bool:
     """
     Removes all dot nodes in the selection
     """
