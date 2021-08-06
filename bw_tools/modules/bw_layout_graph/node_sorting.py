@@ -1,5 +1,3 @@
-from typing import List
-
 from .alignment_behavior import StaticAlignment
 from .layout_node import LayoutNode
 
@@ -16,8 +14,10 @@ def position_nodes(output_node: LayoutNode):
     for input_node in output_node.input_nodes:
         input_node.set_position(
             input_node.closest_output_node_in_x.pos.x
-            - get_offset_value(input_node, input_node.closest_output_node_in_x),
-            input_node.farthest_output_nodes_in_x[0].pos.y,
+            - get_offset_value(
+                input_node, input_node.closest_output_node_in_x
+            ),
+            input_node.farthest_output_nodes_in_x[0].pos.y
         )
         position_nodes(input_node)
 
