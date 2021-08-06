@@ -68,10 +68,10 @@ def align_below_shortest_chain_dimension(
     node_to_move: LayoutNode, output_node: LayoutNode, index: int
 ):
     node_above = _calculate_node_above(node_to_move, output_node, index)
-    node_above_node_list, roots = _calculate_node_list(
+    node_above_node_list, roots = calculate_node_list(
         node_above, nodes_to_ignore=[node_to_move]
     )
-    node_to_move_node_list, _ = _calculate_node_list(
+    node_to_move_node_list, _ = calculate_node_list(
         node_to_move, nodes_to_ignore=roots
     )
     smallest_cd = _calculate_smallest_chain_dimension(
@@ -153,7 +153,7 @@ def _calculate_lower_bounds(
         return lower_bound_cd.bounds.lower
 
 
-def _calculate_node_list(
+def calculate_node_list(
     node: LayoutNode, nodes_to_ignore=[]
 ) -> Tuple[List[LayoutNode], List[LayoutNode]]:
     nodes = [node]

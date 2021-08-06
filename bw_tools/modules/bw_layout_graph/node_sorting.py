@@ -1,7 +1,48 @@
 from .alignment_behavior import StaticAlignment
 from .layout_node import LayoutNode
+from bw_tools.modules.bw_layout_graph import layout_node
+from bw_tools.common import bw_chain_dimension
+from . import aligner
+from typing import List
 
 SPACER = 32
+
+def position_nodes_mainline(output_node: LayoutNode):
+    # do the initial position
+    position_nodes(output_node)
+
+    if not output_node.has_input_nodes_connected:
+        return
+
+    mainline_node = output_node.input_nodes[0]
+    if output_node.has_branching_inputs:
+        mainline_node = calculate_mainline_node(output_node)
+    print(mainline_node)
+
+
+
+def calculate_mainline_node(output_node: LayoutNode):
+    cds: List[bw_chain_dimension.ChainDimension] = list()
+    for input_node in output_node.input_nodes:
+        chain = get_node_chain(input_node)
+        cds.append(bw_chain_dimension.calculate_chain_dimension(input_node, chain))
+    
+    cds.sort(key=lambda x: x.bounds.left)
+    return cds[0].right_node
+
+
+def get_node_chain(node: LayoutNode):
+    def _populate_chain(node: LayoutNode):
+        for input_node in node.input_nodes:
+            if input_node.has_branching_outputs:
+                continue
+            chain.append(input_node)
+            _populate_chain(input_node)
+    chain = [node]
+    _populate_chain(node)
+    return chain
+    
+
 
 
 def position_nodes(output_node: LayoutNode):

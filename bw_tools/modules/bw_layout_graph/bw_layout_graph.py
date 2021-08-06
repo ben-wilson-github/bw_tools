@@ -22,7 +22,8 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         api.log.debug("Sorting Nodes...")
         for root_node in node_selection.root_nodes:
-            node_sorting.position_nodes(root_node)
+            # node_sorting.position_nodes(root_node)
+            node_sorting.position_nodes_mainline(root_node)
         for root_node in node_selection.root_nodes:
             node_sorting.build_alignment_behaviors(root_node)
 

@@ -51,7 +51,9 @@ class PostAlignmentBehavior(ABC):
         pass
 
     @staticmethod
-    def calculate_mid_point(a: LayoutNode, b: LayoutNode) -> Tuple[float, float]:
+    def calculate_mid_point(
+        a: LayoutNode, b: LayoutNode
+    ) -> Tuple[float, float]:
         x = (a.pos.x + b.pos.x) / 2
         y = (a.pos.y + b.pos.y) / 2
 
@@ -94,6 +96,3 @@ class VerticalAlignTopStack(PostAlignmentBehavior):
                 input_node.alignment_behavior.exec()
 
             input_node.update_all_chain_positions()
-
-
-
