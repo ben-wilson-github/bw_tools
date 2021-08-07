@@ -72,14 +72,6 @@ class NodeSelection(NodeGroupInterface):
         self._create_nodes()
         self._build_node_tree()
 
-    def _sort_nodes(self):
-        for node in self.nodes:
-            if node.is_root:
-                self.root_nodes.append(node)
-
-            if node.is_dot:
-                self.dot_nodes.append(node)
-
     def _create_nodes(self):
         for api_node in self.api_nodes:
             node = Node(api_node)

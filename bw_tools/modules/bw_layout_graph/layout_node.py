@@ -1,3 +1,4 @@
+from bw_tools.common.bw_node import Float2
 from typing import List, TYPE_CHECKING, Optional
 from dataclasses import dataclass, field
 from bw_tools.common.bw_node_selection import (
@@ -5,6 +6,7 @@ from bw_tools.common.bw_node_selection import (
     Node,
 )
 
+SPACER = 32
 
 from .alignment_behavior import NodeAlignmentBehavior
 
@@ -61,6 +63,21 @@ class LayoutNode(Node):
             input_node.alignment_behavior.exec()
             input_node.update_all_chain_positions()
 
+    def update_all_chain_positions_deep(self):
+        input_node: LayoutNode
+        for input_node in self.input_nodes:
+            if input_node.has_branching_outputs:
+                # Sometimes the farest output node changes as changes get pushed around
+                if input_node.farthest_output_nodes_in_x[0] is not input_node.alignment_behavior.offset_node:
+                    input_node.alignment_behavior.offset_node = input_node.farthest_output_nodes_in_x[0]
+                if self.pos.x <= input_node.pos.x:
+                    new_pos = Float2(self.pos.x - (self.width / 2) - SPACER - (input_node.width / 2), input_node.alignment_behavior.offset_node.pos.y)
+                    input_node.alignment_behavior.update_offset(new_pos)
+                else:
+                    input_node.alignment_behavior.update_offset(input_node.pos)
+            input_node.alignment_behavior.exec()
+            input_node.update_all_chain_positions_deep()
+
 
 @dataclass
 class LayoutNodeSelection(NodeSelection):
@@ -70,10 +87,24 @@ class LayoutNodeSelection(NodeSelection):
     root_nodes: List[LayoutNode] = field(
         init=False, default_factory=list, repr=False
     )
+    branching_output_nodes: List[LayoutNode] = field(
+        init=False, default_factory=list, repr=False
+    )
 
     def __post_init__(self):
         super().__post_init__()
         self._sort_nodes()
+
+    def _sort_nodes(self):
+        for node in self.nodes:
+            if node.is_root:
+                self.root_nodes.append(node)
+
+            if node.is_dot:
+                self.dot_nodes.append(node)
+
+            if node.has_branching_outputs:
+                self.branching_output_nodes.append(node)
 
     def _create_nodes(self):
         for api_node in self.api_nodes:
