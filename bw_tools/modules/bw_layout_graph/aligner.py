@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Tuple
 from bw_tools.common import bw_chain_dimension
 from bw_tools.common.bw_node import Float2
 
-from .alignment_behavior import VerticalAlignMidPoint
+from .alignment_behavior import VerticalAlignMidPoint, VerticalAlignFarthestInput
 
 if TYPE_CHECKING:
     from .layout_node import LayoutNode
@@ -31,7 +31,8 @@ def run_aligner(node: LayoutNode, already_processed: List[LayoutNode]):
 
 def process_node(node: LayoutNode):
     stack_inputs(node)
-    alignment = VerticalAlignMidPoint()
+    # alignment = VerticalAlignMidPoint()
+    alignment = VerticalAlignFarthestInput()
     alignment.exec(node)
 
 

@@ -1,12 +1,13 @@
 from functools import partial
 from pathlib import Path
+from typing import List
 
 import sd
 from bw_tools.common.bw_api_tool import APITool
 from PySide2 import QtGui, QtWidgets
 
 from . import node_sorting, aligner
-from .layout_node import LayoutNodeSelection
+from .layout_node import LayoutNode, LayoutNodeSelection
 
 SPACER = 32
 
@@ -25,7 +26,7 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
             node_sorting.position_nodes(root_node)
         for root_node in node_selection.root_nodes:
             node_sorting.build_alignment_behaviors(root_node)
-        
+
         already_processed = list()
         for root_node in node_selection.root_nodes:
             node_sorting.position_nodes_mainline(root_node, already_processed)
@@ -34,9 +35,15 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
         already_processed = list()
         for root_node in node_selection.root_nodes:
             aligner.run_aligner(root_node, already_processed)
-        
-        
 
+        # already_processed = list()
+        # for root_node in node_selection.root_nodes:
+        #     node_sorting.position_nodes_mainline(root_node, already_processed)
+        
+        # api.log.debug("Aligning Nodes...")
+        # already_processed = list()
+        # for root_node in node_selection.root_nodes:
+        #     aligner.run_aligner(root_node, already_processed)
 
 def on_clicked_layout_graph(api: APITool):
     node_selection = LayoutNodeSelection(
