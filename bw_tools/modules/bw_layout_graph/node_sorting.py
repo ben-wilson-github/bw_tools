@@ -20,7 +20,7 @@ def position_nodes_mainline(output_node: LayoutNode, already_processed: List[Lay
         already_processed.append(output_node)
 
 def push_back_mainline(output_node: LayoutNode, already_processed: List[LayoutNode]):
-    if output_node.identifier == 1419561060:
+    if output_node.identifier == 1420042473:
         print('a')
 
 
@@ -37,11 +37,9 @@ def push_back_mainline(output_node: LayoutNode, already_processed: List[LayoutNo
         mainline_node.alignment_behavior.update_offset(mainline_node.pos)
         mainline_node.update_all_chain_positions_deep()
 
-    if output_node.identifier == 1:
+    if output_node.identifier == 1420042473:
         raise ArithmeticError()
     
-    ERROR Test CHAIN 6. 
-
 
 def get_chain_dimensions2(output_node: LayoutNode):
     cds = list()

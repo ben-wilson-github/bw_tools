@@ -74,6 +74,9 @@ class VerticalAlignMidPoint(PostAlignmentBehavior):
             if node is not input_node.alignment_behavior.offset_node:
                 # Same as resetting its position
                 input_node.alignment_behavior.exec()
+                # Remove the node that would have been there
+                # for all input_nodes after this
+                offset -= input_node.height + SPACER
             else:
                 input_node.alignment_behavior.offset_node = node
                 input_node.alignment_behavior.update_offset(
@@ -108,6 +111,7 @@ class VerticalAlignFarthestInput(PostAlignmentBehavior):
             if node is not input_node.alignment_behavior.offset_node:
                 # Same as resetting its position
                 input_node.alignment_behavior.exec()
+                offset -= input_node.height + SPACER
             else:
                 input_node.alignment_behavior.offset_node = node
                 input_node.alignment_behavior.update_offset(
