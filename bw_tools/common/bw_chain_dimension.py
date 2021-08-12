@@ -32,6 +32,7 @@ class ChainDimension:
     right_node: bw_node.Node = field(init=False, default=None)
     upper_node: bw_node.Node = field(init=False, default=None)
     lower_node: bw_node.Node = field(init=False, default=None)
+    node_count: int = 0
 
     @property
     def width(self):
@@ -91,6 +92,8 @@ def calculate_chain_dimension(
     cd.upper_node = node
     cd.lower_node = node
 
+    cd.node_count = 1
+
     for input_node in node.input_nodes:
         if input_node not in chain:
             continue
@@ -99,6 +102,8 @@ def calculate_chain_dimension(
                 input_cd = calculate_chain_dimension(
                     input_node, chain, limit_bounds=limit_bounds
                 )
+
+                cd.node_count += input_cd.node_count
 
                 if input_cd.bounds.left <= cd.bounds.left:
                     cd.bounds.left = input_cd.bounds.left
