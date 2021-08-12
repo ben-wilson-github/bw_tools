@@ -27,6 +27,11 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
         for root_node in node_selection.root_nodes:
             node_sorting.build_alignment_behaviors(root_node)
 
+        api.log.debug("Aligning Nodes...")
+        already_processed = list()
+        for root_node in node_selection.root_nodes:
+            aligner.run_aligner(root_node, already_processed)
+
         # already_processed = list()
         # for root_node in node_selection.root_nodes:
         #     node_sorting.position_nodes_mainline(root_node, already_processed)
