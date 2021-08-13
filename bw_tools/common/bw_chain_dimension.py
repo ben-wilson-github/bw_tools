@@ -27,11 +27,11 @@ class Bound:
 
 @dataclass()
 class ChainDimension:
-    bounds: Bound = field(init=False, default_factory=Bound)
+    bounds: Bound = field(init=False, default_factory=Bound, repr=False)
     left_node: bw_node.Node = field(init=False, default=None)
     right_node: bw_node.Node = field(init=False, default=None)
-    upper_node: bw_node.Node = field(init=False, default=None)
-    lower_node: bw_node.Node = field(init=False, default=None)
+    upper_node: bw_node.Node = field(init=False, default=None, repr=False)
+    lower_node: bw_node.Node = field(init=False, default=None, repr=False)
     node_count: int = 0
 
     @property
