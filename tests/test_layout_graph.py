@@ -1,64 +1,116 @@
-import os
-import shutil
-import random
-import logging
-import unittest
 import importlib
+import os
+import random
+import unittest
+import shutil
+import copy
+from pathlib import Path
+from typing import Dict
 
 import sd
+from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_node import Float2
+from bw_tools.modules.bw_layout_graph import bw_layout_graph
+from bw_tools.modules.bw_layout_graph.layout_node import (
+    LayoutNode,
+    LayoutNodeSelection,
+)
 
-from modules.bw_layout_graph import bw_layout_graph
-from common import bw_api_tool
-from common import bw_node_selection
-importlib.reload(bw_api_tool)
-importlib.reload(bw_layout_graph)
-importlib.reload(bw_node_selection)
+CURRENT_DIR = Path(__file__).parent
+PACKAGE_FILE_PATH = CURRENT_DIR / "resources" / "test_layouyt_graph.sbs"
+TMP_FILE = CURRENT_DIR / "resources" / "tmp" / "__test_layout_graph.sbs"
 
 
 class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        self.package_file_path = os.path.join(os.path.dirname(__file__), 'resources\\test_layout_graph.sbs')
         self.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
-        self.package = self.pkg_mgr.loadUserPackage(self.package_file_path)
-        self.api = bw_api_tool.APITool()
+        self.package = self.pkg_mgr.getUserPackageFromFilePath(
+            str(TMP_FILE.resolve())
+        )
+        self.api = APITool()
 
-    def test_layout_graphs_in_package(self):
-        temp_file = os.path.join(os.path.dirname(self.package_file_path), 'tmp\\__test_layout_graph.sbs')
-        self._create_temp_file(temp_file)
+    def test_no_nodes_does_not_throw_error(self):
+        print("...test_no_nodes_does_not_throw_error")
+        graph = self.package.findResourceFromUrl(
+            "test_no_nodes_does_not_throw_error"
+        )
+        node_selection = LayoutNodeSelection([], graph)
 
-        temp_package = self.pkg_mgr.loadUserPackage(temp_file)
-        for temp_graph in temp_package.getChildrenResources(isRecursive=False):
-            temp_graph_node_selection = bw_node_selection.NodeSelection(temp_graph.getNodes(), temp_graph)
-            self._randomise_node_positions(temp_graph_node_selection)
-            bw_layout_graph.run_layout(temp_graph_node_selection, self.api)
+        bw_layout_graph.run_layout(node_selection, self.api)
 
-        for temp_graph in temp_package.getChildrenResources(isRecursive=False):
-            print(f'...{temp_graph.getIdentifier()}')
-            original_graph = self.package.findResourceFromUrl(temp_graph.getIdentifier())
-            original_graph_node_selection = bw_node_selection.NodeSelection(original_graph.getNodes(),
-                                                                            original_graph)
-            temp_graph_node_selection = bw_node_selection.NodeSelection(temp_graph.getNodes(), temp_graph)
+        self.assertTrue(True)
 
-            for temp_graph_node in temp_graph_node_selection.nodes:
-                original_graph_node = original_graph_node_selection.node(temp_graph_node.identifier)
+    def test_single_node(self):
+        print("...test_single_node")
+        graph = self.package.findResourceFromUrl("test_single_node")
+        node_selection = LayoutNodeSelection(graph.getNodes(), graph)
 
-                self.assertEqual(original_graph_node.pos, temp_graph_node.pos)
+        bw_layout_graph.run_layout(node_selection, self.api)
+        self.assertTrue(True)
 
-        self._remove_temp_file(temp_file)
+    def test_node_chain_1(self):
+        graph_name = "test_node_chain_1"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
 
-    def _randomise_node_positions(self, node_selection):
-        for i, node in enumerate(node_selection.nodes):
+    def test_node_chain_2(self):
+        graph_name = "test_node_chain_2"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_3(self):
+        graph_name = "test_node_chain_3"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+
+    def run_layout_test_on_graph(self, graph):
+        node_selection = LayoutNodeSelection(graph.getNodes(), graph)
+        original_positions = self._get_node_positions(node_selection)
+
+        self._randomise_node_positions(node_selection)
+        bw_layout_graph.run_layout(node_selection, self.api)
+
+        new_positions = self._get_node_positions(node_selection)
+        self.assertNodePositionsAreEqual(
+            original_positions, new_positions, node_selection
+        )
+
+    def assertNodePositionsAreEqual(
+        self,
+        original_positions,
+        new_positions,
+        node_selection: LayoutNodeSelection,
+    ):
+        for node in node_selection.nodes:
+            self.assertEqual(
+                original_positions[node.identifier],
+                new_positions[node.identifier],
+            )
+
+    def _get_node_positions(self, node_selection: LayoutNodeSelection) -> Dict:
+        result = {}
+        node: LayoutNode
+        for node in node_selection.nodes:
+            result[node.identifier] = copy.deepcopy(node.pos)
+        return result
+
+    def _randomise_node_positions(self, node_selection: LayoutNodeSelection):
+        x = 300
+        for node in node_selection.nodes:
             if node.is_root:
                 continue
-            node.set_position(node.position.x + random.uniform(-64, 64), node.position.y + random.uniform(-64, 64))
+            node.set_position(
+                node.pos.x + random.uniform(-x, x),
+                node.pos.y + random.uniform(-x, x),
+            )
 
-    def _create_temp_file(self, temp_file):
-        os.makedirs(os.path.dirname(temp_file), exist_ok=True)
-        shutil.copy(self.package_file_path, temp_file)
 
-    def _remove_temp_file(self, temp_file):
-        if os.path.exists(temp_file):
-            os.remove(temp_file)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
