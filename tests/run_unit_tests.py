@@ -20,7 +20,7 @@ def set_layout_graph():
     shutil.copy(package_file_path, tmp_file)
 
     pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
-    package = pkg_mgr.loadUserPackage(str(tmp_file.resolve()))
+    # package = pkg_mgr.loadUserPackage(str(tmp_file.resolve()))
 
 
 # print('Running test_nodes')

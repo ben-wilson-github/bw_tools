@@ -69,6 +69,124 @@ class MyTestCase(unittest.TestCase):
             self.package.findResourceFromUrl(graph_name)
         )
 
+    def test_node_chain_4(self):
+        graph_name = "test_node_chain_4"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_5(self):
+        graph_name = "test_node_chain_5"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_6(self):
+        graph_name = "test_node_chain_6"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_7(self):
+        graph_name = "test_node_chain_7"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_8(self):
+        graph_name = "test_node_chain_8"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_9(self):
+        graph_name = "test_node_chain_9"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_10(self):
+        graph_name = "test_node_chain_10"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_11(self):
+        graph_name = "test_node_chain_11"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_12(self):
+        graph_name = "test_node_chain_12"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_13(self):
+        graph_name = "test_node_chain_13"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_14(self):
+        graph_name = "test_node_chain_14"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_15(self):
+        graph_name = "test_node_chain_15"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_16(self):
+        graph_name = "test_node_chain_16"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_17(self):
+        graph_name = "test_node_chain_17"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_18(self):
+        graph_name = "test_node_chain_18"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_19(self):
+        graph_name = "test_node_chain_19"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_20(self):
+        graph_name = "test_node_chain_20"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
 
     def run_layout_test_on_graph(self, graph):
         node_selection = LayoutNodeSelection(graph.getNodes(), graph)
@@ -89,9 +207,15 @@ class MyTestCase(unittest.TestCase):
         node_selection: LayoutNodeSelection,
     ):
         for node in node_selection.nodes:
-            self.assertEqual(
-                original_positions[node.identifier],
-                new_positions[node.identifier],
+            self.assertAlmostEqual(
+                original_positions[node.identifier].x,
+                new_positions[node.identifier].x,
+                places=2,
+            )
+            self.assertAlmostEqual(
+                original_positions[node.identifier].y,
+                new_positions[node.identifier].y,
+                places=2,
             )
 
     def _get_node_positions(self, node_selection: LayoutNodeSelection) -> Dict:
