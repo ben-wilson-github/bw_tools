@@ -15,12 +15,17 @@ def set_layout_graph():
     current_dir = Path(__file__).parent
     package_file_path = current_dir / "resources" / "test_layout_graph.sbs"
     tmp_file = current_dir / "resources" / "tmp" / "__test_layout_graph.sbs"
-    if not tmp_file.is_file():
-        tmp_file.touch()
+    if not tmp_file.parent.is_dir():
+        tmp_file.parent.mkdir()
+    if tmp_file.is_file():
+        tmp_file.unlink()
     shutil.copy(package_file_path, tmp_file)
 
     pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
-    # package = pkg_mgr.loadUserPackage(str(tmp_file.resolve()))
+    package = pkg_mgr.getUserPackageFromFilePath(str(tmp_file.resolve()))
+    if package:
+        pkg_mgr.unloadUserPackage(package)
+    package = pkg_mgr.loadUserPackage(str(tmp_file.resolve()))
 
 
 # print('Running test_nodes')

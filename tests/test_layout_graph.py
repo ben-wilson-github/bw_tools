@@ -188,6 +188,34 @@ class MyTestCase(unittest.TestCase):
             self.package.findResourceFromUrl(graph_name)
         )
 
+    def test_node_chain_21(self):
+        graph_name = "test_node_chain_21"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_22(self):
+        graph_name = "test_node_chain_22"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_23(self):
+        graph_name = "test_node_chain_23"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
+    def test_node_chain_24(self):
+        graph_name = "test_node_chain_24"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
+
     def run_layout_test_on_graph(self, graph):
         node_selection = LayoutNodeSelection(graph.getNodes(), graph)
         original_positions = self._get_node_positions(node_selection)
