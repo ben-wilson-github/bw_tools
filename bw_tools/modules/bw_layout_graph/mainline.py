@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List
+from typing import Optional, TYPE_CHECKING, List
 from operator import attrgetter
 from bw_tools.common import bw_chain_dimension
 
@@ -65,9 +65,7 @@ def push_back_branching_output_node_behind_largest_chain(
             branching_output_node.pos
         )
         reposition_node(
-            branching_output_node,
-            chain_left_bound=branching_output_node.pos.x,
-            ignore_first=True,
+            branching_output_node, reposition_if_branching_output=False
         )
 
 
@@ -91,12 +89,11 @@ def push_back_mainline_ignoring_branching_output_nodes(
         mainline_node.farthest_output_nodes_in_x[0]
     )
     mainline_node.alignment_behavior.update_offset(mainline_node.pos)
-    reposition_node(mainline_node, chain_left_bound=mainline_node.pos.x)
+    reposition_node(mainline_node)
 
 
-def find_left_most_bound(node_list: List[LayoutNode]):
-    # cds = get_chain_dimensions_ignoring_branches(node_list)
-    cds = get_chain_dimensions_ignoring_branches_return_empty_list(node_list)
+def find_left_most_bound(node_list: List[LayoutNode]) -> Optional[float]:
+    cds = get_chain_dimensions_ignore_branches(node_list)
     if len(cds) == 0:
         return None
     cd: bw_chain_dimension.ChainDimension = min(
@@ -107,7 +104,6 @@ def find_left_most_bound(node_list: List[LayoutNode]):
 
 def find_potential_mainline_nodes(node: LayoutNode) -> List[LayoutNode]:
     potential_nodes: List[LayoutNode] = list()
-
     # Limit the list to branching nodes if possible
     potential_nodes = [n for n in node.input_nodes if n.has_branching_outputs]
     if not potential_nodes:
@@ -118,14 +114,14 @@ def find_potential_mainline_nodes(node: LayoutNode) -> List[LayoutNode]:
     return potential_nodes
 
 
-def find_mainline_node(node: LayoutNode):
+def find_mainline_node(node: LayoutNode) -> LayoutNode:
     potential_mainline_nodes = find_potential_mainline_nodes(node)
     if len(potential_mainline_nodes) == 1:
         return potential_mainline_nodes[0]
 
     cds: List[
         bw_chain_dimension.ChainDimension
-    ] = get_chain_dimensions_full_chain(node)
+    ] = get_chain_dimensions_for_inputs(node)
 
     # # For pleasing visual, do not consider chains
     # # which are very small.
@@ -142,14 +138,22 @@ def find_mainline_node(node: LayoutNode):
     return mainline_chain.right_node
 
 
-def get_chain_dimensions_ignoring_branches_return_empty_list(
+def calculate_node_lists_for_inputs(
+    output_node: LayoutNode,
+) -> List[List[LayoutNode]]:
+    node_lists = list()
+    input_node: LayoutNode
+    for input_node in output_node.input_nodes:
+        node_lists.append(get_input_nodes(input_node))
+    return node_lists
+
+
+def get_chain_dimensions_ignore_branches(
     nodes: List[LayoutNode],
-):
+) -> List[bw_chain_dimension.ChainDimension]:
     cds = list()
     for node in nodes:
-        node_list = get_every_input_node_ignoring_branches_return_empty_list(
-            node
-        )
+        node_list = get_input_nodes_ignore_branches(node)
         try:
             cd = bw_chain_dimension.calculate_chain_dimension(node, node_list)
         except bw_chain_dimension.NotInChainError:
@@ -158,19 +162,10 @@ def get_chain_dimensions_ignoring_branches_return_empty_list(
     return cds
 
 
-def calculate_node_lists_for_everything(
+def get_chain_dimensions_for_inputs(
     output_node: LayoutNode,
-) -> List[List[LayoutNode]]:
-    """Builds a list of every node in a chain"""
-    node_lists = list()
-    input_node: LayoutNode
-    for input_node in output_node.input_nodes:
-        node_lists.append(get_every_input_node_everything(input_node))
-    return node_lists
-
-
-def get_chain_dimensions_full_chain(output_node: LayoutNode):
-    node_lists = calculate_node_lists_for_everything(output_node)
+) -> List[bw_chain_dimension.ChainDimension]:
+    node_lists = calculate_node_lists_for_inputs(output_node)
     if len(node_lists) < 2:
         return []
 
@@ -183,51 +178,34 @@ def get_chain_dimensions_full_chain(output_node: LayoutNode):
     return cds
 
 
-def reposition_node(node: LayoutNode, chain_left_bound, ignore_first=False):
-    if node.identifier == 1420934573:
-        print("a")
-    inputs = list()
-    node.alignment_behavior.exec()
-    inputs = list(node.input_nodes)
-    if node.has_branching_outputs and not ignore_first:
-        # node.alignment_behavior.exec()
-        potential_new_x = (
-            node.closest_output_node_in_x.pos.x
-            - (node.closest_output_node_in_x.width / 2)
-            - SPACER
-            - (node.width / 2)
-        )
-        # if potential_new_x < node.pos.x:
-        node.set_position(potential_new_x, node.pos.y)
+def reposition_branching_output_node(node: LayoutNode):
+    new_x = (
+        node.closest_output_node_in_x.pos.x
+        - (node.closest_output_node_in_x.width / 2)
+        - SPACER
+        - (node.width / 2)
+    )
+    node.set_position(new_x, node.farthest_output_nodes_in_x[0].pos.y)
+    node.alignment_behavior.offset_node = node.farthest_output_nodes_in_x[0]
+    node.alignment_behavior.update_offset(node.pos)
 
-        node.alignment_behavior.offset_node = node.farthest_output_nodes_in_x[
-            0
-        ]
-        node.alignment_behavior.update_offset(node.pos)
+
+def reposition_node(node: LayoutNode, reposition_if_branching_output=True):
+    node.alignment_behavior.exec()
+
+    inputs = list(node.input_nodes)
+    if node.has_branching_outputs and reposition_if_branching_output:
+        reposition_branching_output_node(node)
 
     if node.has_branching_inputs:
-        node.alignment_behavior.exec()
-        mainline_node = node.input_nodes[0]
-        for input_node in node.input_nodes:
-            if input_node.pos.x < mainline_node.pos.x:
-                mainline_node = input_node
-
-        for input_node in node.input_nodes:
-            if input_node is mainline_node:
-                continue
-            inputs.append(input_node)
-        inputs.append(mainline_node)
-
-        mainline_node.alignment_behavior.exec()
+        mainline_node = find_mainline_node(node)
+        inputs.append(inputs.pop(inputs.index(mainline_node)))
 
     for input_node in inputs:
-        reposition_node(input_node, chain_left_bound=input_node.pos.x)
-
-    chain_left_bound = min(chain_left_bound, node.pos.x - (node.width / 2))
-    return chain_left_bound
+        reposition_node(input_node)
 
 
-def get_every_input_node_ignoring_branches_return_empty_list(node: LayoutNode):
+def get_input_nodes_ignore_branches(node: LayoutNode):
     def _populate_chain(node: LayoutNode):
         input_node: LayoutNode
         for input_node in node.input_nodes:
@@ -244,23 +222,14 @@ def get_every_input_node_ignoring_branches_return_empty_list(node: LayoutNode):
     return chain
 
 
-def get_every_input_node_everything(node: LayoutNode):
+def get_input_nodes(node: LayoutNode):
     def _populate_chain(node: LayoutNode):
         input_node: LayoutNode
         for input_node in node.input_nodes:
-            # if input_node.pos.x < node.pos.x - (node.width / 2) - SPACER - (input_node.width / 2) # and node is not input_node.farthest_output_nodes_in_x[0]:
-            #     continue
-            # if input_node.has_branching_outputs:
-            #     continue
-            if input_node.has_branching_outputs and input_node not in roots:
-                roots.append(input_node)
             if input_node not in chain:
                 chain.append(input_node)
             _populate_chain(input_node)
 
     chain = [node]
-    roots = list()
-    if node.has_branching_outputs and node not in roots:
-        roots.append(node)
     _populate_chain(node)
     return chain
