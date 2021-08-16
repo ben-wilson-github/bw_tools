@@ -215,6 +215,13 @@ class MyTestCase(unittest.TestCase):
         self.run_layout_test_on_graph(
             self.package.findResourceFromUrl(graph_name)
         )
+    
+    def test_node_chain_25(self):
+        graph_name = "test_node_chain_25"
+        print(f"...{graph_name}")
+        self.run_layout_test_on_graph(
+            self.package.findResourceFromUrl(graph_name)
+        )
 
     def run_layout_test_on_graph(self, graph):
         node_selection = LayoutNodeSelection(graph.getNodes(), graph)

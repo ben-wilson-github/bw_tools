@@ -1,10 +1,8 @@
-from bw_tools.common.bw_node import Float2
-from typing import List, TYPE_CHECKING, Optional
 from dataclasses import dataclass, field
-from bw_tools.common.bw_node_selection import (
-    NodeSelection,
-    Node,
-)
+from typing import List, Optional
+
+import sd
+from bw_tools.common.bw_node_selection import Node, NodeSelection
 
 SPACER = 32
 
@@ -53,6 +51,15 @@ class LayoutNode(Node):
         if len(farthest) >= 2:
             farthest.sort(key=lambda x: x.pos.y)
         return farthest
+
+    def set_position(self, x, y):
+        self.pos.x = x
+        self.pos.y = y
+
+    def set_api_position(self):
+        self.api_node.setPosition(
+            sd.api.sdbasetypes.float2(self.pos.x, self.pos.y)
+        )
 
     def update_all_chain_positions(self):
         input_node: LayoutNode

@@ -1,10 +1,5 @@
-from bw_tools.common.bw_node import Float2
-from .alignment_behavior import NodeAlignmentBehavior, StaticAlignment
+from .alignment_behavior import StaticAlignment
 from .layout_node import LayoutNode
-from bw_tools.modules.bw_layout_graph import layout_node
-from bw_tools.common import bw_chain_dimension
-from . import aligner
-from typing import List
 
 SPACER = 32
 

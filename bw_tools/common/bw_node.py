@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, List, Tuple, TypeVar
+from typing import Optional, List, Tuple, TypeVar
 
 import sd
-
-if TYPE_CHECKING:
-    from bw_tools.common import bw_node_selection
 
 SDSBSCompNode = TypeVar("SDSBSCompNode")
 SDProperty = TypeVar("SDProperty")
@@ -51,6 +48,19 @@ class Node:
     identifier: int = field(init=False)
     pos: Float2 = field(init=False, repr=False, default_factory=Float2)
 
+    _height: float = field(init=False, repr=False, default=-1)
+    _input_connectable_properties: Optional[SDProperty] = field(
+        init=False, repr=False, default=None
+    )
+    _output_connectable_properties: Optional[SDProperty] = field(
+        init=False, repr=False, default=None
+    )
+    _input_nodes: Optional[Tuple["Node"]] = field(
+        init=False, repr=False, default=None
+    )
+    _output_nodes: Optional[Tuple["Node"]] = field(
+        init=False, repr=False, default=None
+    )
     _input_connection_data: List[InputConnectionData] = field(
         init=False, default_factory=list, repr=False
     )
@@ -67,16 +77,21 @@ class Node:
 
     @property
     def height(self) -> float:
+        if self._height != -1:
+            return self._height
+
         connections = max(
             self.input_connectable_properties_count,
             self.output_connectable_properties_count,
         )
         if connections < 4:
-            return 96.0
+            self._height = 96.0
+            return self._height
         else:
             # adding a slot added 10.7 to a side
             delta = connections - 3
-            return 96.0 + ((10.7 * delta) * 2)
+            self._height = 96.0 + ((10.7 * delta) * 2)
+            return self._height
 
     @property
     def width(self) -> float:
@@ -84,12 +99,16 @@ class Node:
 
     @property
     def output_nodes(self) -> Tuple["Node"]:
+        if self._output_nodes:
+            return self._output_nodes
+
         unique_nodes = list()
         for connection in self._output_connection_data:
             for node in connection.nodes:
                 if node not in unique_nodes:
                     unique_nodes.append(node)
-        return tuple(unique_nodes)
+        self._output_nodes = tuple(unique_nodes)
+        return self._output_nodes
 
     @property
     def output_node_count(self) -> int:
@@ -97,15 +116,18 @@ class Node:
 
     @property
     def input_nodes(self) -> Tuple["Node"]:
-        unique_nodes = list()
+        if self._input_nodes:
+            return self._input_nodes
 
+        unique_nodes = list()
         connection_data: InputConnectionData
         for connection_data in self._input_connection_data:
             input_node = connection_data.input_node
 
             if input_node not in unique_nodes:
                 unique_nodes.append(input_node)
-        return tuple(unique_nodes)
+        self._input_nodes = tuple(unique_nodes)
+        return self._input_nodes
 
     @property
     def input_node_count(self) -> int:
@@ -118,16 +140,28 @@ class Node:
     @property
     def input_connectable_properties(self) -> Tuple[SDProperty]:
         """Returns all API properties which are connectable for all inputs"""
-        return self._connectable_properties_from_category(
-            sd.api.sdproperty.SDPropertyCategory.Input
+        if self._input_connectable_properties:
+            return self._input_connectable_properties
+
+        self._input_connectable_properties = (
+            self._connectable_properties_from_category(
+                sd.api.sdproperty.SDPropertyCategory.Input
+            )
         )
+        return self._input_connectable_properties
 
     @property
     def output_connectable_properties(self) -> Tuple[SDProperty]:
         """Returns all API properties which are connectable for all outputs"""
-        return self._connectable_properties_from_category(
-            sd.api.sdproperty.SDPropertyCategory.Output
+        if self._output_connectable_properties:
+            return self._output_connectable_properties
+
+        self._output_connectable_properties = (
+            self._connectable_properties_from_category(
+                sd.api.sdproperty.SDPropertyCategory.Output
+            )
         )
+        return self._output_connectable_properties
 
     @property
     def input_connectable_properties_count(self) -> int:

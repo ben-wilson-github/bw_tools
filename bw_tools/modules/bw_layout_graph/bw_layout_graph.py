@@ -38,6 +38,11 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
         for root_node in node_selection.root_nodes:
             aligner.run_aligner(root_node, already_processed)
 
+        api.log.debug("Positioning API nodes...")
+        node: LayoutNode
+        for node in node_selection.nodes:
+            node.set_api_position()
+
         api.log.info("Finished running layout graph")
 
 
