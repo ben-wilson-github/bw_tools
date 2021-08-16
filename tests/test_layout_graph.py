@@ -1,15 +1,11 @@
-import importlib
-import os
 import random
 import unittest
-import shutil
 import copy
 from pathlib import Path
 from typing import Dict
 
 import sd
 from bw_tools.common.bw_api_tool import APITool
-from bw_tools.common.bw_node import Float2
 from bw_tools.modules.bw_layout_graph import bw_layout_graph
 from bw_tools.modules.bw_layout_graph.layout_node import (
     LayoutNode,
@@ -215,7 +211,7 @@ class MyTestCase(unittest.TestCase):
         self.run_layout_test_on_graph(
             self.package.findResourceFromUrl(graph_name)
         )
-    
+
     def test_node_chain_25(self):
         graph_name = "test_node_chain_25"
         print(f"...{graph_name}")

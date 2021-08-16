@@ -1,25 +1,25 @@
 from functools import partial
 from pathlib import Path
-from typing import List
 
 import sd
 from bw_tools.common.bw_api_tool import APITool
-from PySide2 import QtGui, QtWidgets
+from PySide2 import QtGui
 
-from . import node_sorting, aligner, mainline
+from . import node_sorting, aligner, mainline, settings
 from .layout_node import LayoutNode, LayoutNodeSelection
 
-SPACER = 32
-
-# TODO: Create new node selection and node type for this plugin and inherit
 # TODO: Add option to reposition roots or not
 # TODO: Add option to align by main line
 # TODO: Remove dot nodes
-
+# TODO: hotkey
+# TODO: Spacer
+# TODO: spacer for root nodes?
+# TODO: settings['selectionCountWarning'] = 30
+# TODO: Move unit tests to debug menu
+# TODO: Move everything to top menu
 
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
-
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         api.log.debug("Sorting Nodes...")
         for root_node in node_selection.root_nodes:
@@ -43,7 +43,7 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
         for node in node_selection.nodes:
             node.set_api_position()
 
-        api.log.info("Finished running layout graph")
+    api.log.info("Finished running layout graph")
 
 
 def on_clicked_layout_graph(api: APITool):
@@ -54,9 +54,16 @@ def on_clicked_layout_graph(api: APITool):
 
 
 def on_graph_view_created(_, api: APITool):
+    settings.init()
+
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon_path.resolve())), ""
+    )
+    action.setShortcut(
+        QtGui.QKeySequence(
+            settings.settings_file.get_from_settings_file("Hotkey")
+        )
     )
     action.setToolTip("Layout Graph")
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
@@ -66,30 +73,3 @@ def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
-
-
-#
-# def writeDefaultSettings(aSettingsFilePath):
-#     settings = {}
-#     settings['hotkey'] = 'c'
-#     settings['nodeWidth'] = 96
-#     settings['spacer'] = 32
-#     settings['selectionCountWarning'] = 30
-#     settings['considerSplitNodesForMainline'] = False
-#     settings['detailedLog'] = False
-#
-#     # advancedSettings = {}
-#     # advancedSettings['hierarchyPass'] = True
-#     # advancedSettings['mainlineLanePass'] = True
-#     # advancedSettings['verticalPass'] = True
-#     # advancedSettings['secondVerticalPass'] = True
-#     # settings['advancedSettings'] = advancedSettings
-#
-#     with open(aSettingsFilePath) as settingsFile:
-#         data = json.load(settingsFile)
-#         data['module'][bwSettings.SupportedModules.LayoutGraph.value] = settings
-#
-#     with open(aSettingsFilePath, 'w') as settingsFile:
-#         json.dump(data, settingsFile, indent=4)
-#
-#

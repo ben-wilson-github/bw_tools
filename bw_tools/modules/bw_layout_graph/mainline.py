@@ -30,8 +30,8 @@ def run_mainline(
 def push_back_branching_output_node_behind_largest_chain(
     branching_output_node: LayoutNode,
 ):
-    # The idea is to find the largest chain to move behind for each branching output node
-    # So find the branching input nodes
+    # The idea is to find the largest chain to move behind for each
+    # branching output node, so find the branching input nodes
     branching_input_nodes = [
         n for n in branching_output_node.output_nodes if n.has_branching_inputs
     ]

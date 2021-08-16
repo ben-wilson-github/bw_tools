@@ -4,9 +4,9 @@ from typing import List, Optional
 import sd
 from bw_tools.common.bw_node_selection import Node, NodeSelection
 
-SPACER = 32
-
 from .alignment_behavior import NodeAlignmentBehavior
+
+SPACER = 32
 
 
 @dataclass
