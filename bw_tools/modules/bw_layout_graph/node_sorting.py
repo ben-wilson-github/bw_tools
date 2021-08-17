@@ -30,13 +30,7 @@ def build_alignment_behaviors(output_node: LayoutNode):
 
 
 def get_offset_value(node: LayoutNode, output_node: LayoutNode) -> float:
-    spacer = settings.settings_file.get_from_settings_file("Node Spacing")
-    if node.has_branching_outputs:
-        spacer = settings.settings_file.get_from_settings_file(
-            "Branching Output Offset"
-        )
-    else:
-        spacer = spacer
+    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
     half_output = output_node.width / 2
     half_input = node.width / 2
     return half_output + spacer + half_input

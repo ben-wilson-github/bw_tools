@@ -1,9 +1,11 @@
 import importlib
 import json
+import operator
 import os
 from dataclasses import dataclass
+from functools import reduce
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List
 
 from bw_tools.modules.bw_settings import bw_settings_dialog
 from PySide2 import QtGui
@@ -15,11 +17,23 @@ importlib.reload(bw_settings_dialog)
 class ModuleSettings:
     file_path: Path
 
-    def get_from_settings_file(self, setting: str) -> Any:
+    @staticmethod
+    def _get_from_dict(data: Dict, keys: List[str]):
+        return reduce(operator.getitem, keys, data)
+
+    def get(self, setting: str) -> Any:
         try:
             with open(self.file_path) as settings_file:
                 data = json.load(settings_file)
-                ret = data[setting]
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Unable to open {self.file_path}. The file was not found"
+            )
+
+        keys = setting.split(";")
+
+        try:
+            ret = self._get_from_dict(data, keys)
         except KeyError:
             raise KeyError(
                 f"Unable to get {setting} from settings file. "

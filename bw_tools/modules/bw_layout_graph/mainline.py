@@ -1,13 +1,18 @@
 from __future__ import annotations
-from typing import Optional, TYPE_CHECKING, List
+
 from operator import attrgetter
+from typing import TYPE_CHECKING, List, Optional
+
 from bw_tools.common import bw_chain_dimension
+
+from . import settings
 
 if TYPE_CHECKING:
     from .layout_node import LayoutNode
 
 MIN_CHAIN_SIZE = 96
-SPACER = 32
+SPACER = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
+SPACER += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
 
 
 def run_mainline(
@@ -125,14 +130,16 @@ def find_mainline_node(node: LayoutNode) -> LayoutNode:
 
     # # For pleasing visual, do not consider chains
     # # which are very small.
-    # [cds.remove(cd) for cd in cds if cd.width <= MIN_CHAIN_SIZE and branching_node is not cd.right_node.farthest_output_nodes_in_x[0]]
+    # [cds.remove(cd) for cd in cds if cd.width <= MIN_CHAIN_SIZE and
+    # branching_node is not cd.right_node.farthest_output_nodes_in_x[0]]
 
     min_cd = min(cds, key=attrgetter("bounds.left"))
 
     chains_of_same_size = [
         cd for cd in cds if cd.bounds.left == min_cd.bounds.left
     ]
-    # TODO: turn into setting maybe between min and max? Bias small or large networks
+    # TODO: turn into setting maybe between min and max? Bias small or large
+    # networks
     mainline_chain = min(chains_of_same_size, key=attrgetter("node_count"))
 
     return mainline_chain.right_node

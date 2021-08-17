@@ -5,13 +5,11 @@ from typing import TYPE_CHECKING, List, Tuple
 from bw_tools.common import bw_chain_dimension
 from bw_tools.common.bw_node import Float2
 
-from .alignment_behavior import VerticalAlignMidPoint, VerticalAlignFarthestInput
+from . import settings
+from .alignment_behavior import VerticalAlignFarthestInput
 
 if TYPE_CHECKING:
     from .layout_node import LayoutNode
-
-
-SPACER = 32
 
 
 def run_aligner(node: LayoutNode, already_processed: List[LayoutNode]):
@@ -84,7 +82,9 @@ def align_below_shortest_chain_dimension(
     lower_bound = _calculate_lower_bounds(
         node_above, node_above_node_list, smallest_cd
     )
-    align_below_bound(node_to_move, lower_bound + SPACER, upper_bound)
+
+    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
+    align_below_bound(node_to_move, lower_bound + spacer, upper_bound)
 
 
 def _calculate_smallest_chain_dimension(

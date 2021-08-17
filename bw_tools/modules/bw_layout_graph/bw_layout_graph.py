@@ -5,7 +5,8 @@ import sd
 from bw_tools.common.bw_api_tool import APITool
 from PySide2 import QtGui
 
-from . import node_sorting, aligner, mainline, settings
+from . import node_sorting, aligner, mainline
+from . import settings
 from .layout_node import LayoutNode, LayoutNodeSelection
 
 # TODO: Add option to reposition roots or not
@@ -17,6 +18,7 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 # TODO: settings['selectionCountWarning'] = 30
 # TODO: Move unit tests to debug menu
 # TODO: Move everything to top menu
+
 
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
@@ -54,15 +56,13 @@ def on_clicked_layout_graph(api: APITool):
 
 
 def on_graph_view_created(_, api: APITool):
-    settings.init()
-
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon_path.resolve())), ""
     )
     action.setShortcut(
         QtGui.QKeySequence(
-            settings.settings_file.get_from_settings_file("Hotkey")
+            settings.LAYOUT_SETTINGS.get(settings.HOTKEY)
         )
     )
     action.setToolTip("Layout Graph")
@@ -70,6 +70,7 @@ def on_graph_view_created(_, api: APITool):
 
 
 def on_initialize(api: APITool):
+    settings.init()
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )

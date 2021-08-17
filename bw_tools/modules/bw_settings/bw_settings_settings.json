@@ -7,6 +7,9 @@
         },
         "after dict": "value"
     },
+    "__Combobox__" : {
+        "Input Node Alignment": ["elem 1", "elem 2"]
+    },
     "Straighten Selected Hotkey": "wdwAlt+C",
     "Removed Connected Dot Nodes Hotkey": "Alt+V",
     "Distance From Input Node": 256,

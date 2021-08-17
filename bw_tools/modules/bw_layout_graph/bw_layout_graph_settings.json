@@ -1,5 +1,12 @@
 {
     "Hotkey": "C",
     "Node Spacing": 32.0,
-    "Branching Output Offset": 96.0 
+    "Mainline Settings": {
+        "Enable": false,
+        "Additional Offset": 96.0
+    },
+    "__Combobox__" : {
+        "Input Node Alignment": ["elem 1", "elem 2"]
+    }
+    
 }
