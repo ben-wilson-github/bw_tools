@@ -5,8 +5,7 @@
         "Enable": false,
         "Additional Offset": 96.0
     },
-    "__Combobox__" : {
-        "Input Node Alignment": ["elem 1", "elem 2"]
+    "__Combobox__": {
+        "Input Node Alignment": "elem 1;elem 2; elem 3;"
     }
-    
 }

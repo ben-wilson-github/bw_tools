@@ -1,6 +1,7 @@
 import importlib
 import json
 import os
+from pathlib import Path
 
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings import bw_settings_model
@@ -13,7 +14,7 @@ importlib.reload(bw_settings_model)
 class SettingsDialog(QtWidgets.QDialog):
     def __init__(self, api):
         super(SettingsDialog, self).__init__(parent=api.main_window)
-        self._value_background = '#151515'
+        self._value_background = "#151515"
 
         self.setModal(False)
         self.api = api
@@ -23,9 +24,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_view_widget = QtWidgets.QListView()
         self.module_view_widget.setModel(self.module_model)
         self.module_settings_layout = QtWidgets.QGridLayout()
-        self.settings_file_dir = os.path.normpath(
-            f'{os.path.dirname(__file__)}\\..'
-        )
+        self.settings_file_dir = Path(__file__).parent / ".."
 
         self._create_ui()
         self.add_modules_to_model()
@@ -33,8 +32,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # Select first item in list
         index = self.module_model.index(0, 0)
         self.module_view_widget.selectionModel().setCurrentIndex(
-            index,
-            QtCore.QItemSelectionModel.SelectCurrent
+            index, QtCore.QItemSelectionModel.SelectCurrent
         )
 
     def get_selected_module_from_model(self):
@@ -65,7 +63,9 @@ class SettingsDialog(QtWidgets.QDialog):
 
         for i in range(self.module_settings_layout.count()):
             if self.module_settings_layout.itemAt(i).widget() is value_widget:
-                setting_name = self.module_settings_layout.itemAt(i - 1).widget().text()
+                setting_name = (
+                    self.module_settings_layout.itemAt(i - 1).widget().text()
+                )
 
         module_item = self.get_selected_module_from_model()
         return _find_setting_item(module_item, setting_name)
@@ -79,13 +79,15 @@ class SettingsDialog(QtWidgets.QDialog):
         """
 
         if not os.path.isfile(file_path):
-            raise FileNotFoundError('This module has no settings.')
+            raise FileNotFoundError("This module has no settings.")
 
         try:
             with open(file_path) as settings_file:
                 data = json.load(settings_file)
         except json.JSONDecodeError:
-            raise FileNotFoundError(f'Unable to load settings. Settings file is invalid.')
+            raise FileNotFoundError(
+                "Unable to load settings. Settings file is invalid."
+            )
         else:
             return data
 
@@ -95,6 +97,7 @@ class SettingsDialog(QtWidgets.QDialog):
         @param module: QStandardItem
         @param file_path: Str
         """
+
         def _build_dict(parent_item, return_dict):
             for row in range(parent_item.rowCount()):
                 item = parent_item.child(row)
@@ -110,60 +113,59 @@ class SettingsDialog(QtWidgets.QDialog):
         new_settings = _build_dict(module, dict())
 
         # Does not handle error or permission right now
-        with open(file_path, 'w') as settings_file:
+        with open(file_path, "w") as settings_file:
             json.dump(new_settings, settings_file, indent=4)
 
-        self.api.logger.info(f'Writing settings for {module.text()}')
+        self.api.logger.info(f"Writing settings for {module.text()}")
 
     def populate_settings_frame(self, parent_item, row=0):
-        first_iteration = True
         for i in range(parent_item.rowCount()):
             child_item = parent_item.child(i)
             if isinstance(child_item.data(), str):
                 row = self._ui_add_string_value_to_settings_frame(
-                    child_item.text(),
-                    child_item.data(),
-                    row
+                    child_item.text(), child_item.data(), row
                 )
             elif isinstance(child_item.data(), bool):
                 row = self._ui_add_bool_value_to_settings_frame(
-                    child_item.text(),
-                    child_item.data(),
-                    row
+                    child_item.text(), child_item.data(), row
                 )
             elif isinstance(child_item.data(), list):
                 row = self._ui_add_list_value_to_settings_frame(
-                    child_item.text(),
-                    child_item.data(),
-                    row
+                    child_item.text(), child_item.data(), row
                 )
             elif isinstance(child_item.data(), int):
                 row = self._ui_add_int_value_to_settings_frame(
-                    child_item.text(),
-                    child_item.data(),
-                    row
+                    child_item.text(), child_item.data(), row
                 )
             elif isinstance(child_item.data(), float):
                 row = self._ui_add_float_value_to_settings_frame(
-                    child_item.text(),
-                    child_item.data(),
-                    row
+                    child_item.text(), child_item.data(), row
                 )
             elif child_item.data() is None:
-                row = self._ui_add_group_label_to_settings_frame(
-                    child_item.text(),
-                    row=row,
-                    first_iteration=first_iteration
-                )
+                text = child_item.text()
+                if text == "__combobox__":
+                    row = self._ui_add_combobox_to_settings_frame(
+                        child_item, row=row
+                    )
+                else:
+                    row = self._ui_add_group_label_to_settings_frame(
+                        text, row=row
+                    )
                 row = self.populate_settings_frame(child_item, row=row)
-            first_iteration=False
         return row + 1
 
     def clear_settings_frame(self):
         def _delete_children(layout):
             for i in reversed(range(layout.count())):
                 item = layout.itemAt(i)
-                if isinstance(item, (QtWidgets.QGridLayout, QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout)):
+                if isinstance(
+                    item,
+                    (
+                        QtWidgets.QGridLayout,
+                        QtWidgets.QHBoxLayout,
+                        QtWidgets.QVBoxLayout,
+                    ),
+                ):
                     _delete_children(item)
                 else:
                     widget = item.widget()
@@ -179,17 +181,22 @@ class SettingsDialog(QtWidgets.QDialog):
             self.module_model.setItem(row, 0, module_item)
 
             try:
-                file_path = os.path.join(
-                    self.settings_file_dir,
-                    module,
-                    f'{module}_settings.json'
+                file_path = self.settings_file_dir.joinpath(
+                    f"{module}/{module}_settings.json"
                 )
-                settings = self.get_settings_for_module(file_path)
+                # file_path = os.path.join(
+                #     self.settings_file_dir, module, f"{module}_settings.json"
+                # )
+                settings = self.get_settings_for_module(
+                    str(file_path.resolve())
+                )
             except FileNotFoundError as e:
                 self.api.logger.warning(str(e))
                 module_item.setData(e)
             else:
-                self.add_settings_to_model_item(module_item, settings) # Must take in settings, as setting data will reorder
+                self.add_settings_to_model_item(
+                    module_item, settings
+                )  # Must take in settings, as setting data will reorder
 
     def add_settings_to_model_item(self, parent_item, settings):
         """
@@ -208,19 +215,19 @@ class SettingsDialog(QtWidgets.QDialog):
         item = self.get_model_item_from_value_widget(self.sender())
         item.setData(self.sender().text())
         if self.api.debug:
-            self.api.logger.debug(f'Setting {item.text()} to {item.data()}')
+            self.api.logger.debug(f"Setting {item.text()} to {item.data()}")
 
     def on_int_float_value_changed(self):
         item = self.get_model_item_from_value_widget(self.sender())
         item.setData(self.sender().value())
         if self.api.debug:
-            self.api.logger.debug(f'Setting {item.text()} to {item.data()}')
+            self.api.logger.debug(f"Setting {item.text()} to {item.data()}")
 
     def on_bool_value_changed(self):
         item = self.get_model_item_from_value_widget(self.sender())
         item.setData(self.sender().isChecked())
         if self.api.debug:
-            self.api.logger.debug(f'Setting {item.text()} to {item.data()}')
+            self.api.logger.debug(f"Setting {item.text()} to {item.data()}")
 
     def on_clicked_module(self):
         self.clear_settings_frame()
@@ -230,10 +237,14 @@ class SettingsDialog(QtWidgets.QDialog):
             return
 
         if self.api.debug:
-            self.api.logger.debug(f'User clicked on {module.text()} inside settings dialog.')
+            self.api.logger.debug(
+                f"User clicked on {module.text()} inside settings dialog."
+            )
 
         if isinstance(module.data(), FileNotFoundError):
-            self.module_settings_layout.addWidget(QtWidgets.QLabel(str(module.data())))
+            self.module_settings_layout.addWidget(
+                QtWidgets.QLabel(str(module.data()))
+            )
         else:
             self.populate_settings_frame(module)
 
@@ -241,10 +252,8 @@ class SettingsDialog(QtWidgets.QDialog):
         for row in range(self.module_model.rowCount()):
             item = self.module_model.item(row, 0)
 
-            file_path = os.path.join(
-                self.settings_file_dir,
-                item.text(),
-                f'{item.text()}_settings.json'
+            file_path = self.settings_file_dir.joinpath(
+                f"{item.text()}/{item.text()}_settings.json"
             )
 
             self.write_module_settings(item, file_path)
@@ -259,11 +268,13 @@ class SettingsDialog(QtWidgets.QDialog):
         self._ui_frame_buttons(1)
 
     def _ui_frame_modules_list(self, col):
-        self.main_layout.addWidget(bw_ui_tools.label('Loaded Modules'), 0, col)
+        self.main_layout.addWidget(bw_ui_tools.label("Loaded Modules"), 0, col)
         self._ui_add_module_view_widget(col)
 
     def _ui_frame_module_settings(self, col):
-        self.main_layout.addWidget(bw_ui_tools.label('Module Settings'), 0, col)
+        self.main_layout.addWidget(
+            bw_ui_tools.label("Module Settings"), 0, col
+        )
         scroll_area = self._ui_add_scroll_area_widget(col)
         self._ui_add_settings_widget(scroll_area)
 
@@ -273,23 +284,27 @@ class SettingsDialog(QtWidgets.QDialog):
 
         layout.addStretch()
 
-        w = QtWidgets.QPushButton('Ok')
+        w = QtWidgets.QPushButton("Ok")
         layout.addWidget(w)
         w.clicked.connect(self.on_clicked_ok)
 
-        w = QtWidgets.QPushButton('Cancel')
+        w = QtWidgets.QPushButton("Cancel")
         w.clicked.connect(self.close)
         layout.addWidget(w)
 
-        w = QtWidgets.QPushButton('Apply')
+        w = QtWidgets.QPushButton("Apply")
         w.clicked.connect(self.on_clicked_apply)
         layout.addWidget(w)
 
     def _ui_add_module_view_widget(self, col):
         self.module_view_widget.setFixedWidth(130)
-        self.module_view_widget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.module_view_widget.setEditTriggers(
+            QtWidgets.QAbstractItemView.NoEditTriggers
+        )
         self.main_layout.addWidget(self.module_view_widget, 1, col)
-        self.module_view_widget.selectionModel().selectionChanged.connect(self.on_clicked_module)
+        self.module_view_widget.selectionModel().selectionChanged.connect(
+            self.on_clicked_module
+        )
 
     def _ui_add_settings_widget(self, scroll_area):
         settings_widget = QtWidgets.QWidget(scroll_area)
@@ -312,16 +327,27 @@ class SettingsDialog(QtWidgets.QDialog):
         self.main_layout.addWidget(scroll_area, 1, col)
         return scroll_area
 
-    def _ui_add_group_label_to_settings_frame(self, name, row=0, first_iteration=False):
-        # if not first_iteration:
-        #     for _ in range(4):
-        #         self.module_settings_layout.addWidget(bw_ui_tools.separator_frame(), row, 0, 1, 2)
-        #         row += 1
-        #     self.module_settings_layout.addWidget(bw_ui_tools.separator(), row, 0, 1, 2)
-        #     row += 1
+    def _ui_add_combobox_to_settings_frame(self, item, row=0):
+        label_item = item.child(0)
+        if not label_item:
+            raise FileNotFoundError(
+                "Unable to load settings. Combobox incorrectly defined"
+            )
+
+        self._ui_add_value_name_to_settings_frame(label_item.text(), row)
+
+        combo = QtWidgets.QComboBox()
+        self.module_settings_layout.addWidget(combo, row, 1)
+        combo.addItems(label_item.data())
+        return row + 1
+
+    def _ui_add_group_label_to_settings_frame(self, name, row=0):
         self.module_settings_layout.addWidget(
             bw_ui_tools.label(name, alignment=QtCore.Qt.AlignLeft),
-            row, 0, 1, 2
+            row,
+            0,
+            1,
+            2,
         )
         return row + 1
 
@@ -335,12 +361,19 @@ class SettingsDialog(QtWidgets.QDialog):
         for key, value in settings.items():
             if isinstance(value, dict):
                 for _ in range(4):
-                    self.module_settings_layout.addWidget(bw_ui_tools.separator_frame(), row, 0, 1, 2)
+                    self.module_settings_layout.addWidget(
+                        bw_ui_tools.separator_frame(), row, 0, 1, 2
+                    )
                     row += 1
-                self.module_settings_layout.addWidget(bw_ui_tools.separator(), row, 0, 1, 2)
+                self.module_settings_layout.addWidget(
+                    bw_ui_tools.separator(), row, 0, 1, 2
+                )
                 self.module_settings_layout.addWidget(
                     bw_ui_tools.label(key, alignment=QtCore.Qt.AlignLeft),
-                    row + 1, 0, 1, 2
+                    row + 1,
+                    0,
+                    1,
+                    2,
                 )
                 row = self._ui_add_settings_to_settings_frame(value, row + 2)
             elif isinstance(value, str):
@@ -354,7 +387,9 @@ class SettingsDialog(QtWidgets.QDialog):
             elif isinstance(value, list):
                 self._ui_add_list_value_to_settings_frame(key, value, row)
             else:
-                self.module_settings_layout.addWidget(bw_ui_tools.label('Unsupported type.'))
+                self.module_settings_layout.addWidget(
+                    bw_ui_tools.label("Unsupported type.")
+                )
             row += 1
         return row
 
@@ -363,25 +398,31 @@ class SettingsDialog(QtWidgets.QDialog):
         w = QtWidgets.QLineEdit()
         w.setText(value)
         w.textChanged.connect(self.on_str_value_changed)
-        w.setStyleSheet(f'background : {self._value_background}')
+        w.setStyleSheet(f"background : {self._value_background}")
         w.setAlignment(QtCore.Qt.AlignRight)
         self.module_settings_layout.addWidget(w, row, 1)
         return row + 1
 
     def _ui_add_list_value_to_settings_frame(self, name, value, row):
         self._ui_add_value_name_to_settings_frame(name, row)
-        if not all(isinstance(elem, (str, bool, int, float)) for elem in value):
+        if not all(
+            isinstance(elem, (str, bool, int, float)) for elem in value
+        ):
             self.module_settings_layout.addWidget(
-                QtWidgets.QLabel('Only str, bool, int, float are supported values!'), row, 1
+                QtWidgets.QLabel(
+                    "Only str, bool, int, float are supported values!"
+                ),
+                row,
+                1,
             )
             return row + 1
 
-        string = ''
+        string = ""
         for item in value:
-            string += f'{str(item)};'
+            string += f"{str(item)};"
         w = QtWidgets.QLineEdit(string)
         w.textChanged.connect(self.on_str_value_changed)
-        w.setStyleSheet(f'background : {self._value_background}')
+        w.setStyleSheet(f"background : {self._value_background}")
         w.setAlignment(QtCore.Qt.AlignRight)
         self.module_settings_layout.addWidget(w, row, 1)
         return row + 1
@@ -394,11 +435,11 @@ class SettingsDialog(QtWidgets.QDialog):
         w.setSingleStep(0.01)
         # w.valueChanged.connect(self.on_value_changed)
         w.setStyleSheet(
-            'QDoubleSpinBox'
-            '{'
-            f'background : {self._value_background};'
-            'color : #cccccc;'
-            '}'
+            "QDoubleSpinBox"
+            "{"
+            f"background : {self._value_background};"
+            "color : #cccccc;"
+            "}"
         )
         w.setAlignment(QtCore.Qt.AlignRight)
         self.module_settings_layout.addWidget(w, row, 1)
@@ -411,11 +452,11 @@ class SettingsDialog(QtWidgets.QDialog):
         w.setValue(value)
         w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
-            'QSpinBox'
-            '{'
-            f'background : {self._value_background};'
-            'color : #cccccc;'
-            '}'
+            "QSpinBox"
+            "{"
+            f"background : {self._value_background};"
+            "color : #cccccc;"
+            "}"
         )
         w.setAlignment(QtCore.Qt.AlignRight)
         self.module_settings_layout.addWidget(w, row, 1)
@@ -427,12 +468,14 @@ class SettingsDialog(QtWidgets.QDialog):
         w.setChecked(value)
         w.stateChanged.connect(self.on_bool_value_changed)
         w.setStyleSheet(
-            'QCheckBox::indicator'
-            '{'
-            f'background-color: {self._value_background};'
-            '}'
+            "QCheckBox::indicator"
+            "{"
+            f"background-color: {self._value_background};"
+            "}"
         )
-        self.module_settings_layout.addWidget(w, row, 1, 1, 1, QtCore.Qt.AlignRight)
+        self.module_settings_layout.addWidget(
+            w, row, 1, 1, 1, QtCore.Qt.AlignRight
+        )
         return row + 1
 
     def _ui_add_value_name_to_settings_frame(self, name, row):
