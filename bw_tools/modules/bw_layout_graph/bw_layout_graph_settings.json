@@ -1,11 +1,32 @@
 {
-    "Hotkey": "C",
-    "Node Spacing": 32.0,
-    "Mainline Settings": {
-        "Enable": false,
-        "Additional Offset": 96.0
+    "Hotkey": {
+        "widget": 1,
+        "value": "C"
     },
-    "__Combobox__": {
-        "Input Node Alignment": "elem 1;elem 2; elem 3;"
+    "Node Spacing": {
+        "widget": 2,
+        "value": 32
+    },
+    "Input Node Alignment": {
+        "list": [
+            "Mainline",
+            "Center",
+            "Top"
+        ],
+        "widget": 4,
+        "value": 0
+    },
+    "Mainline Settings": {
+        "widget": 0,
+        "value": {
+            "Enable": {
+                "widget": 3,
+                "value": false
+            },
+            "Additional Offset": {
+                "widget": 2,
+                "value": 96
+            }
+        }
     }
 }
