@@ -61,9 +61,7 @@ def on_graph_view_created(_, api: APITool):
         QtGui.QIcon(str(icon_path.resolve())), ""
     )
     action.setShortcut(
-        QtGui.QKeySequence(
-            settings.LAYOUT_SETTINGS.get(settings.HOTKEY)
-        )
+        QtGui.QKeySequence(settings.HOTKEY)
     )
     action.setToolTip("Layout Graph")
     action.triggered.connect(lambda: on_clicked_layout_graph(api))

@@ -83,8 +83,9 @@ def align_below_shortest_chain_dimension(
         node_above, node_above_node_list, smallest_cd
     )
 
-    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
-    align_below_bound(node_to_move, lower_bound + spacer, upper_bound)
+    align_below_bound(
+        node_to_move, lower_bound + settings.NODE_SPACING, upper_bound
+    )
 
 
 def _calculate_smallest_chain_dimension(

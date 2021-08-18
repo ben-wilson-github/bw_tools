@@ -53,8 +53,8 @@ def push_back_branching_output_node_behind_largest_chain(
     if left_bound is None:
         return
     
-    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
-    spacer += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
+    spacer = settings.NODE_SPACING
+    spacer += settings.MAINLINE_ADDITIONAL_OFFSET
 
     # position the branching output node behind longest chain
     if branching_output_node.pos.x > (
@@ -88,8 +88,8 @@ def push_back_mainline_ignoring_branching_output_nodes(
     if left_bound is None:
         return
 
-    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
-    spacer += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
+    spacer = settings.NODE_SPACING
+    spacer += settings.MAINLINE_ADDITIONAL_OFFSET
     mainline_node.set_position(
         left_bound - spacer - (mainline_node.width / 2), mainline_node.pos.y
     )
@@ -189,8 +189,8 @@ def get_chain_dimensions_for_inputs(
 
 
 def reposition_branching_output_node(node: LayoutNode):
-    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
-    spacer += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
+    spacer = settings.NODE_SPACING
+    spacer += settings.MAINLINE_ADDITIONAL_OFFSET
     new_x = (
         node.closest_output_node_in_x.pos.x
         - (node.closest_output_node_in_x.width / 2)
