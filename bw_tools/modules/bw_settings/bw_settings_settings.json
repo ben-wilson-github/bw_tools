@@ -8,9 +8,12 @@
         "after dict": "value"
     },
     "__combobox__": {
-        "Input Node Alignment": [
+        "__name__": "Input Node Alignment",
+        "__selected__": 0,
+        "__values__": [
             "elem 1",
-            "elem 2"
+            "elem 2",
+            "elem 3"
         ]
     },
     "Straighten Selected Hotkey": "wdwAlt+C",

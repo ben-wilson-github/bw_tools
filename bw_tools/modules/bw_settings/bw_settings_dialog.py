@@ -52,7 +52,12 @@ class SettingsDialog(QtWidgets.QDialog):
             ret = None
             for row in range(parent_item.rowCount()):
                 setting_item = parent_item.child(row)
-                if setting_item.text() == setting_name:
+                if setting_item.text() == "__combobox__":
+                    for i in range(setting_item.rowCount()):
+                        item = setting_item.child(i)
+                        if item.text() == "__selected__":
+                            return item
+                elif setting_item.text() == setting_name:
                     return setting_item
                 else:
                     if setting_item.hasChildren():
@@ -144,14 +149,14 @@ class SettingsDialog(QtWidgets.QDialog):
             elif child_item.data() is None:
                 text = child_item.text()
                 if text == "__combobox__":
-                    row = self._ui_add_combobox_to_settings_frame(
+                    row = self._ui_add_combobox_value_to_settings_frame(
                         child_item, row=row
                     )
                 else:
                     row = self._ui_add_group_label_to_settings_frame(
                         text, row=row
                     )
-                row = self.populate_settings_frame(child_item, row=row)
+                    row = self.populate_settings_frame(child_item, row=row)
         return row + 1
 
     def clear_settings_frame(self):
@@ -184,9 +189,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 file_path = self.settings_file_dir.joinpath(
                     f"{module}/{module}_settings.json"
                 )
-                # file_path = os.path.join(
-                #     self.settings_file_dir, module, f"{module}_settings.json"
-                # )
                 settings = self.get_settings_for_module(
                     str(file_path.resolve())
                 )
@@ -204,12 +206,25 @@ class SettingsDialog(QtWidgets.QDialog):
         @param settings: dict()
         """
         for name, value in settings.items():
-            child_item = QtGui.QStandardItem(name)
-            parent_item.appendRow(child_item)
-            if isinstance(value, dict):
-                self.add_settings_to_model_item(child_item, value)
+            value_item = QtGui.QStandardItem(name)
+            parent_item.appendRow(value_item)
+            if name == "__combobox__":
+                name_item = QtGui.QStandardItem("__name__")
+                name_item.setData(value["__name__"])
+
+                selected_item = QtGui.QStandardItem("__selected__")
+                selected_item.setData(value["__selected__"])
+
+                values_item = QtGui.QStandardItem("__values__")
+                values_item.setData(value["__values__"])
+
+                value_item.appendRow(name_item)
+                value_item.appendRow(selected_item)
+                value_item.appendRow(values_item)
+            elif isinstance(value, dict):
+                self.add_settings_to_model_item(value_item, value)
             else:
-                child_item.setData(value)
+                value_item.setData(value)
 
     def on_str_value_changed(self):
         item = self.get_model_item_from_value_widget(self.sender())
@@ -231,7 +246,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def on_combobox_value_changed(self):
         item = self.get_model_item_from_value_widget(self.sender())
-        print(item)
+        item.setData(self.sender().currentIndex())
 
     def on_clicked_module(self):
         self.clear_settings_frame()
@@ -270,6 +285,12 @@ class SettingsDialog(QtWidgets.QDialog):
         self._ui_frame_modules_list(0)
         self._ui_frame_module_settings(1)
         self._ui_frame_buttons(1)
+        self._ui_frame_debug_model(2)
+
+    def _ui_frame_debug_model(self, col):
+        tree_view = QtWidgets.QTreeView()
+        tree_view.setModel(self.module_model)
+        self.main_layout.addWidget(tree_view, 1, col)
 
     def _ui_frame_modules_list(self, col):
         self.main_layout.addWidget(bw_ui_tools.label("Loaded Modules"), 0, col)
@@ -330,21 +351,6 @@ class SettingsDialog(QtWidgets.QDialog):
         scroll_area.setMinimumSize(300, 300)
         self.main_layout.addWidget(scroll_area, 1, col)
         return scroll_area
-
-    def _ui_add_combobox_to_settings_frame(self, item, row=0):
-        label_item = item.child(0)
-        if not label_item:
-            raise FileNotFoundError(
-                "Unable to load settings. Combobox incorrectly defined"
-            )
-
-        self._ui_add_value_name_to_settings_frame(label_item.text(), row)
-
-        combo = QtWidgets.QComboBox()
-        combo.currentIndexChanged.connect(self.on_combobox_value_changed)
-        self.module_settings_layout.addWidget(combo, row, 1)
-        combo.addItems(label_item.data())
-        return row + 1
 
     def _ui_add_group_label_to_settings_frame(self, name, row=0):
         self.module_settings_layout.addWidget(
@@ -482,6 +488,24 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_settings_layout.addWidget(
             w, row, 1, 1, 1, QtCore.Qt.AlignRight
         )
+        return row + 1
+
+    def _ui_add_combobox_value_to_settings_frame(self, item, row=0):
+        label_item = item.child(0)
+        selected_item = item.child(1)
+        values_item = item.child(2)
+        if not label_item or not selected_item or not values_item:
+            raise FileNotFoundError(
+                "Unable to load settings. Combobox incorrectly defined"
+            )
+
+        self._ui_add_value_name_to_settings_frame(label_item.data(), row)
+
+        combo = QtWidgets.QComboBox()
+        self.module_settings_layout.addWidget(combo, row, 1)
+        combo.addItems(values_item.data())
+        combo.setCurrentIndex(selected_item.data())
+        combo.currentIndexChanged.connect(self.on_combobox_value_changed)
         return row + 1
 
     def _ui_add_value_name_to_settings_frame(self, name, row):
