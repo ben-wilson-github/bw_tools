@@ -229,6 +229,10 @@ class SettingsDialog(QtWidgets.QDialog):
         if self.api.debug:
             self.api.logger.debug(f"Setting {item.text()} to {item.data()}")
 
+    def on_combobox_value_changed(self):
+        item = self.get_model_item_from_value_widget(self.sender())
+        print(item)
+
     def on_clicked_module(self):
         self.clear_settings_frame()
 
@@ -337,6 +341,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._ui_add_value_name_to_settings_frame(label_item.text(), row)
 
         combo = QtWidgets.QComboBox()
+        combo.currentIndexChanged.connect(self.on_combobox_value_changed)
         self.module_settings_layout.addWidget(combo, row, 1)
         combo.addItems(label_item.data())
         return row + 1
@@ -353,7 +358,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _ui_add_settings_to_settings_frame(self, settings, row=0):
         """
-        Recursively popuplate the settings frame with appropiate widgets based on the value type
+        Recursively popuplate the settings frame with appropiate widgets based
+        on the value type
         @param settings: A dictionary read from a json file
         @param row: The row
         @return: The new row after all recursive calls

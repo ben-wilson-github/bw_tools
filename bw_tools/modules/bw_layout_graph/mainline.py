@@ -11,8 +11,6 @@ if TYPE_CHECKING:
     from .layout_node import LayoutNode
 
 MIN_CHAIN_SIZE = 96
-SPACER = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
-SPACER += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
 
 
 def run_mainline(
@@ -54,13 +52,16 @@ def push_back_branching_output_node_behind_largest_chain(
     left_bound = find_left_most_bound(inputs)
     if left_bound is None:
         return
+    
+    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
+    spacer += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
 
     # position the branching output node behind longest chain
     if branching_output_node.pos.x > (
-        left_bound - SPACER - branching_output_node.width / 2
+        left_bound - spacer - branching_output_node.width / 2
     ):
         branching_output_node.set_position(
-            left_bound - SPACER - branching_output_node.width / 2,
+            left_bound - spacer - branching_output_node.width / 2,
             branching_output_node.farthest_output_nodes_in_x[0].pos.y,
         )
         branching_output_node.alignment_behavior.offset_node = (
@@ -87,8 +88,10 @@ def push_back_mainline_ignoring_branching_output_nodes(
     if left_bound is None:
         return
 
+    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
+    spacer += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
     mainline_node.set_position(
-        left_bound - SPACER - (mainline_node.width / 2), mainline_node.pos.y
+        left_bound - spacer - (mainline_node.width / 2), mainline_node.pos.y
     )
     mainline_node.alignment_behavior.offset_node = (
         mainline_node.farthest_output_nodes_in_x[0]
@@ -186,10 +189,12 @@ def get_chain_dimensions_for_inputs(
 
 
 def reposition_branching_output_node(node: LayoutNode):
+    spacer = settings.LAYOUT_SETTINGS.get(settings.NODE_SPACING)
+    spacer += settings.LAYOUT_SETTINGS.get(settings.MAINLINE_ADDITIONAL_OFFSET)
     new_x = (
         node.closest_output_node_in_x.pos.x
         - (node.closest_output_node_in_x.width / 2)
-        - SPACER
+        - spacer
         - (node.width / 2)
     )
     node.set_position(new_x, node.farthest_output_nodes_in_x[0].pos.y)
