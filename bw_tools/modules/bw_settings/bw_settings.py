@@ -22,7 +22,6 @@ class ModuleSettings:
         return reduce(operator.getitem, keys, data)
 
     def get(self, setting: str) -> Any:
-        NEED TO UPDATE THIS WITH CHANGES FROM SETTINGS FILE FORMAT
         try:
             with open(self.file_path) as settings_file:
                 data = json.load(settings_file)

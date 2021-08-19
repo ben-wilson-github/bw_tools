@@ -60,7 +60,6 @@ class PostAlignmentBehavior(ABC):
         return x, y
 
 
-# TODO: Add offset abstract method
 @dataclass
 class VerticalAlignMidPoint(PostAlignmentBehavior):
     def exec(self, node: LayoutNode):

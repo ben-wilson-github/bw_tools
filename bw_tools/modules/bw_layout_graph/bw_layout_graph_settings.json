@@ -21,7 +21,7 @@
         "value": {
             "Enable": {
                 "widget": 3,
-                "value": false
+                "value": true
             },
             "Additional Offset": {
                 "widget": 2,

@@ -1,12 +1,14 @@
 from functools import partial
 from pathlib import Path
+from typing import Union
 
 import sd
 from bw_tools.common.bw_api_tool import APITool
+from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
 
-from . import node_sorting, aligner, mainline
-from . import settings
+from . import aligner_vertical, aligner_mainline, node_sorting
+from .alignment_behavior import VerticalAlignFarthestInput
 from .layout_node import LayoutNode, LayoutNodeSelection
 
 # TODO: Add option to reposition roots or not
@@ -20,27 +22,46 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 # TODO: Move everything to top menu
 
 
+class LayoutSettings(ModuleSettings):
+    def __init__(self, file_path: Path):
+        super().__init__(file_path)
+        self.hotkey: str = self.get("Hotkey;value")
+        self.node_spacing: Union[int, float] = self.get("Node Spacing;value")
+        self.mainline_additional_offset: Union[int, float] = self.get(
+            "Mainline Settings;value;Additional Offset;value"
+        )
+        self.mainline_enabled: bool = self.get(
+            "Mainline Settings;value;Enable;value"
+        )
+
+
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-        api.log.debug("Sorting Nodes...")
-        for root_node in node_selection.root_nodes:
-            node_sorting.position_nodes(root_node)
-        for root_node in node_selection.root_nodes:
-            node_sorting.build_alignment_behaviors(root_node)
-
-        api.log.debug("Running mainline...")
-        mainline.run_mainline(
-            node_selection.branching_input_nodes,
-            node_selection.branching_output_nodes,
+        settings = LayoutSettings(
+            Path(__file__).parent / "bw_layout_graph_settings.json"
         )
 
-        api.log.debug("Aligning Nodes...")
+        node_sorter = node_sorting.NodeSorter(settings)
+        for root_node in node_selection.root_nodes:
+            node_sorter.position_nodes(root_node)
+        for root_node in node_selection.root_nodes:
+            node_sorter.build_alignment_behaviors(root_node)
+
+        if settings.mainline_enabled:
+            mainline_aligner = aligner_mainline.MainlineAligner(settings)
+            mainline_aligner.run_mainline(
+                node_selection.branching_input_nodes,
+                node_selection.branching_output_nodes,
+            )
+
         already_processed = list()
         for root_node in node_selection.root_nodes:
-            aligner.run_aligner(root_node, already_processed)
+            vertical_aligner = aligner_vertical.VerticalAligner(
+                settings, VerticalAlignFarthestInput()
+            )
+            vertical_aligner.run_aligner(root_node, already_processed)
 
-        api.log.debug("Positioning API nodes...")
         node: LayoutNode
         for node in node_selection.nodes:
             node.set_api_position()
@@ -60,15 +81,16 @@ def on_graph_view_created(_, api: APITool):
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon_path.resolve())), ""
     )
-    action.setShortcut(
-        QtGui.QKeySequence(settings.HOTKEY)
+
+    settings = LayoutSettings(
+        Path(__file__).parent / "bw_layout_graph_settings.json"
     )
+    action.setShortcut(QtGui.QKeySequence(settings.hotkey))
     action.setToolTip("Layout Graph")
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
 
 
 def on_initialize(api: APITool):
-    settings.init()
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
