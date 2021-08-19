@@ -8,18 +8,20 @@ from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
 
 from . import aligner_vertical, aligner_mainline, node_sorting
-from .alignment_behavior import VerticalAlignFarthestInput
+from .alignment_behavior import (
+    VerticalAlignFarthestInput,
+    VerticalAlignMidPoint,
+    VerticalAlignTopStack,
+)
 from .layout_node import LayoutNode, LayoutNodeSelection
 
 # TODO: Add option to reposition roots or not
-# TODO: Add option to align by main line
 # TODO: Remove dot nodes
-# TODO: hotkey
-# TODO: Spacer
-# TODO: spacer for root nodes?
 # TODO: settings['selectionCountWarning'] = 30
 # TODO: Move unit tests to debug menu
+# TODO: Unit tests for all the settings
 # TODO: Move everything to top menu
+# TODO: do todos in other files
 
 
 class LayoutSettings(ModuleSettings):
@@ -33,6 +35,7 @@ class LayoutSettings(ModuleSettings):
         self.mainline_enabled: bool = self.get(
             "Mainline Settings;value;Enable;value"
         )
+        self.alignment_behavior: int = self.get("Input Node Alignment;value")
 
 
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
@@ -57,8 +60,15 @@ def run_layout(node_selection: LayoutNodeSelection, api: APITool):
 
         already_processed = list()
         for root_node in node_selection.root_nodes:
+            if settings.alignment_behavior == 0:
+                behavior = VerticalAlignFarthestInput()
+            elif settings.alignment_behavior == 1:
+                behavior = VerticalAlignMidPoint()
+            else:
+                behavior = VerticalAlignTopStack()
+
             vertical_aligner = aligner_vertical.VerticalAligner(
-                settings, VerticalAlignFarthestInput()
+                settings, behavior
             )
             vertical_aligner.run_aligner(root_node, already_processed)
 

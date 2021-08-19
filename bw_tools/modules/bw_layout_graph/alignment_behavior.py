@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Tuple
 
-
 from bw_tools.common.bw_node import Float2
 
 if TYPE_CHECKING:
