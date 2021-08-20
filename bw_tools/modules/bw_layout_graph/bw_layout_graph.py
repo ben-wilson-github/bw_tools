@@ -16,13 +16,13 @@ from .alignment_behavior import (
 )
 from .layout_node import LayoutNode, LayoutNodeSelection
 
-# TODO: Remove dot nodes
+
+# TODO: Unit tests for all the settings
+# TODO: Re add min chain length for mainline
 # TODO: settings['selectionCountWarning'] = 30
 # TODO: Move unit tests to debug menu
-# TODO: Unit tests for all the settings
 # TODO: Move everything to top menu
 # TODO: do todos in other files
-# TODO: Add spacer to settings
 # TODO: Run straighten connection after
 
 
