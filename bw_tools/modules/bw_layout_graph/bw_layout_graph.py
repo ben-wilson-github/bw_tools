@@ -4,6 +4,7 @@ from typing import Union
 
 import sd
 from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common import bw_node_selection
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
 
@@ -15,13 +16,14 @@ from .alignment_behavior import (
 )
 from .layout_node import LayoutNode, LayoutNodeSelection
 
-# TODO: Add option to reposition roots or not
 # TODO: Remove dot nodes
 # TODO: settings['selectionCountWarning'] = 30
 # TODO: Move unit tests to debug menu
 # TODO: Unit tests for all the settings
 # TODO: Move everything to top menu
 # TODO: do todos in other files
+# TODO: Add spacer to settings
+# TODO: Run straighten connection after
 
 
 class LayoutSettings(ModuleSettings):
@@ -40,50 +42,51 @@ class LayoutSettings(ModuleSettings):
 
 def run_layout(node_selection: LayoutNodeSelection, api: APITool):
     api.log.info("Running layout Graph")
-    with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-        settings = LayoutSettings(
-            Path(__file__).parent / "bw_layout_graph_settings.json"
+
+    settings = LayoutSettings(
+        Path(__file__).parent / "bw_layout_graph_settings.json"
+    )
+
+    node_sorter = node_sorting.NodeSorter(settings)
+    for root_node in node_selection.root_nodes:
+        node_sorter.position_nodes(root_node)
+    for root_node in node_selection.root_nodes:
+        node_sorter.build_alignment_behaviors(root_node)
+
+    if settings.mainline_enabled:
+        mainline_aligner = aligner_mainline.MainlineAligner(settings)
+        mainline_aligner.run_mainline(
+            node_selection.branching_input_nodes,
+            node_selection.branching_output_nodes,
         )
 
-        node_sorter = node_sorting.NodeSorter(settings)
-        for root_node in node_selection.root_nodes:
-            node_sorter.position_nodes(root_node)
-        for root_node in node_selection.root_nodes:
-            node_sorter.build_alignment_behaviors(root_node)
+    already_processed = list()
+    for root_node in node_selection.root_nodes:
+        if settings.alignment_behavior == 0:
+            behavior = VerticalAlignFarthestInput()
+        elif settings.alignment_behavior == 1:
+            behavior = VerticalAlignMidPoint()
+        else:
+            behavior = VerticalAlignTopStack()
 
-        if settings.mainline_enabled:
-            mainline_aligner = aligner_mainline.MainlineAligner(settings)
-            mainline_aligner.run_mainline(
-                node_selection.branching_input_nodes,
-                node_selection.branching_output_nodes,
-            )
+        vertical_aligner = aligner_vertical.VerticalAligner(settings, behavior)
+        vertical_aligner.run_aligner(root_node, already_processed)
 
-        already_processed = list()
-        for root_node in node_selection.root_nodes:
-            if settings.alignment_behavior == 0:
-                behavior = VerticalAlignFarthestInput()
-            elif settings.alignment_behavior == 1:
-                behavior = VerticalAlignMidPoint()
-            else:
-                behavior = VerticalAlignTopStack()
-
-            vertical_aligner = aligner_vertical.VerticalAligner(
-                settings, behavior
-            )
-            vertical_aligner.run_aligner(root_node, already_processed)
-
-        node: LayoutNode
-        for node in node_selection.nodes:
-            node.set_api_position()
+    node: LayoutNode
+    for node in node_selection.nodes:
+        node.set_api_position()
 
     api.log.info("Finished running layout graph")
 
 
 def on_clicked_layout_graph(api: APITool):
-    node_selection = LayoutNodeSelection(
-        api.current_selection, api.current_graph
-    )
-    run_layout(node_selection, api)
+    with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
+        api_nodes = bw_node_selection.remove_dot_nodes(
+            api.current_selection, api.current_graph
+        )
+        node_selection = LayoutNodeSelection(api_nodes, api.current_graph)
+
+        run_layout(node_selection, api)
 
 
 def on_graph_view_created(_, api: APITool):

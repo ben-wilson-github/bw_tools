@@ -62,7 +62,7 @@ class APITool:
 
     @property
     def current_selection(self) -> List[SDNode]:
-        return self.ui_mgr.getCurrentGraphSelection()
+        return self.ui_mgr.getCurrentGraphSelectedNodes()
 
     @property
     def current_graph(self) -> SDSBSCompGraph:

@@ -3,8 +3,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Tuple, TypeVar, Union
 
 import sd
-from bw_tools.common.bw_node import (InputConnectionData, Node,
-                                     OutputConnectionData)
+from bw_tools.common.bw_node import (
+    InputConnectionData,
+    Node,
+    OutputConnectionData,
+)
 
 SDNode = TypeVar("SDNode")
 SDArray = TypeVar("SDArray")
@@ -129,18 +132,23 @@ class NodeSelection(NodeGroupInterface):
                 node.add_output_connection_data(connection_data)
 
 
-def remove_dot_nodes(node_selection: NodeGroupInterface) -> bool:
+def remove_dot_nodes(
+    api_nodes: List[SDNode], api_graph: SDSBSCompGraph
+) -> List[SDNode]:
     """
     Removes all dot nodes in the selection
     """
-    for dot_node in node_selection.dot_nodes:
-        dot_node = dot_node.api_node
+    api_nodes = [n for n in api_nodes]
+    dot_nodes = list()
+    for api_node in api_nodes:
+        if api_node.getDefinition().getId() != "sbs::compositing::passthrough":
+            continue
 
         # Get property the connection comes from
-        dot_node_input_property = dot_node.getPropertyFromId(
+        dot_node_input_property = api_node.getPropertyFromId(
             "input", sd.api.sdproperty.SDPropertyCategory.Input
         )
-        dot_node_input_connection = dot_node.getPropertyConnections(
+        dot_node_input_connection = api_node.getPropertyConnections(
             dot_node_input_property
         )[0]
 
@@ -148,11 +156,11 @@ def remove_dot_nodes(node_selection: NodeGroupInterface) -> bool:
         output_node = dot_node_input_connection.getInputPropertyNode()
 
         # Get property the connection goes too
-        dot_node_output_property = dot_node.getPropertyFromId(
+        dot_node_output_property = api_node.getPropertyFromId(
             "unique_filter_output", sd.api.sdproperty.SDPropertyCategory.Output
         )
 
-        dot_node_output_connections = dot_node.getPropertyConnections(
+        dot_node_output_connections = api_node.getPropertyConnections(
             dot_node_output_property
         )
         for connection in dot_node_output_connections:
@@ -165,5 +173,8 @@ def remove_dot_nodes(node_selection: NodeGroupInterface) -> bool:
                 input_node_property.getId(),
             )
 
-        node_selection.api_graph.deleteNode(dot_node)
-    return True
+        api_graph.deleteNode(api_node)
+        dot_nodes.append(api_node)
+
+    api_nodes = [n for n in api_nodes if n not in dot_nodes]
+    return api_nodes

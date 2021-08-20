@@ -1,3 +1,4 @@
+from bw_tools.common import bw_node_selection
 import random
 import unittest
 import copy
@@ -43,6 +44,14 @@ class MyTestCase(unittest.TestCase):
 
         bw_layout_graph.run_layout(node_selection, self.api)
         self.assertTrue(True)
+
+    def test_removes_dot_nodes(self):
+        graph_name = "test_removes_dot_nodes"
+        print(f"...{graph_name}")
+        graph = self.package.findResourceFromUrl(graph_name)
+        api_nodes = bw_node_selection.remove_dot_nodes(graph.getNodes(), graph)
+        self.run_layout_test_on_graph(graph)
+
 
     def test_node_chain_1(self):
         graph_name = "test_node_chain_1"
@@ -253,6 +262,8 @@ class MyTestCase(unittest.TestCase):
         result = {}
         node: LayoutNode
         for node in node_selection.nodes:
+            if node.is_dot:
+                continue
             result[node.identifier] = copy.deepcopy(node.pos)
         return result
 
