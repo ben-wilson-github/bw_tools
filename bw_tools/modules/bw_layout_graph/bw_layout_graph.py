@@ -40,12 +40,8 @@ class LayoutSettings(ModuleSettings):
         self.alignment_behavior: int = self.get("Input Node Alignment;value")
 
 
-def run_layout(node_selection: LayoutNodeSelection, api: APITool):
+def run_layout(node_selection: LayoutNodeSelection, api: APITool, settings: LayoutSettings):
     api.log.info("Running layout Graph")
-
-    settings = LayoutSettings(
-        Path(__file__).parent / "bw_layout_graph_settings.json"
-    )
 
     node_sorter = node_sorting.NodeSorter(settings)
     for root_node in node_selection.root_nodes:
@@ -86,7 +82,10 @@ def on_clicked_layout_graph(api: APITool):
         )
         node_selection = LayoutNodeSelection(api_nodes, api.current_graph)
 
-        run_layout(node_selection, api)
+        settings = LayoutSettings(
+            Path(__file__).parent / "bw_layout_graph_settings.json"
+        )
+        run_layout(node_selection, api, settings)
 
 
 def on_graph_view_created(_, api: APITool):
