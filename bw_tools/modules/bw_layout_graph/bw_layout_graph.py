@@ -18,12 +18,13 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 
 
 # TODO: Unit tests for all the settings
-# TODO: Re add min chain length for mainline
 # TODO: settings['selectionCountWarning'] = 30
 # TODO: Move unit tests to debug menu
 # TODO: Move everything to top menu
 # TODO: do todos in other files
 # TODO: Run straighten connection after
+# TODO: default setting files
+# TODO: reframe to selection plugin
 
 
 class LayoutSettings(ModuleSettings):
@@ -34,13 +35,16 @@ class LayoutSettings(ModuleSettings):
         self.mainline_additional_offset: Union[int, float] = self.get(
             "Mainline Settings;value;Additional Offset;value"
         )
+        self.mainline_min_threshold: int = self.get("Mainline Settings;value;Minimum Threshold;value")
         self.mainline_enabled: bool = self.get(
             "Mainline Settings;value;Enable;value"
         )
         self.alignment_behavior: int = self.get("Input Node Alignment;value")
 
 
-def run_layout(node_selection: LayoutNodeSelection, api: APITool, settings: LayoutSettings):
+def run_layout(
+    node_selection: LayoutNodeSelection, api: APITool, settings: LayoutSettings
+):
     api.log.info("Running layout Graph")
 
     node_sorter = node_sorting.NodeSorter(settings)

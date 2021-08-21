@@ -52,6 +52,9 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
             current_dir
             / "resources"
             / "test_layout_graph_mainline_enabled_node_spacing_128.sbs",
+            current_dir
+            / "resources"
+            / "test_layout_graph_mainline_enabled_min_ml_threshold_0.sbs",
         ]
         tmp_file_paths = [
             current_dir
@@ -86,6 +89,10 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
             / "resources"
             / "tmp"
             / "__test_layout_graph_mainline_enabled_node_spacing_128.sbs",
+            current_dir
+            / "resources"
+            / "tmp"
+            / "__test_layout_graph_mainline_enabled_min_ml_threshold_0.sbs",
         ]
 
         s1 = Mock()
@@ -93,6 +100,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s1.hotkey = "C"
         s1.node_spacing = 32.0
         s1.mainline_additional_offset = 96.0
+        s1.mainline_min_threshold = 96
         s1.alignment_behavior = 0
 
         s2 = Mock()
@@ -100,6 +108,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s2.hotkey = "C"
         s2.node_spacing = 32.0
         s2.mainline_additional_offset = 96.0
+        s2.mainline_min_threshold = 96
         s2.alignment_behavior = 1
 
         s3 = Mock()
@@ -107,6 +116,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s3.hotkey = "C"
         s3.node_spacing = 32.0
         s3.mainline_additional_offset = 96.0
+        s3.mainline_min_threshold = 96
         s3.alignment_behavior = 2
 
         s4 = Mock()
@@ -114,6 +124,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s4.hotkey = "C"
         s4.node_spacing = 32.0
         s4.mainline_additional_offset = 96.0
+        s4.mainline_min_threshold = 96
         s4.alignment_behavior = 0
 
         s5 = Mock()
@@ -121,6 +132,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s5.hotkey = "C"
         s5.node_spacing = 32.0
         s5.mainline_additional_offset = 96.0
+        s5.mainline_min_threshold = 96
         s5.alignment_behavior = 1
 
         s6 = Mock()
@@ -128,6 +140,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s6.hotkey = "C"
         s6.node_spacing = 32.0
         s6.mainline_additional_offset = 96.0
+        s6.mainline_min_threshold = 96
         s6.alignment_behavior = 2
 
         s7 = Mock()
@@ -135,6 +148,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s7.hotkey = "C"
         s7.node_spacing = 32.0
         s7.mainline_additional_offset = 0.0
+        s7.mainline_min_threshold = 96
         s7.alignment_behavior = 0
 
         s8 = Mock()
@@ -142,9 +156,18 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s8.hotkey = "C"
         s8.node_spacing = 128.0
         s8.mainline_additional_offset = 96.0
+        s8.mainline_min_threshold = 96
         s8.alignment_behavior = 0
 
-        cls.settings = [s1, s2, s3, s4, s5, s6, s7, s8]
+        s9 = Mock()
+        s9.mainline_enabled = True
+        s9.hotkey = "C"
+        s9.node_spacing = 128.0
+        s9.mainline_additional_offset = 96.0
+        s9.mainline_min_threshold = 0
+        s9.alignment_behavior = 0
+
+        cls.settings = [s1, s2, s3, s4, s5, s6, s7, s8, s9]
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         cls.api = APITool()
@@ -431,6 +454,13 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         graph_name = "test_node_chain_25"
         self.run_layout_test_on_graph(
             self.packages[7].findResourceFromUrl(graph_name), self.settings[7]
+        )
+
+    def test_layout_graph_mainline_enabled_min_ml_threshold_0(self):
+        print("...test_layout_graph_mainline_enabled_min_ml_threshold_0")
+        graph_name = "test_node_chain_20"
+        self.run_layout_test_on_graph(
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def run_layout_test_on_graph(self, graph, settings):

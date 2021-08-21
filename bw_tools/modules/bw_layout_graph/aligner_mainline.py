@@ -97,7 +97,7 @@ class MainlineAligner:
         output node
         """
         mainline_node = self.find_mainline_node(branching_node)
-        if mainline_node.has_branching_outputs:  # These are handled in pass 2
+        if mainline_node is None or mainline_node.has_branching_outputs:  # These are handled in pass 2
             return
 
         inputs = [
@@ -176,10 +176,13 @@ class MainlineAligner:
             bw_chain_dimension.ChainDimension
         ] = self.get_chain_dimensions_for_inputs(node)
 
-        # # For pleasing visual, do not consider chains
-        # # which are very small.
-        # [cds.remove(cd) for cd in cds if cd.width <= MIN_CHAIN_SIZE and
-        # branching_node is not cd.right_node.farthest_output_nodes_in_x[0]]
+        # For pleasing visual, do not consider chains
+        # which are very small.
+        for cd in cds.copy():
+            if cd.width <= self.settings.mainline_min_threshold:
+                cds.remove(cd)
+        if len(cds) == 0:
+            return None
 
         min_cd = min(cds, key=attrgetter("bounds.left"))
 
@@ -262,7 +265,9 @@ class MainlineAligner:
 
         if node.has_branching_inputs:
             mainline_node = self.find_mainline_node(node)
-            inputs.append(inputs.pop(inputs.index(mainline_node)))
+            if mainline_node is not None:
+                # place mainline at the end of the list
+                inputs.append(inputs.pop(inputs.index(mainline_node)))
 
         for input_node in inputs:
             self.reposition_node(input_node)

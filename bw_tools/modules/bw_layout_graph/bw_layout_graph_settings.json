@@ -26,6 +26,10 @@
             "Additional Offset": {
                 "widget": 2,
                 "value": 96
+            },
+            "Minimum Threshold": {
+                "widget": 2,
+                "value": 96
             }
         }
     }
