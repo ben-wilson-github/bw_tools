@@ -1,10 +1,10 @@
 import copy
 import random
+import shutil
 import unittest
 from pathlib import Path
 from typing import Dict
 from unittest.mock import Mock
-import shutil
 
 import sd
 from bw_tools.common import bw_node_selection
@@ -213,200 +213,224 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         graph_name = "test_node_chain_1"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_2(self):
         graph_name = "test_node_chain_2"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_3(self):
         graph_name = "test_node_chain_3"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_4(self):
         graph_name = "test_node_chain_4"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_5(self):
         graph_name = "test_node_chain_5"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_6(self):
         graph_name = "test_node_chain_6"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_7(self):
         graph_name = "test_node_chain_7"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_8(self):
         graph_name = "test_node_chain_8"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_9(self):
         graph_name = "test_node_chain_9"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_10(self):
         graph_name = "test_node_chain_10"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_11(self):
         graph_name = "test_node_chain_11"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_12(self):
         graph_name = "test_node_chain_12"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_13(self):
         graph_name = "test_node_chain_13"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_14(self):
         graph_name = "test_node_chain_14"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_15(self):
         graph_name = "test_node_chain_15"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_16(self):
         graph_name = "test_node_chain_16"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_17(self):
         graph_name = "test_node_chain_17"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_18(self):
         graph_name = "test_node_chain_18"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_19(self):
         graph_name = "test_node_chain_19"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_20(self):
         graph_name = "test_node_chain_20"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_21(self):
         graph_name = "test_node_chain_21"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_22(self):
         graph_name = "test_node_chain_22"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_23(self):
         graph_name = "test_node_chain_23"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
     def test_node_chain_24(self):
         graph_name = "test_node_chain_24"
         print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
         )
 
-    def test_node_chain_25(self):
+    def test_node_chain_25_ml_on_align_ml(self):
+        print("...test_node_chain_25_ml_on_align_ml")
         graph_name = "test_node_chain_25"
-        print(f"...{graph_name}")
         self.run_layout_test_on_graph(
-            self.packages[0].findResourceFromUrl(graph_name),
-            self.settings[0]
+            self.packages[0].findResourceFromUrl(graph_name), self.settings[0]
+        )
+
+    def test_node_chain_25_ml_on_align_c(self):
+        print("...test_node_chain_25_ml_on_align_c")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[1].findResourceFromUrl(graph_name), self.settings[1]
+        )
+
+    def test_node_chain_25_ml_on_align_t(self):
+        print("...test_node_chain_25_ml_on_align_t")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[2].findResourceFromUrl(graph_name), self.settings[2]
+        )
+
+    def test_node_chain_25_ml_off_align_ml(self):
+        print("...test_node_chain_25_ml_off_align_ml")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[3].findResourceFromUrl(graph_name), self.settings[3]
+        )
+
+    def test_node_chain_25_ml_off_align_c(self):
+        print("...test_node_chain_25_ml_off_align_c")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[4].findResourceFromUrl(graph_name), self.settings[4]
+        )
+
+    def test_node_chain_25_ml_off_align_t(self):
+        print("...test_node_chain_25_ml_off_align_t")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[5].findResourceFromUrl(graph_name), self.settings[5]
+        )
+
+    def test_node_chain_25_ml_on_align_ml_no_additional_offset(self):
+        print("...test_node_chain_25_ml_on_align_ml_no_additional_offset")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[6].findResourceFromUrl(graph_name), self.settings[6]
+        )
+
+    def test_node_chain_25_ml_on_align_ml_node_spacing_128(self):
+        print("...test_node_chain_25_ml_on_align_ml_node_spacing_128")
+        graph_name = "test_node_chain_25"
+        self.run_layout_test_on_graph(
+            self.packages[7].findResourceFromUrl(graph_name), self.settings[7]
         )
 
     def run_layout_test_on_graph(self, graph, settings):
