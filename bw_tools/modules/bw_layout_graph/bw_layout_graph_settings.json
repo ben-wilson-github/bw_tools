@@ -3,10 +3,6 @@
         "widget": 1,
         "value": "C"
     },
-    "Node Spacing": {
-        "widget": 2,
-        "value": 32
-    },
     "Input Node Alignment": {
         "list": [
             "Mainline",
@@ -32,5 +28,13 @@
                 "value": 96
             }
         }
+    },
+    "Node Spacing": {
+        "widget": 2,
+        "value": 32
+    },
+    "Node Count Warning": {
+        "widget": 2,
+        "value": 80
     }
 }

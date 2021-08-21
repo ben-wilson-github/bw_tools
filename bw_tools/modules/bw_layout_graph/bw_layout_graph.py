@@ -6,7 +6,7 @@ import sd
 from bw_tools.common.bw_api_tool import APITool
 from bw_tools.common import bw_node_selection
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
-from PySide2 import QtGui
+from PySide2 import QtGui, QtWidgets
 
 from . import aligner_vertical, aligner_mainline, node_sorting
 from .alignment_behavior import (
@@ -25,6 +25,7 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 # TODO: Run straighten connection after
 # TODO: default setting files
 # TODO: reframe to selection plugin
+# TODO: Add visual indents to settings frame
 
 
 class LayoutSettings(ModuleSettings):
@@ -35,11 +36,14 @@ class LayoutSettings(ModuleSettings):
         self.mainline_additional_offset: Union[int, float] = self.get(
             "Mainline Settings;value;Additional Offset;value"
         )
-        self.mainline_min_threshold: int = self.get("Mainline Settings;value;Minimum Threshold;value")
+        self.mainline_min_threshold: int = self.get(
+            "Mainline Settings;value;Minimum Threshold;value"
+        )
         self.mainline_enabled: bool = self.get(
             "Mainline Settings;value;Enable;value"
         )
         self.alignment_behavior: int = self.get("Input Node Alignment;value")
+        self.node_count_warning: int = self.get("Node Count Warning;value")
 
 
 def run_layout(
@@ -89,6 +93,17 @@ def on_clicked_layout_graph(api: APITool):
         settings = LayoutSettings(
             Path(__file__).parent / "bw_layout_graph_settings.json"
         )
+        if node_selection.node_count >= settings.node_count_warning:
+            ret = QtWidgets.QMessageBox.question(
+                None,
+                "",
+                "Running Layout Graph on a large selection could take a while, are you sure you want to continue",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            )
+
+            if ret == QtWidgets.QMessageBox.No:
+                return
+
         run_layout(node_selection, api, settings)
 
 
