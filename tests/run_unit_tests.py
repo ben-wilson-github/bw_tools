@@ -1,7 +1,4 @@
-import importlib
 import unittest
-
-import sd
 
 from tests import (
     test_chain_dimension,

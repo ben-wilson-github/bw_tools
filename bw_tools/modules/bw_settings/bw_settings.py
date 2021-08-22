@@ -1,4 +1,3 @@
-import importlib
 import json
 import operator
 from dataclasses import dataclass
@@ -8,8 +7,6 @@ from typing import Any, Dict, List
 
 from bw_tools.modules.bw_settings import bw_settings_dialog
 from tests import reload_modules, run_unit_tests
-
-importlib.reload(bw_settings_dialog)
 
 
 @dataclass

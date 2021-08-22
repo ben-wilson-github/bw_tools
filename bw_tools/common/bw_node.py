@@ -195,48 +195,6 @@ class Node:
         self.pos.y = y
         self.api_node.setPosition(sd.api.sdbasetypes.float2(x, y))
 
-    def y_position_of_property(self, source_property: SDProperty) -> float:
-        if (
-            source_property.getCategory()
-            == sd.api.sdproperty.SDPropertyCategory.Input
-        ):
-            relevant_properties = self.input_connectable_properties
-        elif (
-            source_property.getCategory()
-            == sd.api.sdproperty.SDPropertyCategory.Output
-        ):
-            relevant_properties = self.output_connectable_properties
-        else:
-            raise ValueError(
-                f"Unable to get height of property {source_property}. It must "
-                "be an Input or Output category property."
-            )
-
-        index = None
-        for i, p in enumerate(relevant_properties):
-            if source_property.getId() == p.getId():
-                index = i
-                break
-        if index is None:
-            raise ValueError(
-                f"Unable to get height of property {source_property}. "
-                "It does not belong to this node."
-            )
-
-        if len(relevant_properties) < 2:
-            return self.pos.y
-        elif len(relevant_properties) == 2:
-            if index == 0:
-                offset = -10.75
-            else:
-                offset = 10.75
-            return self.pos.y + offset
-        else:
-            inner_area = (
-                (len(relevant_properties) - 1) * self.display_slot_stride
-            ) / 2
-            return (self.pos.y - inner_area) + self.display_slot_stride * index
-
     def add_comment(self, msg: str):
         comment = sd.api.sdgraphobjectcomment.SDGraphObjectComment.sNewAsChild(
             self.api_node
