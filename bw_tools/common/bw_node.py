@@ -9,12 +9,6 @@ SDSBSCompNode = TypeVar("SDSBSCompNode")
 SDProperty = TypeVar("SDProperty")
 SDSBSCompGraph = TypeVar("SDSBSCompGraph")
 
-# TODO: Move this to settings
-SPACER = 32
-# Pixel values about the UI
-NODE_BOADER_WIDTH = 26.75
-NODE_SLOT_STRIDE = 21.25
-
 
 @dataclass
 class Float2:
