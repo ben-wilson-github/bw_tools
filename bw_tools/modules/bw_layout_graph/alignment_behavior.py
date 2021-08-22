@@ -8,8 +8,7 @@ from bw_tools.common.bw_node import Float2
 
 if TYPE_CHECKING:
     from .layout_node import LayoutNode
-
-SPACER = 32
+    from .bw_layout_graph import LayoutSettings
 
 
 @dataclass
@@ -45,6 +44,8 @@ class StaticAlignment(NodeAlignmentBehavior):
 
 @dataclass
 class PostAlignmentBehavior(ABC):
+    settings: LayoutSettings
+
     @abstractmethod
     def exec(self, node: LayoutNode):
         pass
@@ -74,7 +75,7 @@ class VerticalAlignMidPoint(PostAlignmentBehavior):
                 input_node.alignment_behavior.exec()
                 # Remove the node that would have been there
                 # for all input_nodes after this
-                offset -= input_node.height + SPACER
+                offset -= input_node.height + self.settings.node_spacing
             else:
                 input_node.alignment_behavior.offset_node = node
                 input_node.alignment_behavior.update_offset(
@@ -97,7 +98,7 @@ class VerticalAlignFarthestInput(PostAlignmentBehavior):
                 farthest.append(input_node)
 
         if len(farthest) > 1:
-            mid_point_align = VerticalAlignMidPoint()
+            mid_point_align = VerticalAlignMidPoint(self.settings)
             mid_point_align.exec(node)
             return
 
@@ -109,7 +110,7 @@ class VerticalAlignFarthestInput(PostAlignmentBehavior):
             if node is not input_node.alignment_behavior.offset_node:
                 # Same as resetting its position
                 input_node.alignment_behavior.exec()
-                offset -= input_node.height + SPACER
+                offset -= input_node.height + self.settings.node_spacing
             else:
                 input_node.alignment_behavior.offset_node = node
                 input_node.alignment_behavior.update_offset(

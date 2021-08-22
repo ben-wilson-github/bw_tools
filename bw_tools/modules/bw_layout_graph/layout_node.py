@@ -6,8 +6,6 @@ from bw_tools.common.bw_node_selection import Node, NodeSelection
 
 from .alignment_behavior import NodeAlignmentBehavior
 
-SPACER = 32
-
 
 @dataclass
 class LayoutNode(Node):

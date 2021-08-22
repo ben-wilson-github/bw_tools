@@ -97,7 +97,8 @@ class MainlineAligner:
         output node
         """
         mainline_node = self.find_mainline_node(branching_node)
-        if mainline_node is None or mainline_node.has_branching_outputs:  # These are handled in pass 2
+        if mainline_node is None or mainline_node.has_branching_outputs:
+            # These are handled in pass 2
             return
 
         inputs = [
@@ -189,9 +190,7 @@ class MainlineAligner:
         chains_of_same_size = [
             cd for cd in cds if cd.bounds.left == min_cd.bounds.left
         ]
-        # TODO: turn into setting maybe between min and max? Bias small or
-        # large
-        # networks
+
         mainline_chain = min(chains_of_same_size, key=attrgetter("node_count"))
 
         return mainline_chain.right_node

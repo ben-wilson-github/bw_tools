@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from .bw_layout_graph import LayoutSettings
-
 from .alignment_behavior import StaticAlignment
 from .layout_node import LayoutNode
+
+if TYPE_CHECKING:
+    from .bw_layout_graph import LayoutSettings
 
 
 @dataclass

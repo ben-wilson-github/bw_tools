@@ -18,7 +18,6 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 
 
 # TODO: Unit tests for all the settings
-# TODO: do todos in other files
 # TODO: Run straighten connection after
 # TODO: default setting files
 # TODO: reframe to selection plugin
@@ -65,11 +64,11 @@ def run_layout(
     already_processed = list()
     for root_node in node_selection.root_nodes:
         if settings.alignment_behavior == 0:
-            behavior = VerticalAlignFarthestInput()
+            behavior = VerticalAlignFarthestInput(settings)
         elif settings.alignment_behavior == 1:
-            behavior = VerticalAlignMidPoint()
+            behavior = VerticalAlignMidPoint(settings)
         else:
-            behavior = VerticalAlignTopStack()
+            behavior = VerticalAlignTopStack(settings)
 
         vertical_aligner = aligner_vertical.VerticalAligner(settings, behavior)
         vertical_aligner.run_aligner(root_node, already_processed)
@@ -92,10 +91,14 @@ def on_clicked_layout_graph(api: APITool):
             Path(__file__).parent / "bw_layout_graph_settings.json"
         )
         if node_selection.node_count >= settings.node_count_warning:
+            msg = (
+                "Running Layout Graph on a large selection could take a while,"
+                " are you sure you want to continue"
+            )
             ret = QtWidgets.QMessageBox.question(
                 None,
                 "",
-                "Running Layout Graph on a large selection could take a while, are you sure you want to continue",
+                msg,
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
             )
 

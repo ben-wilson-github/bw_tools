@@ -1,16 +1,13 @@
 import importlib
 import json
 import operator
-import os
 from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import Any, Dict, List
-import unittest
 
 from bw_tools.modules.bw_settings import bw_settings_dialog
-from tests import run_unit_tests, reload_modules
-from PySide2 import QtGui
+from tests import reload_modules, run_unit_tests
 
 importlib.reload(bw_settings_dialog)
 
