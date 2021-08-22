@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, List, Tuple, TypeVar, Union
+from typing import Dict, List, Tuple, TypeVar, Union
 
 import sd
 from bw_tools.common.bw_node import (

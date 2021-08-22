@@ -1,10 +1,10 @@
 import importlib
 
 from bw_tools.common import (
+    bw_api_tool,
     bw_chain_dimension,
     bw_node,
     bw_node_selection,
-    bw_api_tool,
 )
 from bw_tools.modules.bw_layout_graph import (
     aligner_mainline,
@@ -20,6 +20,12 @@ from bw_tools.modules.bw_settings import (
     bw_settings_model,
 )
 
+from tests import (
+    run_unit_tests,
+    test_layout_graph,
+    test_node_selection,
+    test_node,
+)
 
 modules = [
     bw_settings,
@@ -35,6 +41,10 @@ modules = [
     layout_node,
     aligner_mainline,
     bw_api_tool,
+    run_unit_tests,
+    test_layout_graph,
+    test_node_selection,
+    test_node,
 ]
 
 
