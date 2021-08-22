@@ -1,25 +1,8 @@
-import os
 import unittest
-import importlib
-from dataclasses import dataclass
 from pathlib import Path
 
-from bw_tools.common import bw_node, bw_node_selection
-
 import sd
-
-
-@dataclass()
-class NodeResults:
-    label: str
-    has_label: True
-    identifier: int
-    position_x: float
-    position_y: float
-    input_slot_count: int
-    output_slot_count: int
-    inputs_connected: int
-    outputs_connected: int
+from bw_tools.common import bw_node, bw_node_selection
 
 
 class TestNodePosition(unittest.TestCase):
@@ -249,241 +232,74 @@ class TestNode(unittest.TestCase):
         output_node = ns.node(1421698928)
         self.assertFalse(output_node.has_input_nodes_connected)
 
+    def test_is_dot(self):
+        graph_name = "test_is_dot"
+        print(f"...{graph_name}")
+        graph = self.package.findResourceFromUrl(graph_name)
 
-#     def test_atomic_uniform_node(self):
-#         graph = self.test_package.findResourceFromUrl("test_node_properties")
-#         node_selection = bw_node_selection.NodeSelection(
-#             graph.getNodes(), graph
-#         )
-#         node = node_selection.node(1408227612)
+        node = bw_node.Node(graph.getNodeFromId("1421710269"))
+        dot = bw_node.Node(graph.getNodeFromId("1421710175"))
+        self.assertFalse(node.is_dot)
+        self.assertTrue(dot.is_dot)
 
-#         # label
-#         self.assertEqual("Uniform Color", node.label)
-#         self.assertTrue(node.has_label)
+    def test_is_root(self):
+        graph_name = "test_is_root"
+        print(f"...{graph_name}")
+        graph = self.package.findResourceFromUrl(graph_name)
 
-#         # Identifier
-#         self.assertEqual("1408227612", str(node.identifier))
-#         self.assertIsInstance(node.identifier, int)
+        ns = bw_node_selection.NodeSelection(
+            [
+                graph.getNodeFromId("1421710601"),
+                graph.getNodeFromId("1421710269"),
+            ],
+            graph,
+        )
+        self.assertFalse(ns.node(1421710269).is_root)
+        self.assertTrue(ns.node(1421710601).is_root)
 
-#         # Position
-#         self.assertEqual(-80, node.pos.x)
-#         self.assertEqual(-48, node.pos.y)
+    def test_has_branching_outputs(self):
+        graph_name = "test_has_branching_outputs"
+        print(f"...{graph_name}")
+        graph = self.package.findResourceFromUrl(graph_name)
 
-#         # Width
-#         # Height
+        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        self.assertTrue(ns.node(1421710269).has_branching_outputs)
 
-#     def test_input_nodes(self):
-#         graph = self.test_package.findResourceFromUrl("test_input_nodes")
-#         node_selection = bw_node_selection.NodeSelection(
-#             graph.getNodes(), graph
-#         )
+        api_input_node = graph.getNodeFromId("1421710269")
+        api_output_node = graph.getNodeFromId("1421710601")
+        ns = bw_node_selection.NodeSelection(
+            [api_input_node, api_output_node], graph
+        )
+        self.assertFalse(ns.node(1421710269).has_branching_outputs)
 
-#         node = node_selection.node(1408223740)
-#         self.assertEqual(0, node.input_node_count)
-#         self.assertEqual((), node.input_nodes)
-#         self.assertIsNone(node.input_node_in_index(0))
+    def test_has_branching_inputs(self):
+        graph_name = "test_has_branching_inputs"
+        print(f"...{graph_name}")
+        graph = self.package.findResourceFromUrl(graph_name)
 
-#         node = node_selection.node(1408230178)
-#         result = (node_selection.node(1408223752),)
-#         self.assertEqual(1, node.input_node_count)
-#         self.assertEqual(result, node.input_nodes)
-#         self.assertEqual(result[0], node.input_node_in_index(0))
+        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        self.assertTrue(ns.node(1421710941).has_branching_inputs)
 
-#         node = node_selection.node(1408223766)
-#         result = (
-#             node_selection.node(1408223772),
-#             node_selection.node(1408223782),
-#             node_selection.node(1408223877),
-#         )
-#         self.assertEqual(3, node.input_node_count)
-#         self.assertEqual(result, node.input_nodes)
-#         self.assertEqual(result[0], node.input_node_in_index(0))
-#         self.assertEqual(result[1], node.input_node_in_index(1))
-#         self.assertEqual(result[2], node.input_node_in_index(2))
+        api_input_node = graph.getNodeFromId("1421710601")
+        api_output_node = graph.getNodeFromId("1421710941")
+        ns = bw_node_selection.NodeSelection(
+            [api_input_node, api_output_node], graph
+        )
+        self.assertFalse(ns.node(1421710941).has_branching_inputs)
 
-#         node = node_selection.node(1408223917)
-#         result = (
-#             None,
-#             node_selection.node(1408223970),
-#             node_selection.node(1408223970),
-#             None,
-#             None,
-#             node_selection.node(1408223970),
-#             node_selection.node(1408223970),
-#             None,
-#             None,
-#             None,
-#         )
-#         self.assertEqual(1, node.input_node_count)
-#         self.assertEqual((node_selection.node(1408223970),), node.input_nodes)
-#         for i in range(len(result)):
-#             self.assertEqual(result[i], node.input_node_in_index(i))
+    def test_set_position(self):
+        graph_name = "test_set_position"
+        print(f"...{graph_name}")
+        graph = self.package.findResourceFromUrl(graph_name)
 
-#         node_selection = bw_node_selection.NodeSelection(
-#             [
-#                 graph.getNodeFromId("1408224069"),
-#                 graph.getNodeFromId("1408224068"),
-#                 graph.getNodeFromId("1408230210"),
-#             ],
-#             graph,
-#         )
-#         node = node_selection.node(1408230210)
-#         self.assertEqual(node.input_node_count, 2)
-#         self.assertEqual(
-#             node.input_nodes,
-#             (node_selection.node(1408224069), node_selection.node(1408224068)),
-#         )
-#         self.assertEqual(
-#             node_selection.node(1408224069), node.input_node_in_index(0)
-#         )
-#         self.assertEqual(
-#             node_selection.node(1408224068), node.input_node_in_index(1)
-#         )
-#         self.assertIsNone(node.input_node_in_index(2))
+        api_node = graph.getNodes()[0]
+        api_node.setPosition(sd.api.sdbasetypes.float2(100, 100))
 
-#     def test_output_nodes(self):
-#         graph = self.test_package.findResourceFromUrl("test_output_nodes")
+        node = bw_node.Node(api_node)
+        node.set_position(0, 0)
 
-#         node_selection = bw_node_selection.NodeSelection(
-#             graph.getNodes(), graph
-#         )
-
-#         node = node_selection.node(1407968709)
-#         self.assertEqual(0, node.output_node_count)
-#         self.assertEqual((), node.output_nodes)
-
-#         node = node_selection.node(1408229620)
-#         self.assertEqual(1, node.output_node_count)
-#         self.assertEqual((node_selection.node(1407968625),), node.output_nodes)
-#         self.assertEqual(1, node.output_node_count_in_index(0))
-#         self.assertEqual(
-#             (node_selection.node(1407968625),), node.output_nodes_in_index(0)
-#         )
-
-#         node = node_selection.node(1408121486)
-#         self.assertEqual(2, node.output_node_count)
-#         self.assertEqual(
-#             (
-#                 node_selection.node(1408112819),
-#                 node_selection.node(1408112837),
-#             ),
-#             node.output_nodes,
-#         )
-#         self.assertEqual((), node.output_nodes_in_index(0))
-#         self.assertEqual(
-#             (node_selection.node(1408112819),), node.output_nodes_in_index(1)
-#         )
-#         self.assertEqual(
-#             (node_selection.node(1408112819),), node.output_nodes_in_index(2)
-#         )
-#         self.assertEqual((), node.output_nodes_in_index(3))
-#         self.assertEqual((), node.output_nodes_in_index(4))
-#         self.assertEqual((), node.output_nodes_in_index(5))
-#         self.assertEqual(
-#             (node_selection.node(1408112837),), node.output_nodes_in_index(6)
-#         )
-#         self.assertEqual((), node.output_nodes_in_index(7))
-#         self.assertEqual(
-#             (node_selection.node(1408112819),), node.output_nodes_in_index(8)
-#         )
-
-#         # Test only return nodes in selection
-#         node_selection = bw_node_selection.NodeSelection(
-#             [
-#                 graph.getNodeFromId("1408230085"),
-#                 graph.getNodeFromId("1407968718"),
-#                 graph.getNodeFromId("1407968725"),
-#             ],
-#             graph,
-#         )
-#         node = node_selection.node(1408230085)
-#         self.assertEqual(2, node.output_node_count)
-#         self.assertEqual(
-#             (
-#                 node_selection.node(1407968718),
-#                 node_selection.node(1407968725),
-#             ),
-#             node.output_nodes,
-#         )
-
-#     def test_center_index(self):
-#         graph = self.test_package.findResourceFromUrl("test_center_index")
-#         node_selection = bw_node_selection.NodeSelection(
-#             graph.getNodes(), graph
-#         )
-
-#         self.assertEqual(0, node_selection.node(1408291940).center_input_index)
-#         self.assertEqual(
-#             0.5, node_selection.node(1408291961).center_input_index
-#         )
-#         self.assertEqual(1, node_selection.node(1408291946).center_input_index)
-#         self.assertEqual(
-#             1.5, node_selection.node(1408291971).center_input_index
-#         )
-#         self.assertEqual(2, node_selection.node(1408291992).center_input_index)
-
-#     def test_node_connects_to_center(self):
-#         graph = self.test_package.findResourceFromUrl(
-#             "test_node_connects_to_center"
-#         )
-#         ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
-
-#         self.assertFalse(
-#             ns.node(1408299540).connects_to_center(ns.node(1408299544))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299553).connects_to_center(ns.node(1408299552))
-#         )
-#         self.assertFalse(
-#             ns.node(1408299563).connects_to_center(ns.node(1408299562))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299575).connects_to_center(ns.node(1408299574))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299584).connects_to_center(ns.node(1408299585))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299594).connects_to_center(ns.node(1408299595))
-#         )
-
-#         self.assertTrue(
-#             ns.node(1408299540).connects_above_center(ns.node(1408299544))
-#         )
-#         self.assertFalse(
-#             ns.node(1408299553).connects_above_center(ns.node(1408299552))
-#         )
-#         self.assertFalse(
-#             ns.node(1408299563).connects_above_center(ns.node(1408299562))
-#         )
-#         self.assertFalse(
-#             ns.node(1408299575).connects_above_center(ns.node(1408299574))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299584).connects_above_center(ns.node(1408299585))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299594).connects_above_center(ns.node(1408299595))
-#         )
-
-#         self.assertFalse(
-#             ns.node(1408299540).connects_below_center(ns.node(1408299544))
-#         )
-#         self.assertFalse(
-#             ns.node(1408299553).connects_below_center(ns.node(1408299552))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299563).connects_below_center(ns.node(1408299562))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299575).connects_below_center(ns.node(1408299574))
-#         )
-#         self.assertFalse(
-#             ns.node(1408299584).connects_below_center(ns.node(1408299585))
-#         )
-#         self.assertTrue(
-#             ns.node(1408299594).connects_below_center(ns.node(1408299595))
-#         )
+        self.assertEqual(api_node.getPosition().x, node.pos.x)
+        self.assertEqual(api_node.getPosition().y, node.pos.y)
 
 
 if __name__ == "__main__":
