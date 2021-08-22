@@ -25,6 +25,7 @@ from tests import (
     test_layout_graph,
     test_node_selection,
     test_node,
+    test_chain_dimension,
 )
 
 modules = [
@@ -45,6 +46,7 @@ modules = [
     test_layout_graph,
     test_node_selection,
     test_node,
+    test_chain_dimension,
 ]
 
 

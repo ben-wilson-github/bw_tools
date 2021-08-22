@@ -71,10 +71,28 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
 
 
 def calculate_chain_dimension(
-    node: bw_node.Node, chain: List[bw_node.Node], limit_bounds: Bound = Bound
+    node: bw_node.Node,
+    selection: List[bw_node.Node],
+    limit_bounds: Bound = Bound,
 ) -> ChainDimension:
+    """
+    Caluclates the bounds of the input chain of a node, given a list of nodes
+    in a selection.
 
-    if node not in chain:
+    The bounds are calculated by recursively running down the inputs of the
+    node. Any input nodes which are not in the selection are ignored.
+    If the given node is not in the selection, raise NotInChainError.
+
+    Optionally, a checking bound can be supplied to further limit the
+    calculation. If an input not is not within the bound, raise
+    OutOfBoundsError.
+
+    Selectively controlling which nodes you pass into selection, means you can
+    dynamically adjust and define bound calculations. For example, you may wish
+    to exclude branching input nodes or simply supply the entire node chain.
+    """
+
+    if node not in selection:
         raise NotInChainError()
     if not node_in_bounds(node, limit_bounds):
         raise OutOfBoundsError()
@@ -95,12 +113,12 @@ def calculate_chain_dimension(
     cd.node_count = 1
 
     for input_node in node.input_nodes:
-        if input_node not in chain:
+        if input_node not in selection:
             continue
         else:
             if node_in_bounds(input_node, limit_bounds):
                 input_cd = calculate_chain_dimension(
-                    input_node, chain, limit_bounds=limit_bounds
+                    input_node, selection, limit_bounds=limit_bounds
                 )
 
                 cd.node_count += input_cd.node_count
