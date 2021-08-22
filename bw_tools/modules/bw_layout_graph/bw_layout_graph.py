@@ -18,14 +18,12 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 
 
 # TODO: Unit tests for all the settings
-# TODO: settings['selectionCountWarning'] = 30
-# TODO: Move unit tests to debug menu
-# TODO: Move everything to top menu
 # TODO: do todos in other files
 # TODO: Run straighten connection after
 # TODO: default setting files
 # TODO: reframe to selection plugin
 # TODO: Add visual indents to settings frame
+# TODO: Add sub comments to settings (requires restart)
 
 
 class LayoutSettings(ModuleSettings):

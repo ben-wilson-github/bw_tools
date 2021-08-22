@@ -53,10 +53,13 @@ class APITool:
         )
         self.main_window: QtWidgets.QMainWindow = self.ui_mgr.getMainWindow()
         self.loaded_modules: List[TYPE_MODULES] = []
-        self.toolbar: bw_toolbar.BWToolbar = None
         self.graph_view_toolbar: bw_toolbar.BWToolbar = None
-        self.debug: bool = True
+        self.menu = None
         self.callback_ids: List[int] = []
+        self.debug: bool = True
+
+        self._menu_object_name = "bw_tools_menu_obj"
+        self._menu_label = " BW Tools"
 
         self.logger.info(f"{self.__class__.__name__} initialized.")
 
@@ -103,11 +106,14 @@ class APITool:
         module.on_unload()
         self.loaded_modules.remove(module.__name__)
 
-    def add_top_toolbar(self) -> bool:
-        self.logger.info("Creating top toolbar")
-        self.toolbar = bw_toolbar.BWToolbar(self.main_window)
-        self.main_window.addToolBar(QtCore.Qt.TopToolBarArea, self.toolbar)
-        return True
+    def add_menu(self):
+        self.logger.debug("Creating menu")
+        self.menu = self.ui_mgr.newMenu(
+            self._menu_label, self._menu_object_name
+        )
+
+    def remove_menu(self):
+        self.ui_mgr.deleteMenu(self._menu_object_name)
 
     def add_toolbar_to_graph_view(self) -> bool:
         self.logger.info("Registering on graph view created callback")
@@ -120,22 +126,10 @@ class APITool:
         for callback in self.callback_ids:
             self.ui_mgr.unregisterCallback(callback)
 
-    def remove_toolbars(self):
-        for toolbar in self._find_all_toolbars():
-            toolbar.deleteLater()
-
     def register_on_graph_view_created_callback(self, func):
         self.callback_ids.append(
             self.ui_mgr.registerGraphViewCreatedCallback(func)
         )
-
-    def _find_all_toolbars(self) -> List[bw_toolbar.BWToolbar]:
-        ret = []
-        toolbars = self.main_window.findChildren(QtWidgets.QToolBar)
-        for toolbar in toolbars:
-            if toolbar.__class__.__name__ == self.toolbar.uid:
-                ret.append(toolbar)
-        return ret
 
     def _create_graph_view_toolbar(self, graph_view_id):
         toolbar = bw_toolbar.BWToolbar()

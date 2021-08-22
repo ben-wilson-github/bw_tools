@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import Any, Dict, List
+import unittest
 
 from bw_tools.modules.bw_settings import bw_settings_dialog
+from tests import run_unit_tests, reload_modules
 from PySide2 import QtGui
 
 importlib.reload(bw_settings_dialog)
@@ -48,22 +50,29 @@ class ModuleSettings:
             return ret
 
 
-def on_initialize(api):
-    resource_dir = os.path.normpath(
-        f"{os.path.dirname(__file__)}\\.\\resources"
-    )
-    icon_path = os.path.join(resource_dir, "settings_icon.png")
+class Settings(ModuleSettings):
+    def __init__(self, file_path: Path):
+        super().__init__(file_path)
+        self.dev_mode: bool = self.get("Dev Mode;value")
 
-    if api.debug:
-        api.logger.debug("Adding settings action to toolbar.")
-    settings_action = api.toolbar.addAction(QtGui.QIcon(icon_path), "")
+
+def on_initialize(api):
+    settings_action = api.menu.addAction("Settings...")
     settings_action.setToolTip("BW Tools Settings")
     settings_action.triggered.connect(lambda: on_clicked_settings(api))
 
+    settings = Settings(Path(__file__).parent / "bw_settings_settings.json")
+    if settings.dev_mode:
+        api.menu.addSeparator()
+        unit_test_action = api.menu.addAction("Run unit tests...")
+        unit_test_action.triggered.connect(lambda: run_unit_tests.run())
+
+        reload_modules_action = api.menu.addAction("Reload modules...")
+        reload_modules_action.triggered.connect(
+            lambda: reload_modules.reload_modules()
+        )
+
 
 def on_clicked_settings(api):
-    if api.debug:
-        api.logger.debug("Opened settings dialog window.")
-
     dialog = bw_settings_dialog.SettingsDialog(api)
     dialog.show()

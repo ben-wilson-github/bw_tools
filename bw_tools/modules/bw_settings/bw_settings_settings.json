@@ -1,53 +1,6 @@
 {
-    "First Group": {
-        "widget": 0,
-        "value": {
-            "Line Edit Name": {
-                "widget": 1,
-                "value": "some text"
-            },
-            "Nested First Group": {
-                "widget": 0,
-                "value": {
-                    "Spin box name": {
-                        "widget": 2,
-                        "value": 1
-                    },
-                    "Spin box name 2": {
-                        "widget": 2,
-                        "value": 3
-                    }
-                }
-            },
-            "Line edit after nested group box": {
-                "widget": 1,
-                "value": "value"
-            }
-        }
-    },
-    "Combo Box Widget": {
-        "list": [
-            "elem 1",
-            "elem 2",
-            "elem 3"
-        ],
-        "widget": 4,
-        "value": 0
-    },
-    "Floats": {
-        "widget": 2,
-        "value": 1.2
-    },
-    "Ints": {
-        "widget": 2,
-        "value": 1
-    },
-    "Bools": {
+    "Dev Mode": {
         "widget": 3,
-        "value": false
-    },
-    "Line Edit Name 2": {
-        "widget": 1,
-        "value": "some text"
+        "value": true
     }
 }
