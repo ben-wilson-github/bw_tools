@@ -233,8 +233,8 @@ def on_clicked_straighten_connection(api: APITool):
         api.logger.info("Running straighten connection")
 
         for node in api.current_selection:
-            node = StraightenNode(node)
-            node.delete_output_dot_nodes(api.current_graph)
+            node = StraightenNode(node, api.current_graph)
+            node.delete_output_dot_nodes()
             run_straighten_connection(
                 node, NextToOutput(api.current_graph), api
             )

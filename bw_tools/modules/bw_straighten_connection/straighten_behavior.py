@@ -4,36 +4,40 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TypeVar, TYPE_CHECKING
 import sd
+
 if TYPE_CHECKING:
     from .straighten_node import StraightenNode
 
+DISTANCE = 96
+STRIDE = 10.4
 
 @dataclass
 class AbstractStraightenBehavior(ABC):
     graph: None
 
     @abstractmethod
-    def straighten_connection_for_property(
-        self, input_node, prop
+    def position_first_dot(
+        self,
+        dot_node: StraightenNode,
+        source_node: StraightenNode,
+        target_node: StraightenNode,
+        index: int
     ):
         pass
-
-    def insert_dot_node(
-        self, source_node, target_node
-    ):
-        dot_node = self.graph.newNode("sbs::compositing::passthrough")
-
-        x = (source_node.pos.x + target_node.pos.x) / 2
-        y = (source_node.pos.y + target_node.pos.y) / 2
-        dot_node.setPosition(sd.api.sdbasetypes.float2(x, y))
-        return dot_node
 
 
 class NextToOutput(AbstractStraightenBehavior):
-    def straighten_connection_for_property(
-        self, input_node, prop
+    def position_first_dot(
+        self,
+        dot_node: StraightenNode,
+        source_node: StraightenNode,
+        target_node: StraightenNode,
+        index: int
     ):
-        pass
+        dot_node.set_position(
+            source_node.pos.x + DISTANCE,
+            source_node.pos.y + (STRIDE * (index + 1))
+        )
 
 
 class NextToInput(AbstractStraightenBehavior):

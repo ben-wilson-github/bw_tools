@@ -1,7 +1,8 @@
 from __future__ import annotations
+from bw_tools.common.bw_api_tool import SDSBSCompGraph
 
 from dataclasses import dataclass, field
-from bw_tools.common.bw_node import Node
+from bw_tools.common.bw_node import Node, SDProperty, SDConnection
 from typing import TYPE_CHECKING, TypeVar
 
 import sd
@@ -10,6 +11,8 @@ if TYPE_CHECKING:
     from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
         AbstractStraightenBehavior,
     )
+
+# TODO: MOVE Type vars to api tool
 
 
 @dataclass
@@ -23,6 +26,8 @@ class ConnectionData:
 
 @dataclass
 class StraightenNode(Node):
+    graph: SDSBSCompGraph
+
     def y_position_of_property(self, source_property) -> float:
         if (
             source_property.getCategory()
@@ -80,18 +85,24 @@ class StraightenNode(Node):
     #     # aChild._parents.remove(aNodeToDelete)
     #     aChild._parents = None # Reset the parents to force the api to recompute them
 
-    def delete_output_dot_nodes(self, graph):
+    def delete_output_dot_nodes(self):
         for prop in self.output_connectable_properties:
             for con in self.api_node.getPropertyConnections(prop):
-                dot_node = StraightenNode(con.getInputPropertyNode())
+                dot_node = StraightenNode(
+                    con.getInputPropertyNode(), self.graph
+                )
                 if not dot_node.is_dot:
                     continue
 
-                dot_node.delete_output_dot_nodes(graph)
-                self._rebuild_dot_connection(dot_node, con.getOutputProperty())
-                graph.deleteNode(dot_node.api_node)
+                dot_node.delete_output_dot_nodes()
+                self._rebuild_deleted_dot_connection(
+                    dot_node, con.getOutputProperty()
+                )
+                self.graph.deleteNode(dot_node.api_node)
 
-    def straighten_connection_for_property(self, api_property, behavior):
+    def straighten_connection_for_property(
+        self, api_property, behavior: AbstractStraightenBehavior
+    ):
         output_connections = (
             self._get_connected_output_connections_for_property(api_property)
         )
@@ -100,15 +111,76 @@ class StraightenNode(Node):
         )
 
         source_node = self
-        for output_connection in output_connections:
-            target_node = StraightenNode(
-                output_connection.getInputPropertyNode()
-            )
-            source_node = StraightenNode(
-                behavior.insert_dot_node(source_node, target_node)
-            )
+        first = True
+        for i, output_connection in enumerate(output_connections):
+            if first:
+                dot_node, target_node = self._insert_dot_node(
+                    source_node, output_connection
+                )
+                behavior.position_first_dot(dot_node, source_node, target_node, i)
 
-    def _rebuild_dot_connection(
+            dot_node, target_node = self._insert_dot_node(
+                source_node, output_connection
+            )
+        
+            FIGURE OUT POSITON LOGIC FOR PINS.
+            Need to return custom class from get connections because I need to stack the inputs and each connection might
+            be from the same output index. needs to include SDConnection and index its from
+            return
+
+            # behavior.position_dot(dot_node, source_node, target_node)
+
+    def _insert_dot_node(
+        self, source_node: StraightenNode, connection: SDConnection
+    ):
+        target_node = StraightenNode(
+            connection.getInputPropertyNode(), self.graph
+        )
+        dot_node = StraightenNode(
+            self.graph.newNode("sbs::compositing::passthrough"), self.graph
+        )
+
+        self._connect_node(source_node, dot_node, connection)
+        self._connect_node(dot_node, target_node, connection)
+
+        return dot_node, target_node
+
+    def _connect_node(
+        self,
+        source_node: StraightenNode,
+        target_node: StraightenNode,
+        connection: SDConnection,
+    ):
+        source_property = self._get_source_property_from_connection(
+            source_node, connection
+        )
+        target_property = self._get_target_property_from_connection(
+            target_node, connection
+        )
+        source_node.api_node.newPropertyConnection(
+            source_property, target_node.api_node, target_property
+        )
+
+    def _get_target_property_from_connection(
+        self, target_node: StraightenNode, connection: SDConnection
+    ):
+        if target_node.is_dot:
+            return target_node.api_node.getPropertyFromId(
+                "input", sd.api.sdproperty.SDPropertyCategory.Input
+            )
+        return connection.getInputProperty()
+
+    def _get_source_property_from_connection(
+        self, source_node: StraightenNode, connection: SDConnection
+    ):
+        if source_node.is_dot:
+            return source_node.api_node.getPropertyFromId(
+                "unique_filter_output",
+                sd.api.sdproperty.SDPropertyCategory.Output,
+            )
+        return connection.getOutputProperty()
+
+    def _rebuild_deleted_dot_connection(
         self, dot_node: StraightenNode, input_node_property
     ):
         output_node_connections = (

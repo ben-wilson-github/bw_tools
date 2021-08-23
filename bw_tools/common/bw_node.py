@@ -8,6 +8,7 @@ import sd
 SDSBSCompNode = TypeVar("SDSBSCompNode")
 SDProperty = TypeVar("SDProperty")
 SDSBSCompGraph = TypeVar("SDSBSCompGraph")
+SDConnection = TypeVar("SDConnection")
 
 
 @dataclass
