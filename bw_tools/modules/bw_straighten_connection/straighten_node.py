@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     )
 
 # TODO: MOVE Type vars to api tool
+# TODO: Snap to grid in layout tools option
 
 
 @dataclass
@@ -101,49 +102,64 @@ class StraightenNode(Node):
                 self.graph.deleteNode(dot_node.api_node)
 
     def straighten_connection_for_property(
-        self, api_property, behavior: AbstractStraightenBehavior
+        self,
+        api_property: SDProperty,
+        index: int,
+        behavior: AbstractStraightenBehavior,
     ):
         output_connections = (
             self._get_connected_output_connections_for_property(api_property)
         )
+        if not output_connections:
+            return
+
         output_connections.sort(
             key=lambda con: con.getInputPropertyNode().getPosition().x
         )
 
         source_node = self
-        first = True
-        for i, output_connection in enumerate(output_connections):
-            if first:
-                dot_node, target_node = self._insert_dot_node(
-                    source_node, output_connection
-                )
-                behavior.position_first_dot(dot_node, source_node, target_node, i)
+        target_node = StraightenNode(
+            output_connections[0].getInputPropertyNode(), self.graph
+        )
 
-            dot_node, target_node = self._insert_dot_node(
-                source_node, output_connection
+        # Insert source dot node
+        dot_node = self._insert_dot_node(
+            source_node, target_node, output_connections[0]
+        )
+        behavior.position_first_dot(dot_node, source_node, target_node, index)
+        source_node = dot_node
+
+        # Insert target dot node
+        dot_node = self._insert_dot_node(
+            source_node, target_node, output_connections[0]
+        )
+        behavior.position_dot(dot_node, source_node, target_node, index)
+        source_node = dot_node
+
+        # Insert remaining dot nodes
+        for output_connection in output_connections[1:]:
+            new_target_node = StraightenNode(
+                output_connection.getInputPropertyNode(), self.graph
             )
-        
-            FIGURE OUT POSITON LOGIC FOR PINS.
-            Need to return custom class from get connections because I need to stack the inputs and each connection might
-            be from the same output index. needs to include SDConnection and index its from
-            return
-
-            # behavior.position_dot(dot_node, source_node, target_node)
+            if new_target_node.identifier == target_node.identifier:
+                self._connect_node(dot_node, target_node, output_connection)
+            else:
+                dot_node = self._insert_dot_node(source_node, new_target_node, output_connection)
+                behavior.position_dot(dot_node, source_node, new_target_node, index)
+                source_node = dot_node
 
     def _insert_dot_node(
-        self, source_node: StraightenNode, connection: SDConnection
+        self,
+        source_node: StraightenNode,
+        target_node: StraightenNode,
+        connection: SDConnection,
     ):
-        target_node = StraightenNode(
-            connection.getInputPropertyNode(), self.graph
-        )
         dot_node = StraightenNode(
             self.graph.newNode("sbs::compositing::passthrough"), self.graph
         )
-
         self._connect_node(source_node, dot_node, connection)
         self._connect_node(dot_node, target_node, connection)
-
-        return dot_node, target_node
+        return dot_node
 
     def _connect_node(
         self,

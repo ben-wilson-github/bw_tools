@@ -9,7 +9,8 @@ if TYPE_CHECKING:
     from .straighten_node import StraightenNode
 
 DISTANCE = 96
-STRIDE = 10.4
+STRIDE = 20.8
+
 
 @dataclass
 class AbstractStraightenBehavior(ABC):
@@ -21,7 +22,17 @@ class AbstractStraightenBehavior(ABC):
         dot_node: StraightenNode,
         source_node: StraightenNode,
         target_node: StraightenNode,
-        index: int
+        index: int,
+    ):
+        pass
+
+    @abstractmethod
+    def position_dot(
+        self,
+        dot_node: StraightenNode,
+        source_node: StraightenNode,
+        target_node: StraightenNode,
+        index: int,
     ):
         pass
 
@@ -32,11 +43,21 @@ class NextToOutput(AbstractStraightenBehavior):
         dot_node: StraightenNode,
         source_node: StraightenNode,
         target_node: StraightenNode,
-        index: int
+        index: int,
     ):
         dot_node.set_position(
-            source_node.pos.x + DISTANCE,
-            source_node.pos.y + (STRIDE * (index + 1))
+            source_node.pos.x + DISTANCE, source_node.pos.y + (STRIDE * index)
+        )
+
+    def position_dot(
+        self,
+        dot_node: StraightenNode,
+        source_node: StraightenNode,
+        target_node: StraightenNode,
+        index: int,
+    ):
+        dot_node.set_position(
+            target_node.pos.x - DISTANCE, source_node.pos.y
         )
 
 

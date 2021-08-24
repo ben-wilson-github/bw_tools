@@ -225,7 +225,7 @@ def run_straighten_connection(
     node: StraightenNode, behavior, api: APITool
 ):
     for index, api_property in enumerate(node.output_connectable_properties):
-        node.straighten_connection_for_property(api_property, behavior)
+        node.straighten_connection_for_property(api_property, index, behavior)
 
 
 def on_clicked_straighten_connection(api: APITool):
