@@ -1,6 +1,22 @@
 {
-    "Hotkey": "Alt+C",
-    "Remove Connected Dot Nodes Hotkey": "Alt+V",
-    "Distance From Node": 256,
-    "Position At Source": true
+    "Hotkey": {
+        "widget": 1,
+        "value": "Alt+C"
+    },
+    "Remove Connected Dot Nodes Hotkey": {
+        "widget": 1,
+        "value": "Alt+V"
+    },
+    "Dot Node Distance": {
+        "widget": 2,
+        "value": 256
+    },
+    "Alignment Behavior": {
+        "list": [
+            "Source",
+            "Target"
+        ],
+        "widget": 4,
+        "value": 0
+    }
 }

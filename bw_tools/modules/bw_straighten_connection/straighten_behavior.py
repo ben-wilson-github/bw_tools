@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 from bw_tools.common.bw_node import Float2
 
 if TYPE_CHECKING:
-    from .bw_straighten_connection import StraightenConnectionData
+    from .bw_straighten_connection import (
+        StraightenConnectionData,
+        StraightenSettings,
+    )
     from .straighten_node import StraightenNode
-
-DISTANCE = 96
-STRIDE = 21.33  # Magic number between each input slot
 
 
 @dataclass
@@ -36,12 +36,15 @@ class AbstractStraightenBehavior(ABC):
         source_pos: Float2,
         target_pos: Float2,
         index: int,
+        settings: StraightenSettings,
     ) -> Float2:
         pass
 
     @abstractmethod
     def align_base_dot_nodes(
-        self, source_node: StraightenNode, data: StraightenConnectionData
+        self,
+        source_node: StraightenNode,
+        data: StraightenConnectionData,
     ):
         pass
 
@@ -52,6 +55,7 @@ class AbstractStraightenBehavior(ABC):
         next_target_node: StraightenNode,
         data: StraightenConnectionData,
         i: int,
+        settings: StraightenSettings,
     ) -> bool:
         pass
 
@@ -75,11 +79,13 @@ class BreakAtTarget(AbstractStraightenBehavior):
         next_target_node: StraightenNode,
         data: StraightenConnectionData,
         i: int,
+        settings: StraightenSettings,
     ) -> bool:
         return (
             previous_target_node.identifier == next_target_node.identifier
             or data.base_dot_node[i].pos.y == next_target_node.pos.y
-            or next_target_node.pos.x - DISTANCE <= previous_target_node.pos.x
+            or next_target_node.pos.x - settings.dot_node_distance
+            <= previous_target_node.pos.x
         )
 
     def get_position_target_dot(
@@ -87,8 +93,9 @@ class BreakAtTarget(AbstractStraightenBehavior):
         source_pos: Float2,
         target_pos: Float2,
         index: int,
+        settings: StraightenSettings,
     ) -> Float2:
-        return Float2(target_pos.x - DISTANCE, source_pos.y)
+        return Float2(target_pos.x - settings.dot_node_distance, source_pos.y)
 
     def align_base_dot_nodes(
         self, source_node: StraightenNode, data: StraightenConnectionData
@@ -121,8 +128,9 @@ class BreakAtSource(AbstractStraightenBehavior):
         source_pos: Float2,
         target_pos: Float2,
         index: int,
+        settings: StraightenSettings,
     ) -> Float2:
-        return Float2(target_pos.x - DISTANCE, source_pos.y)
+        return Float2(target_pos.x - settings.dot_node_distance, source_pos.y)
 
     def align_base_dot_nodes(
         self, source_node: StraightenNode, data: StraightenConnectionData
@@ -150,10 +158,12 @@ class BreakAtSource(AbstractStraightenBehavior):
         next_target_node: StraightenNode,
         data: StraightenConnectionData,
         i: int,
+        settings: StraightenSettings,
     ) -> bool:
         return (
             previous_target_node.identifier == next_target_node.identifier
             or data.current_source_node[i].pos.y == next_target_node.pos.y
             and len(data.connection[i]) < 2
-            or next_target_node.pos.x - DISTANCE <= previous_target_node.pos.x
+            or next_target_node.pos.x - settings.dot_node_distance
+            <= previous_target_node.pos.x
         )

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from bw_tools.modules.bw_settings import bw_settings_dialog
-from tests import reload_modules, run_unit_tests
+from tests import run_unit_tests
 
 
 @dataclass
@@ -60,11 +60,6 @@ def on_initialize(api):
         api.menu.addSeparator()
         unit_test_action = api.menu.addAction("Run unit tests...")
         unit_test_action.triggered.connect(lambda: run_unit_tests.run())
-
-        reload_modules_action = api.menu.addAction("Reload modules...")
-        reload_modules_action.triggered.connect(
-            lambda: reload_modules.reload_modules()
-        )
 
 
 def on_clicked_settings(api):

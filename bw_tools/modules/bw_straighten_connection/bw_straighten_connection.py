@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from bw_tools.common.bw_node import Float2, SDConnection
-from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
+from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
+from .straighten_behavior import (
     BreakAtSource,
     BreakAtTarget,
 )
@@ -18,15 +19,25 @@ from .straighten_node import StraightenNode
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import APITool
-    from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
+    from .straighten_behavior import (
         AbstractStraightenBehavior,
     )
 
 
 # # TODO: Check if can remove the list copy in remove dot nodes
 
-DISTANCE = 96
 STRIDE = 21.33  # Magic number between each input slot
+
+
+class StraightenSettings(ModuleSettings):
+    def __init__(self, file_path: Path):
+        super().__init__(file_path)
+        self.hotkey: str = self.get("Hotkey;value")
+        self.remove_dot_nodes_hotkey: str = self.get(
+            "Remove Connected Dot Nodes Hotkey;value"
+        )
+        self.dot_node_distance: str = self.get("Dot Node Distance;value")
+        self.alignment_behavior: str = self.get("Alignment Behavior;value")
 
 
 @dataclass
@@ -52,13 +63,13 @@ class StraightenConnectionData:
 def run_straighten_connection(
     source_node: StraightenNode,
     behavior: AbstractStraightenBehavior,
-    api: APITool,
+    settings: StraightenSettings,
 ):
     data = _create_connection_data_for_all_inputs(source_node)
-    _create_base_dot_nodes(source_node, data, behavior)
+    _create_base_dot_nodes(source_node, data, behavior, settings)
     behavior.align_base_dot_nodes(source_node, data)
 
-    _insert_target_dot_nodes(source_node, data, behavior)
+    _insert_target_dot_nodes(source_node, data, behavior, settings)
 
     if (
         behavior.delete_base_dot_nodes
@@ -89,6 +100,7 @@ def _create_base_dot_nodes(
     source_node: StraightenNode,
     data: StraightenConnectionData,
     behavior: AbstractStraightenBehavior,
+    settings: StraightenSettings,
 ):
     """
     Creates dot nodes at the base of the source node. The dot nodes
@@ -123,7 +135,8 @@ def _create_base_dot_nodes(
             data.current_source_node[i] = dot_node
 
         pos = Float2(
-            source_node.pos.x + DISTANCE, source_node.pos.y + (STRIDE * index)
+            source_node.pos.x + settings.dot_node_distance,
+            source_node.pos.y + (STRIDE * index),
         )
         dot_node.set_position(pos.x, pos.y)
 
@@ -140,6 +153,7 @@ def _insert_target_dot_nodes(
     source_node: StraightenNode,
     data: StraightenConnectionData,
     behavior: AbstractStraightenBehavior,
+    settings: StraightenSettings
 ):
     for i, _ in enumerate(source_node.output_connectable_properties):
         if not data.connection[i]:
@@ -154,10 +168,11 @@ def _insert_target_dot_nodes(
                 data.base_dot_node[i].pos,
                 next_target_node.pos,
                 data.stack_index[i],
+                settings
             )
 
             if behavior.reuse_previous_dot_node(
-                previous_target_node, next_target_node, data, i
+                previous_target_node, next_target_node, data, i, settings
             ):
                 _connect_node(
                     data.current_source_node[i], next_target_node, connection
@@ -231,12 +246,19 @@ def on_clicked_straighten_connection(api: APITool):
     with SDHistoryUtils.UndoGroup("Straighten Connection Undo Group"):
         api.logger.info("Running straighten connection")
 
+        settings = StraightenSettings(
+            Path(__file__).parent / "bw_straighten_connection_settings.json"
+        )
         for node in api.current_selection:
             node = StraightenNode(node, api.current_graph)
             node.delete_output_dot_nodes()
-            run_straighten_connection(
-                node, BreakAtSource(api.current_graph), api
-            )
+
+            if settings.alignment_behavior == 0:
+                behavior = BreakAtSource(api.current_graph)
+            else:
+                behavior = BreakAtTarget(api.current_graph)
+
+            run_straighten_connection(node, behavior, settings)
 
 
 def on_clicked_remove_dot_nodes_from_selection(api: APITool):
@@ -252,11 +274,19 @@ def on_clicked_remove_dot_nodes_from_selection(api: APITool):
             node.delete_output_dot_nodes()
 
 
+TARGET NODE IS BEING PLACED BEHIND THE ROOT ON SOURCE BEHAVIOR
+
 def on_graph_view_created(_, api: APITool):
+    settings = StraightenSettings(
+        Path(__file__).parent / "bw_straighten_connection_settings.json"
+    )
+    print(settings)
+
     icon = Path(__file__).parent / "resources" / "straighten_connection.png"
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon.resolve())), ""
     )
+    action.setShortcut(QtGui.QKeySequence(settings.hotkey))
     action.setToolTip("Straighten connections on selected nodes.")
     action.triggered.connect(lambda: on_clicked_straighten_connection(api))
 
@@ -264,6 +294,7 @@ def on_graph_view_created(_, api: APITool):
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon.resolve())), ""
     )
+    action.setShortcut(QtGui.QKeySequence(settings.remove_dot_nodes_hotkey))
     action.setToolTip("Remove dot nodes from selected nodes.")
     action.triggered.connect(
         lambda: on_clicked_remove_dot_nodes_from_selection(api)
