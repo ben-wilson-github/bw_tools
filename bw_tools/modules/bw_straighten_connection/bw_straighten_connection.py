@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from bw_tools.common.bw_node import Float2, SDConnection, SDProperty
+from bw_tools.common.bw_node import Float2, SDConnection
 from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
     BreakAtSource,
     BreakAtTarget,
@@ -8,7 +8,7 @@ from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Tuple, TypeVar, Dict
+from typing import TYPE_CHECKING, Dict
 
 import sd
 from PySide2 import QtGui
@@ -239,6 +239,19 @@ def on_clicked_straighten_connection(api: APITool):
             )
 
 
+def on_clicked_remove_dot_nodes_from_selection(api: APITool):
+    with SDHistoryUtils.UndoGroup("Remove Dot Nodes Undo Group"):
+        api.logger.info("Running remove dot nodes from selection")
+
+        for node in api.current_selection:
+            try:
+                node = StraightenNode(node, api.current_graph)
+            except AttributeError:
+                continue
+
+            node.delete_output_dot_nodes()
+
+
 def on_graph_view_created(_, api: APITool):
     icon = Path(__file__).parent / "resources" / "straighten_connection.png"
     action = api.graph_view_toolbar.addAction(
@@ -252,6 +265,9 @@ def on_graph_view_created(_, api: APITool):
         QtGui.QIcon(str(icon.resolve())), ""
     )
     action.setToolTip("Remove dot nodes from selected nodes.")
+    action.triggered.connect(
+        lambda: on_clicked_remove_dot_nodes_from_selection(api)
+    )
 
 
 def on_initialize(api: APITool):

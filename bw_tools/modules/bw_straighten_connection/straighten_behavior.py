@@ -1,18 +1,14 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod, abstractproperty
-from bw_tools.modules.bw_straighten_connection.bw_straighten_connection import (
-    StraightenConnectionData,
-    _delete_base_dot_nodes,
-)
-from bw_tools.common.bw_node import Float2
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, TypeVar, TYPE_CHECKING
-import sd
+from typing import TYPE_CHECKING
+
+from bw_tools.common.bw_node import Float2
 
 if TYPE_CHECKING:
+    from .bw_straighten_connection import StraightenConnectionData
     from .straighten_node import StraightenNode
-    from .bw_straighten_connection import BaseDotNodeBounds
 
 DISTANCE = 96
 STRIDE = 21.33  # Magic number between each input slot
