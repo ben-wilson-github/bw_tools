@@ -2,7 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from bw_tools.common.bw_node import Float2, SDConnection, SDProperty
 from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
-    NextToOutput,
+    BreakAtSource,
+    BreakAtTarget,
 )
 
 from functools import partial
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 # # TODO: Check if can remove the list copy in remove dot nodes
 
 DISTANCE = 96
+STRIDE = 21.33  # Magic number between each input slot
 
 
 @dataclass
@@ -116,18 +118,12 @@ def _create_base_dot_nodes(
         data.base_dot_node[i] = dot_node
         data.current_source_node[i] = source_node
 
-        if (
-            source_node.output_connectable_properties_count
-            != data.properties_with_outputs_count
-        ):
+        if behavior.connect_base_dot_nodes(source_node, data):
             _connect_node(source_node, dot_node, connection)
             data.current_source_node[i] = dot_node
 
-        first_target_node = StraightenNode(
-            connection.getInputPropertyNode(), source_node.graph
-        )
-        pos = behavior.get_position_first_dot(
-            source_node.pos, first_target_node.pos, index
+        pos = Float2(
+            source_node.pos.x + DISTANCE, source_node.pos.y + (STRIDE * index)
         )
         dot_node.set_position(pos.x, pos.y)
 
@@ -140,19 +136,6 @@ def _create_base_dot_nodes(
     data.base_dot_nodes_bounds.lower_bound = lower_y
 
 
-def _should_reconnect_with_previous(
-    previous: StraightenNode,
-    next: StraightenNode,
-    data: StraightenConnectionData,
-    i: int,
-):
-    return (
-        previous.identifier == next.identifier
-        or data.base_dot_node[i].pos.y == next.pos.y
-        or next.pos.x - DISTANCE <= previous.pos.x
-    )
-
-
 def _insert_target_dot_nodes(
     source_node: StraightenNode,
     data: StraightenConnectionData,
@@ -162,7 +145,7 @@ def _insert_target_dot_nodes(
         if not data.connection[i]:
             continue
 
-        previous_target_node = None
+        previous_target_node = source_node
         for connection in data.connection[i]:
             next_target_node = StraightenNode(
                 connection.getInputPropertyNode(), source_node.graph
@@ -173,7 +156,7 @@ def _insert_target_dot_nodes(
                 data.stack_index[i],
             )
 
-            if previous_target_node is not None and _should_reconnect_with_previous(
+            if behavior.reuse_previous_dot_node(
                 previous_target_node, next_target_node, data, i
             ):
                 _connect_node(
@@ -252,7 +235,7 @@ def on_clicked_straighten_connection(api: APITool):
             node = StraightenNode(node, api.current_graph)
             node.delete_output_dot_nodes()
             run_straighten_connection(
-                node, NextToOutput(api.current_graph), api
+                node, BreakAtSource(api.current_graph), api
             )
 
 
