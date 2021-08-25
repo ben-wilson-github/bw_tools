@@ -24,6 +24,8 @@ if TYPE_CHECKING:
 
 # # TODO: Check if can remove the list copy in remove dot nodes
 
+DISTANCE = 96
+
 
 @dataclass
 class BaseDotNodeBounds:
@@ -145,9 +147,9 @@ def _should_reconnect_with_previous(
     i: int,
 ):
     return (
-        previous is not None
-        and previous.identifier == next.identifier
+        previous.identifier == next.identifier
         or data.base_dot_node[i].pos.y == next.pos.y
+        or next.pos.x - DISTANCE <= previous.pos.x
     )
 
 
@@ -171,7 +173,7 @@ def _insert_target_dot_nodes(
                 data.stack_index[i],
             )
 
-            if _should_reconnect_with_previous(
+            if previous_target_node is not None and _should_reconnect_with_previous(
                 previous_target_node, next_target_node, data, i
             ):
                 _connect_node(
