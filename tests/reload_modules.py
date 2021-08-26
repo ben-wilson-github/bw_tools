@@ -59,7 +59,6 @@ modules = [
 ]
 
 
-def reload_modules():
-    for module in modules:
-        print(f"Reloading {str(module)}")
-        importlib.reload(module)
+for module in modules:
+    print(f"Reloading {str(module)}")
+    importlib.reload(module)

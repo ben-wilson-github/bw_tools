@@ -67,16 +67,22 @@ def run_straighten_connection(
 ):
     data = _create_connection_data_for_all_inputs(source_node)
     _create_base_dot_nodes(source_node, data, behavior, settings)
-    behavior.align_base_dot_nodes(source_node, data)
-
+    _align_base_dot_nodes(source_node, data, behavior, settings)
+    # _connect_base_dot_nodes(source_node, data, behavior, settings)
     _insert_target_dot_nodes(source_node, data, behavior, settings)
+    # _delete_base_dot_nodes(source_node, data, behavior, settings)
 
-    if (
-        behavior.delete_base_dot_nodes
-        and source_node.output_connectable_properties_count
-        == data.properties_with_outputs_count
-    ):
-        _delete_base_dot_nodes(source_node, data)
+
+def _align_base_dot_nodes(
+    source_node: StraightenNode,
+    data: StraightenConnectionData,
+    behavior: AbstractStraightenBehavior,
+    settings: StraightenSettings,
+):
+    for i, _ in enumerate(source_node.output_connectable_properties):
+        if data.base_dot_node[i] is None:
+            continue
+        behavior.align_base_dot_node(source_node, data, i, settings)
 
 
 def _create_connection_data_for_all_inputs(
@@ -102,24 +108,21 @@ def _create_base_dot_nodes(
     behavior: AbstractStraightenBehavior,
     settings: StraightenSettings,
 ):
-    """
-    Creates dot nodes at the base of the source node. The dot nodes
-    are stacked downwards from the source nodes position.y.
-
-    These dot nodes will either be connected or deleted later, depending
-    on if the the resulting connections line up with the output pins
-    of the node.
-
-    Returns the upper and lower bound of the new dot nodes
-    """
     # Store initial bound values
     upper_y = source_node.pos.y
     lower_y = source_node.pos.y
-    index = 0
+    stack_index = 0
     for i, _ in enumerate(source_node.output_connectable_properties):
+        data.base_dot_node[i] = None
+        data.current_source_node[i] = None
+        data.stack_index[i] = None
+
         if not data.connection[i]:
             continue
-        connection = data.connection[i][0]
+        if not behavior.should_add_base_dot_node(
+            source_node, data, i, settings
+        ):
+            continue
 
         # Stack the node
         # Create base dot node
@@ -128,77 +131,123 @@ def _create_base_dot_nodes(
             source_node.graph,
         )
         data.base_dot_node[i] = dot_node
-        data.current_source_node[i] = source_node
-
-        if behavior.connect_base_dot_nodes(source_node, data):
-            _connect_node(source_node, dot_node, connection)
-            data.current_source_node[i] = dot_node
+        data.current_source_node[i] = dot_node
 
         pos = Float2(
             source_node.pos.x + settings.dot_node_distance,
-            source_node.pos.y + (STRIDE * index),
+            source_node.pos.y + (STRIDE * stack_index),
         )
         dot_node.set_position(pos.x, pos.y)
+        _connect_node(source_node, dot_node, data.connection[i][0])
 
         upper_y = min(pos.y, upper_y)  # Designer Y axis is inverted
         lower_y = max(pos.y, lower_y)
-        data.stack_index[i] = index
-        index += 1
+        data.stack_index[i] = stack_index
+        stack_index += 1
 
     data.base_dot_nodes_bounds.upper_bound = upper_y
     data.base_dot_nodes_bounds.lower_bound = lower_y
+
+
+def _connect_base_dot_nodes(
+    source_node: StraightenNode,
+    data: StraightenConnectionData,
+    behavior: AbstractStraightenBehavior,
+    settings: StraightenSettings,
+):
+    for i in range(source_node.output_connectable_properties_count):
+        if data.base_dot_node[i] is None:
+            continue
+
+        # connect the base dot node
+        _connect_node(
+            source_node, data.base_dot_node[i], data.connection[i][0]
+        )
+
+        first_target_node = StraightenNode(
+            data.connection[i][0].getInputPropertyNode(), source_node.graph
+        )
+        if behavior.should_connect_node(
+            data.base_dot_node[i], first_target_node, data, i, settings
+        ):
+            _connect_node(
+                data.base_dot_node[i], first_target_node, data.connection[i][0]
+            )
+        else:
+            _connect_node(
+                source_node, first_target_node, data.connection[i][0]
+            )
 
 
 def _insert_target_dot_nodes(
     source_node: StraightenNode,
     data: StraightenConnectionData,
     behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings
+    settings: StraightenSettings,
 ):
     for i, _ in enumerate(source_node.output_connectable_properties):
-        if not data.connection[i]:
+        if data.base_dot_node[i] is None:
             continue
 
-        previous_target_node = source_node
+        dot_node = data.base_dot_node[i]
         for connection in data.connection[i]:
-            next_target_node = StraightenNode(
+            target_node = StraightenNode(
                 connection.getInputPropertyNode(), source_node.graph
             )
-            target_dot_pos: Float2 = behavior.get_position_target_dot(
-                data.base_dot_node[i].pos,
-                next_target_node.pos,
-                data.stack_index[i],
-                settings
-            )
 
-            if behavior.reuse_previous_dot_node(
-                previous_target_node, next_target_node, data, i, settings
+            if behavior.should_create_target_dot_node(
+                dot_node, target_node, data, i, settings
             ):
-                _connect_node(
-                    data.current_source_node[i], next_target_node, connection
-                )
-            else:
-                # Create target dot node
                 new_dot_node = StraightenNode(
                     source_node.graph.newNode("sbs::compositing::passthrough"),
                     source_node.graph,
                 )
-                new_dot_node.set_position(target_dot_pos.x, target_dot_pos.y)
-                _connect_node(
-                    data.current_source_node[i], new_dot_node, connection
+                new_dot_node_pos: Float2 = behavior.get_position_target_dot(
+                    data.base_dot_node[i].pos,
+                    target_node.pos,
+                    data.stack_index[i],
+                    settings,
                 )
-                _connect_node(new_dot_node, next_target_node, connection)
-                data.current_source_node[i] = new_dot_node
-                previous_target_node = next_target_node
+                new_dot_node.set_position(new_dot_node_pos.x, new_dot_node_pos.y)
+                _connect_node(
+                    dot_node, new_dot_node, connection
+                )
+                dot_node = new_dot_node
+
+            if behavior.should_connect_node(dot_node, target_node, data, i, settings):
+                _connect_node(
+                    dot_node, target_node, connection
+                )
+
+
+# def _connect_base_dot_nodes(
+#     source_node: StraightenNode,
+#     data: StraightenConnectionData,
+#     behavior: AbstractStraightenBehavior,
+#     settings: StraightenSettings,
+# ):
+#     for i, _ in enumerate(source_node.output_connectable_properties):
+#         if not data.connection[i] or not behavior.connect_base_dot_node(
+#             source_node, data, i, settings
+#         ):
+#             continue
+#         _connect_node(
+#             source_node, data.base_dot_node[i], data.connection[i][0]
+#         )
+#         data.current_source_node[i] = data.base_dot_node[i]
 
 
 def _delete_base_dot_nodes(
-    source_node: StraightenNode, data: StraightenConnectionData
+    source_node: StraightenNode,
+    data: StraightenConnectionData,
+    behavior: AbstractStraightenBehavior,
+    settings: StraightenSettings,
 ):
     for i, _ in enumerate(source_node.output_connectable_properties):
         if not data.connection[i]:
             continue
-        source_node.graph.deleteNode(data.base_dot_node[i].api_node)
+        if behavior.delete_base_dot_node(source_node, data, i, settings):
+            source_node.graph.deleteNode(data.base_dot_node[i].api_node)
 
 
 def _connect_node(
@@ -250,7 +299,12 @@ def on_clicked_straighten_connection(api: APITool):
             Path(__file__).parent / "bw_straighten_connection_settings.json"
         )
         for node in api.current_selection:
-            node = StraightenNode(node, api.current_graph)
+            try:
+                node = StraightenNode(node, api.current_graph)
+            except AttributeError:
+                # Occurs if the dot node was previously removed
+                continue
+
             node.delete_output_dot_nodes()
 
             if settings.alignment_behavior == 0:
@@ -273,8 +327,6 @@ def on_clicked_remove_dot_nodes_from_selection(api: APITool):
 
             node.delete_output_dot_nodes()
 
-
-TARGET NODE IS BEING PLACED BEHIND THE ROOT ON SOURCE BEHAVIOR
 
 def on_graph_view_created(_, api: APITool):
     settings = StraightenSettings(

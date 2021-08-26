@@ -9,7 +9,7 @@
     },
     "Dot Node Distance": {
         "widget": 2,
-        "value": 256
+        "value": 128
     },
     "Alignment Behavior": {
         "list": [
