@@ -50,9 +50,9 @@ class BaseDotNodeBounds:
 class StraightenConnectionData:
     connection: Dict[int, SDConnection] = field(default_factory=dict)
     base_dot_node: Dict[int, StraightenNode] = field(default_factory=dict)
-    current_source_node: Dict[int, StraightenNode] = field(
-        default_factory=dict
-    )
+    # current_source_node: Dict[int, StraightenNode] = field(
+    #     default_factory=dict
+    # )
     stack_index: Dict[int, int] = field(default_factory=dict)
     properties_with_outputs_count: int = 0
     base_dot_nodes_bounds: BaseDotNodeBounds = field(
@@ -68,9 +68,30 @@ def run_straighten_connection(
     data = _create_connection_data_for_all_inputs(source_node)
     _create_base_dot_nodes(source_node, data, behavior, settings)
     _align_base_dot_nodes(source_node, data, behavior, settings)
-    # _connect_base_dot_nodes(source_node, data, behavior, settings)
     _insert_target_dot_nodes(source_node, data, behavior, settings)
-    # _delete_base_dot_nodes(source_node, data, behavior, settings)
+    _delete_base_dot_nodes(source_node, data, behavior, settings)
+
+
+def _delete_base_dot_nodes(
+    source_node: StraightenNode,
+    data: StraightenConnectionData,
+    behavior: AbstractStraightenBehavior,
+    settings: StraightenSettings,
+):
+    for i in range(source_node.output_connectable_properties_count):
+        if data.base_dot_node[i] is None:
+            continue
+
+        if behavior.should_delete_base_dot_node(
+            source_node, data, i, settings
+        ):
+            dot_node = data.base_dot_node[i]
+            _connect_node(
+                source_node, dot_node.output_dot_node, data.connection[i][0]
+            )
+            source_node.graph.deleteNode(
+                data.base_dot_node[i].api_node
+            )
 
 
 def _align_base_dot_nodes(
@@ -114,12 +135,11 @@ def _create_base_dot_nodes(
     stack_index = 0
     for i, _ in enumerate(source_node.output_connectable_properties):
         data.base_dot_node[i] = None
-        data.current_source_node[i] = None
         data.stack_index[i] = None
 
         if not data.connection[i]:
             continue
-        if not behavior.should_add_base_dot_node(
+        if not behavior.should_create_base_dot_node(
             source_node, data, i, settings
         ):
             continue
@@ -131,14 +151,14 @@ def _create_base_dot_nodes(
             source_node.graph,
         )
         data.base_dot_node[i] = dot_node
-        data.current_source_node[i] = dot_node
-
+        
         pos = Float2(
             source_node.pos.x + settings.dot_node_distance,
             source_node.pos.y + (STRIDE * stack_index),
         )
         dot_node.set_position(pos.x, pos.y)
         _connect_node(source_node, dot_node, data.connection[i][0])
+        source_node.output_dot_node = dot_node
 
         upper_y = min(pos.y, upper_y)  # Designer Y axis is inverted
         lower_y = max(pos.y, lower_y)
@@ -149,36 +169,6 @@ def _create_base_dot_nodes(
     data.base_dot_nodes_bounds.lower_bound = lower_y
 
 
-def _connect_base_dot_nodes(
-    source_node: StraightenNode,
-    data: StraightenConnectionData,
-    behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings,
-):
-    for i in range(source_node.output_connectable_properties_count):
-        if data.base_dot_node[i] is None:
-            continue
-
-        # connect the base dot node
-        _connect_node(
-            source_node, data.base_dot_node[i], data.connection[i][0]
-        )
-
-        first_target_node = StraightenNode(
-            data.connection[i][0].getInputPropertyNode(), source_node.graph
-        )
-        if behavior.should_connect_node(
-            data.base_dot_node[i], first_target_node, data, i, settings
-        ):
-            _connect_node(
-                data.base_dot_node[i], first_target_node, data.connection[i][0]
-            )
-        else:
-            _connect_node(
-                source_node, first_target_node, data.connection[i][0]
-            )
-
-
 def _insert_target_dot_nodes(
     source_node: StraightenNode,
     data: StraightenConnectionData,
@@ -186,10 +176,14 @@ def _insert_target_dot_nodes(
     settings: StraightenSettings,
 ):
     for i, _ in enumerate(source_node.output_connectable_properties):
-        if data.base_dot_node[i] is None:
+        if len(data.connection[i]) == 0:
             continue
-
-        dot_node = data.base_dot_node[i]
+        
+        if source_node.output_dot_node is None:
+            dot_node = source_node
+        else:
+            dot_node = source_node.output_dot_node
+        
         for connection in data.connection[i]:
             target_node = StraightenNode(
                 connection.getInputPropertyNode(), source_node.graph
@@ -203,51 +197,24 @@ def _insert_target_dot_nodes(
                     source_node.graph,
                 )
                 new_dot_node_pos: Float2 = behavior.get_position_target_dot(
-                    data.base_dot_node[i].pos,
+                    dot_node.pos,
                     target_node.pos,
                     data.stack_index[i],
                     settings,
                 )
-                new_dot_node.set_position(new_dot_node_pos.x, new_dot_node_pos.y)
-                _connect_node(
-                    dot_node, new_dot_node, connection
+                new_dot_node.set_position(
+                    new_dot_node_pos.x, new_dot_node_pos.y
                 )
+                print(dot_node)
+                _connect_node(dot_node, new_dot_node, connection)
+
+                dot_node.output_dot_node = new_dot_node
                 dot_node = new_dot_node
 
-            if behavior.should_connect_node(dot_node, target_node, data, i, settings):
-                _connect_node(
-                    dot_node, target_node, connection
-                )
-
-
-# def _connect_base_dot_nodes(
-#     source_node: StraightenNode,
-#     data: StraightenConnectionData,
-#     behavior: AbstractStraightenBehavior,
-#     settings: StraightenSettings,
-# ):
-#     for i, _ in enumerate(source_node.output_connectable_properties):
-#         if not data.connection[i] or not behavior.connect_base_dot_node(
-#             source_node, data, i, settings
-#         ):
-#             continue
-#         _connect_node(
-#             source_node, data.base_dot_node[i], data.connection[i][0]
-#         )
-#         data.current_source_node[i] = data.base_dot_node[i]
-
-
-def _delete_base_dot_nodes(
-    source_node: StraightenNode,
-    data: StraightenConnectionData,
-    behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings,
-):
-    for i, _ in enumerate(source_node.output_connectable_properties):
-        if not data.connection[i]:
-            continue
-        if behavior.delete_base_dot_node(source_node, data, i, settings):
-            source_node.graph.deleteNode(data.base_dot_node[i].api_node)
+            if behavior.should_connect_node(
+                dot_node, target_node, data, i, settings
+            ):
+                _connect_node(dot_node, target_node, connection)
 
 
 def _connect_node(

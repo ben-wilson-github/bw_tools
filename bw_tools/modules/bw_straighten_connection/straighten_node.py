@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import sd
 from bw_tools.common.bw_api_tool import SDSBSCompGraph
@@ -13,6 +13,7 @@ from bw_tools.common.bw_node import Node
 @dataclass
 class StraightenNode(Node):
     graph: SDSBSCompGraph
+    output_dot_node: 'StraightenNode' = field(repr=False, init=False, default=None)
 
     def delete_output_dot_nodes(self):
         for prop in self.output_connectable_properties:
