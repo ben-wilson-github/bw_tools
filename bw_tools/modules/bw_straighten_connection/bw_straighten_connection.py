@@ -9,7 +9,7 @@ from .straighten_behavior import (
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, List
 
 import sd
 from PySide2 import QtGui
@@ -48,16 +48,14 @@ class BaseDotNodeBounds:
 
 @dataclass
 class StraightenConnectionData:
-    connection: Dict[int, SDConnection] = field(default_factory=dict)
+    connection: Dict[int, List[SDConnection]] = field(default_factory=dict)
     base_dot_node: Dict[int, StraightenNode] = field(default_factory=dict)
-    # current_source_node: Dict[int, StraightenNode] = field(
-    #     default_factory=dict
-    # )
-    stack_index: Dict[int, int] = field(default_factory=dict)
+    # stack_index: Dict[int, int] = field(default_factory=dict)
     properties_with_outputs_count: int = 0
-    base_dot_nodes_bounds: BaseDotNodeBounds = field(
-        default_factory=BaseDotNodeBounds
-    )
+    # base_dot_nodes_bounds: BaseDotNodeBounds = field(
+    #     default_factory=BaseDotNodeBounds
+    # )
+    output_nodes: Dict[int, List[StraightenNode]] = field(default_factory=dict)
 
 
 def run_straighten_connection(
@@ -68,8 +66,8 @@ def run_straighten_connection(
     data = _create_connection_data_for_all_inputs(source_node)
     _create_base_dot_nodes(source_node, data, behavior, settings)
     _align_base_dot_nodes(source_node, data, behavior, settings)
-    _insert_target_dot_nodes(source_node, data, behavior, settings)
-    _delete_base_dot_nodes(source_node, data, behavior, settings)
+    # _insert_target_dot_nodes(source_node, data, behavior, settings)
+    # _delete_base_dot_nodes(source_node, data, behavior, settings)
 
 
 def _delete_base_dot_nodes(
@@ -115,6 +113,10 @@ def _create_connection_data_for_all_inputs(
             api_property
         )
         cons.sort(key=lambda c: c.getInputPropertyNode().getPosition().x)
+        data.output_nodes[i] = [
+            StraightenNode(con.getInputPropertyNode(), source_node.graph)
+            for con in cons
+        ]
         data.connection[i] = cons
         if cons:
             data.properties_with_outputs_count += 1
@@ -128,14 +130,12 @@ def _create_base_dot_nodes(
     settings: StraightenSettings,
 ):
     # Store initial bound values
-    upper_y = source_node.pos.y
-    lower_y = source_node.pos.y
     stack_index = 0
     for i, _ in enumerate(source_node.output_connectable_properties):
         data.base_dot_node[i] = None
-        data.stack_index[i] = None
+        # data.stack_index[i] = None
 
-        if not data.connection[i]:
+        if not data.output_nodes[i]:
             continue
         if not behavior.should_create_base_dot_node(
             source_node, data, i, settings
@@ -158,23 +158,16 @@ def _create_base_dot_nodes(
         _connect_node(source_node, dot_node, data.connection[i][0])
         source_node.output_dot_node = dot_node
 
-        upper_y = min(pos.y, upper_y)  # Designer Y axis is inverted
-        lower_y = max(pos.y, lower_y)
-        data.stack_index[i] = stack_index
+        # data.stack_index[i] = stack_index
         stack_index += 1
 
         # Reconnect all the target nodes
-        for con in data.connection[i]:
-            target_node = StraightenNode(
-                con.getInputPropertyNode(), source_node.graph
-            )
-            if behavior.should_connect_node(
-                dot_node, target_node, data, i, settings
-            ):
-                _connect_node(dot_node, target_node, con)
-
-    data.base_dot_nodes_bounds.upper_bound = upper_y
-    data.base_dot_nodes_bounds.lower_bound = lower_y
+        for j, con in enumerate(data.connection[i]):
+            target_node = data.output_nodes[i][j]
+            # if behavior.should_connect_node(
+            #     dot_node, target_node, data, i, settings
+            # ):
+            _connect_node(dot_node, target_node, con)
 
 
 def _insert_target_dot_nodes(

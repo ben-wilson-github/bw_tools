@@ -257,7 +257,16 @@ class BreakAtSource(AbstractStraightenBehavior):
         i: int,
         settings: StraightenSettings,
     ):
-        output_nodes_in_front = source_node.output_nodes_in_front(settings)
+        output_nodes_in_front = [
+            output_node
+            for output_node in data.output_nodes[i]
+            if output_node.pos.x
+            >= source_node.pos.x + settings.dot_node_distance * 2
+        ]
+
+        CONTINUE WITH REFACTORING OUTPUT NODES DICT AND BUGS
+        
+        # output_nodes_in_front = source_node.output_nodes_in_front(settings)
         if len(output_nodes_in_front) == 0:
             return False
 
@@ -298,7 +307,6 @@ class BreakAtSource(AbstractStraightenBehavior):
                 dot_node, output_nodes_in_front[0]
             )
             if math.isclose(pos_y, dot_node.pos.y):
-                print('they are the same')
                 return False
             else:
                 return True
@@ -348,14 +356,22 @@ class BreakAtSource(AbstractStraightenBehavior):
         settings: StraightenSettings,
     ) -> None:
 
+        # output_nodes_in_front = [
+        #     StraightenNode(con.getInputPropertyNode(), source_node.graph)
+        #     for con in data.connection[i]
+        #     if con.getInputPropertyNode().getPosition().x
+        #     >= source_node.pos.x + settings.dot_node_distance * 2
+        # ]
         output_nodes_in_front = [
-            StraightenNode(con.getInputPropertyNode(), source_node.graph)
-            for con in data.connection[i]
-            if con.getInputPropertyNode().getPosition().x
+            output_node
+            for output_node in data.output_nodes[i]
+            if output_node.pos.x
             >= source_node.pos.x + settings.dot_node_distance * 2
         ]
+        print(output_nodes_in_front)
 
         dot_node = data.base_dot_node[i]
+
 
         if len(output_nodes_in_front) == 1:
             pos_y = self._get_position_of_top_index_in_target(

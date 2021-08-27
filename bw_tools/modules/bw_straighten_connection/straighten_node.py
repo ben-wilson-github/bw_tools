@@ -103,13 +103,6 @@ class StraightenNode(Node):
         self,
         settings: StraightenSettings,
     ):
-
-        print(self)
-        for p in self.output_connectable_properties:
-            for con in self._get_connected_output_connections_for_property(p):
-                print(con)
-
-
         return [
             StraightenNode(con.getInputPropertyNode(), self.graph)
             for p in self.output_connectable_properties
