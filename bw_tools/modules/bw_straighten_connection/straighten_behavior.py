@@ -63,8 +63,9 @@ class AbstractStraightenBehavior(ABC):
     @abstractmethod
     def should_create_target_dot_node(
         self,
-        previous_target_node: StraightenNode,
-        next_target_node: StraightenNode,
+        source_node: StraightenNode,
+        dot_node: StraightenNode,
+        target_node: StraightenNode,
         data: StraightenConnectionData,
         i: int,
         settings: StraightenSettings,
@@ -205,6 +206,7 @@ class BreakAtTarget(AbstractStraightenBehavior):
 
     def should_create_target_dot_node(
         self,
+        source_node: StraightenNode,
         dot_node: StraightenNode,
         target_node: StraightenNode,
         data: StraightenConnectionData,
@@ -357,6 +359,7 @@ class BreakAtSource(AbstractStraightenBehavior):
 
     def should_create_target_dot_node(
         self,
+        source_node: StraightenNode,
         dot_node: StraightenNode,
         target_node: StraightenNode,
         data: StraightenConnectionData,
@@ -382,7 +385,7 @@ class BreakAtSource(AbstractStraightenBehavior):
                 pos_y_output_index = self._get_position_of_output_index(dot_node, i)
             else:
                 pos_y_output_index = dot_node.pos.y
-            pos_y_input_index = self._get_position_of_top_index_in_target(dot_node, output_nodes_in_front[0])
+            pos_y_input_index = self._get_position_of_top_index_in_target(source_node, output_nodes_in_front[0])
             if math.isclose(pos_y_output_index, pos_y_input_index):
                 return False
             else:
@@ -453,11 +456,9 @@ class BreakAtSource(AbstractStraightenBehavior):
             if output_node.pos.x >= source_node.pos.x + settings.dot_node_distance * 2
         ]
 
-        dot_node = data.base_dot_node[i]
-
         if len(output_nodes_in_front) == 1:
             pos_y = self._get_position_of_top_index_in_target(
-                dot_node, output_nodes_in_front[0]
+                source_node, output_nodes_in_front[0]
             )
 
             data.base_dot_node[i].set_position(

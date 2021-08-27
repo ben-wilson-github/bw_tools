@@ -162,10 +162,10 @@ def _create_base_dot_nodes(
         stack_index += 1
 
         # Reconnect all the target nodes
-        for j, con in enumerate(data.connection[i]):
-            target_node = data.output_nodes[i][j]
-            if target_node.pos.x >= source_node.pos.x + settings.dot_node_distance * 2:
-                _connect_node(dot_node, target_node, con)
+        # for j, con in enumerate(data.connection[i]):
+        #     target_node = data.output_nodes[i][j]
+        #     if target_node.pos.x >= source_node.pos.x + settings.dot_node_distance * 2:
+        #         _connect_node(dot_node, target_node, con)
 
 
 def _insert_target_dot_nodes(
@@ -185,8 +185,9 @@ def _insert_target_dot_nodes(
             dot_node = data.base_dot_node[i]
 
         for y, output_node in enumerate(data.output_nodes[i]):
+
             if behavior.should_create_target_dot_node(
-                dot_node, output_node, data, i, settings
+                source_node, dot_node, output_node, data, i, settings
             ):
                 new_dot_node = StraightenNode(
                     source_node.graph.newNode("sbs::compositing::passthrough"),
@@ -204,7 +205,6 @@ def _insert_target_dot_nodes(
                 )
                 _connect_node(dot_node, new_dot_node, data.connection[i][y])
 
-                dot_node.output_dot_node = new_dot_node
                 dot_node = new_dot_node
             
             if output_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
@@ -215,10 +215,11 @@ def _insert_target_dot_nodes(
             # Reconnect all the output nodes in front
             # This must be done so the API is aware of the changes
             # Attempting to get indices in target for example
-            for y, output_node in enumerate(data.output_nodes[i][y:]):
 
-                if output_node not in already_processed and output_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
-                    _connect_node(dot_node, output_node, data.connection[i][y])
+            # for y, output_node in enumerate(data.output_nodes[i][y:]):
+
+            #     if output_node not in already_processed and output_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
+            #         _connect_node(dot_node, output_node, data.connection[i][y])
   
 
 
