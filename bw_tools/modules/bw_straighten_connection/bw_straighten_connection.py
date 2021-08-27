@@ -184,19 +184,9 @@ def _insert_target_dot_nodes(
         else:
             dot_node = data.base_dot_node[i]
 
-        for output_node in data.output_nodes[i]:
+        for y, output_node in enumerate(data.output_nodes[i]):
             if behavior.should_create_target_dot_node(
                 dot_node, output_node, data, i, settings
-            ):
-                print('refactor me')
-
-        for connection in data.connection[i]:
-            target_node = StraightenNode(
-                connection.getInputPropertyNode(), source_node.graph
-            )
-
-            if behavior.should_create_target_dot_node(
-                dot_node, target_node, data, i, settings
             ):
                 new_dot_node = StraightenNode(
                     source_node.graph.newNode("sbs::compositing::passthrough"),
@@ -204,7 +194,7 @@ def _insert_target_dot_nodes(
                 )
                 new_dot_node_pos: Float2 = behavior.get_position_target_dot(
                     dot_node,
-                    target_node,
+                    output_node,
                     data,
                     i,
                     settings,
@@ -212,38 +202,24 @@ def _insert_target_dot_nodes(
                 new_dot_node.set_position(
                     new_dot_node_pos.x, new_dot_node_pos.y
                 )
-                _connect_node(dot_node, new_dot_node, connection)
+                _connect_node(dot_node, new_dot_node, data.connection[i][y])
 
                 dot_node.output_dot_node = new_dot_node
                 dot_node = new_dot_node
-
-            if target_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
-                _connect_node(dot_node, target_node, connection)
-            if target_node not in already_processed:
-                already_processed.append(target_node)
-
+            
+            if output_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
+                _connect_node(dot_node, output_node, data.connection[i][y])
+            # if output_node not in already_processed:
+            #     already_processed.append(output_node)
+            
             # Reconnect all the output nodes in front
             # This must be done so the API is aware of the changes
             # Attempting to get indices in target for example
-            for y, output_node in enumerate(data.output_nodes[i]):
-                if output_node not in already_processed and behavior.should_connect_node(
-                    dot_node, output_node, data, i, settings
-                ):
-                    _connect_node(dot_node, output_node, data.connection[i][y])
-            
+            for y, output_node in enumerate(data.output_nodes[i][y:]):
 
-            # [
-            #     _connect_node(
-            #         dot_node,
-            #         StraightenNode(
-            #             con.getInputPropertyNode(), source_node.graph
-            #         ),
-            #         con,
-            #     )
-            #     for con in data.connection[i]
-            #     if con.getInputPropertyNode().getPosition().x
-            #     > dot_node.pos.x + settings.dot_node_distance * 2
-            # ]
+                if output_node not in already_processed and output_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
+                    _connect_node(dot_node, output_node, data.connection[i][y])
+  
 
 
 def _connect_node(
