@@ -163,6 +163,16 @@ def _create_base_dot_nodes(
         data.stack_index[i] = stack_index
         stack_index += 1
 
+        # Reconnect all the target nodes
+        for con in data.connection[i]:
+            target_node = StraightenNode(
+                con.getInputPropertyNode(), source_node.graph
+            )
+            if behavior.should_connect_node(
+                dot_node, target_node, data, i, settings
+            ):
+                _connect_node(dot_node, target_node, con)
+
     data.base_dot_nodes_bounds.upper_bound = upper_y
     data.base_dot_nodes_bounds.lower_bound = lower_y
 
@@ -215,6 +225,8 @@ def _insert_target_dot_nodes(
                 _connect_node(dot_node, target_node, connection)
 
                 # Reconnect all the output nodes in front
+                # This must be done so the API is aware of the changes
+                # Attempting to get indices in target for example
                 [
                     _connect_node(
                         dot_node,
@@ -227,8 +239,6 @@ def _insert_target_dot_nodes(
                     if con.getInputPropertyNode().getPosition().x
                     > dot_node.pos.x + settings.dot_node_distance * 2
                 ]
-                # for output_node in output_nodes_in_front:
-                #     _connect_node(dot_node, output_node, connection)
 
 
 def _connect_node(

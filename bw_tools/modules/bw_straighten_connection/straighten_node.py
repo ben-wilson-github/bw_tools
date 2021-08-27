@@ -1,4 +1,8 @@
 from __future__ import annotations
+from bw_tools.modules.bw_straighten_connection.bw_straighten_connection import (
+    StraightenConnectionData,
+    StraightenSettings,
+)
 
 from dataclasses import dataclass, field
 from typing import Union, List
@@ -75,9 +79,7 @@ class StraightenNode(Node):
             con for con in self.api_node.getPropertyConnections(api_property)
         ]
 
-    def indices_in_target_node(
-        self, target_node: StraightenNode
-    ) -> List[int]:
+    def indices_in_target_node(self, target_node: StraightenNode) -> List[int]:
         return [
             i
             for i, p in enumerate(target_node.input_connectable_properties)
@@ -96,3 +98,29 @@ class StraightenNode(Node):
             return 0.5
         else:
             return 0.5 * (self.input_connectable_properties_count - 1)
+
+    def output_nodes_in_front(
+        self,
+        settings: StraightenSettings,
+    ):
+
+        print(self)
+        for p in self.output_connectable_properties:
+            for con in self._get_connected_output_connections_for_property(p):
+                print(con)
+
+
+        return [
+            StraightenNode(con.getInputPropertyNode(), self.graph)
+            for p in self.output_connectable_properties
+            for con in self._get_connected_output_connections_for_property(p)
+            if con
+            and con.getInputPropertyNode().getPosition().x
+            >= self.pos.x + settings.dot_node_distance * 2
+        ]
+
+    def conntects_to_center_index_of_target(self, target_node: StraightenNode):
+        return target_node.center_index in self.indices_in_target_node(
+            target_node
+        )
+    
