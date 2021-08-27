@@ -1,11 +1,14 @@
 from __future__ import annotations
-from bw_tools.modules.bw_straighten_connection.bw_straighten_connection import (
-    StraightenConnectionData,
-    StraightenSettings,
-)
+
 
 from dataclasses import dataclass, field
-from typing import Union, List
+from typing import Union, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .bw_straighten_connection import (
+        # StraightenConnectionData,
+        StraightenSettings,
+    )
 
 import sd
 from bw_tools.common.bw_api_tool import SDSBSCompGraph
@@ -24,7 +27,7 @@ class NoInputs(Exception):
 
 @dataclass
 class StraightenNode(Node):
-    graph: SDSBSCompGraph
+    graph: SDSBSCompGraph = field(repr=False)
     output_dot_node: "StraightenNode" = field(
         repr=False, init=False, default=None
     )
@@ -116,4 +119,3 @@ class StraightenNode(Node):
         return target_node.center_index in self.indices_in_target_node(
             target_node
         )
-    

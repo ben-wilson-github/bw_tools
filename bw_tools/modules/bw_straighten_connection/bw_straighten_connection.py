@@ -66,7 +66,7 @@ def run_straighten_connection(
     data = _create_connection_data_for_all_inputs(source_node)
     _create_base_dot_nodes(source_node, data, behavior, settings)
     _align_base_dot_nodes(source_node, data, behavior, settings)
-    # _insert_target_dot_nodes(source_node, data, behavior, settings)
+    _insert_target_dot_nodes(source_node, data, behavior, settings)
     # _delete_base_dot_nodes(source_node, data, behavior, settings)
 
 
@@ -164,10 +164,8 @@ def _create_base_dot_nodes(
         # Reconnect all the target nodes
         for j, con in enumerate(data.connection[i]):
             target_node = data.output_nodes[i][j]
-            # if behavior.should_connect_node(
-            #     dot_node, target_node, data, i, settings
-            # ):
-            _connect_node(dot_node, target_node, con)
+            if target_node.pos.x >= source_node.pos.x + settings.dot_node_distance * 2:
+                _connect_node(dot_node, target_node, con)
 
 
 def _insert_target_dot_nodes(
@@ -176,14 +174,21 @@ def _insert_target_dot_nodes(
     behavior: AbstractStraightenBehavior,
     settings: StraightenSettings,
 ):
+    already_processed = list()
     for i, _ in enumerate(source_node.output_connectable_properties):
-        if len(data.connection[i]) == 0:
+        if not data.output_nodes[i]:
             continue
 
         if data.base_dot_node[i] is None:
             dot_node = source_node
         else:
             dot_node = data.base_dot_node[i]
+
+        for output_node in data.output_nodes[i]:
+            if behavior.should_create_target_dot_node(
+                dot_node, output_node, data, i, settings
+            ):
+                print('refactor me')
 
         for connection in data.connection[i]:
             target_node = StraightenNode(
@@ -212,26 +217,33 @@ def _insert_target_dot_nodes(
                 dot_node.output_dot_node = new_dot_node
                 dot_node = new_dot_node
 
-            if behavior.should_connect_node(
-                dot_node, target_node, data, i, settings
-            ):
+            if target_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
                 _connect_node(dot_node, target_node, connection)
+            if target_node not in already_processed:
+                already_processed.append(target_node)
 
-                # Reconnect all the output nodes in front
-                # This must be done so the API is aware of the changes
-                # Attempting to get indices in target for example
-                [
-                    _connect_node(
-                        dot_node,
-                        StraightenNode(
-                            con.getInputPropertyNode(), source_node.graph
-                        ),
-                        con,
-                    )
-                    for con in data.connection[i]
-                    if con.getInputPropertyNode().getPosition().x
-                    > dot_node.pos.x + settings.dot_node_distance * 2
-                ]
+            # Reconnect all the output nodes in front
+            # This must be done so the API is aware of the changes
+            # Attempting to get indices in target for example
+            for y, output_node in enumerate(data.output_nodes[i]):
+                if output_node not in already_processed and behavior.should_connect_node(
+                    dot_node, output_node, data, i, settings
+                ):
+                    _connect_node(dot_node, output_node, data.connection[i][y])
+            
+
+            # [
+            #     _connect_node(
+            #         dot_node,
+            #         StraightenNode(
+            #             con.getInputPropertyNode(), source_node.graph
+            #         ),
+            #         con,
+            #     )
+            #     for con in data.connection[i]
+            #     if con.getInputPropertyNode().getPosition().x
+            #     > dot_node.pos.x + settings.dot_node_distance * 2
+            # ]
 
 
 def _connect_node(
