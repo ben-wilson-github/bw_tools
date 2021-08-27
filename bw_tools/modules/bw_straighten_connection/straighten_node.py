@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Union, List
 
 import sd
 from bw_tools.common.bw_api_tool import SDSBSCompGraph
@@ -10,10 +11,19 @@ from bw_tools.common.bw_node import Node
 # TODO: Snap to grid in layout tools option
 
 
+STRIDE = 21.33  # Magic number between each input slot
+
+
+class NoInputs(Exception):
+    pass
+
+
 @dataclass
 class StraightenNode(Node):
     graph: SDSBSCompGraph
-    output_dot_node: 'StraightenNode' = field(repr=False, init=False, default=None)
+    output_dot_node: "StraightenNode" = field(
+        repr=False, init=False, default=None
+    )
 
     def delete_output_dot_nodes(self):
         for prop in self.output_connectable_properties:
@@ -64,3 +74,25 @@ class StraightenNode(Node):
         return [
             con for con in self.api_node.getPropertyConnections(api_property)
         ]
+
+    def indices_in_target_node(
+        self, target_node: StraightenNode
+    ) -> List[int]:
+        return [
+            i
+            for i, p in enumerate(target_node.input_connectable_properties)
+            for connection in target_node.api_node.getPropertyConnections(p)
+            if connection.getInputPropertyNode().getIdentifier()
+            == str(self.identifier)
+        ]
+
+    @property
+    def center_index(self) -> Union[int, float]:
+        if self.input_connectable_properties_count == 0:
+            raise NoInputs()
+        elif self.input_connectable_properties_count == 1:
+            return 0
+        elif self.input_connectable_properties_count == 2:
+            return 0.5
+        else:
+            return 0.5 * (self.input_connectable_properties_count - 1)

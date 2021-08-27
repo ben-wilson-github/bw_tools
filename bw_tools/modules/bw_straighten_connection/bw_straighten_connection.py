@@ -89,9 +89,7 @@ def _delete_base_dot_nodes(
             _connect_node(
                 source_node, dot_node.output_dot_node, data.connection[i][0]
             )
-            source_node.graph.deleteNode(
-                data.base_dot_node[i].api_node
-            )
+            source_node.graph.deleteNode(data.base_dot_node[i].api_node)
 
 
 def _align_base_dot_nodes(
@@ -151,7 +149,7 @@ def _create_base_dot_nodes(
             source_node.graph,
         )
         data.base_dot_node[i] = dot_node
-        
+
         pos = Float2(
             source_node.pos.x + settings.dot_node_distance,
             source_node.pos.y + (STRIDE * stack_index),
@@ -178,12 +176,12 @@ def _insert_target_dot_nodes(
     for i, _ in enumerate(source_node.output_connectable_properties):
         if len(data.connection[i]) == 0:
             continue
-        
-        if source_node.output_dot_node is None:
+
+        if data.base_dot_node[i] is None:
             dot_node = source_node
         else:
-            dot_node = source_node.output_dot_node
-        
+            dot_node = data.base_dot_node[i]
+
         for connection in data.connection[i]:
             target_node = StraightenNode(
                 connection.getInputPropertyNode(), source_node.graph
@@ -197,15 +195,15 @@ def _insert_target_dot_nodes(
                     source_node.graph,
                 )
                 new_dot_node_pos: Float2 = behavior.get_position_target_dot(
-                    dot_node.pos,
-                    target_node.pos,
-                    data.stack_index[i],
+                    dot_node,
+                    target_node,
+                    data,
+                    i,
                     settings,
                 )
                 new_dot_node.set_position(
                     new_dot_node_pos.x, new_dot_node_pos.y
                 )
-                print(dot_node)
                 _connect_node(dot_node, new_dot_node, connection)
 
                 dot_node.output_dot_node = new_dot_node
@@ -215,6 +213,22 @@ def _insert_target_dot_nodes(
                 dot_node, target_node, data, i, settings
             ):
                 _connect_node(dot_node, target_node, connection)
+
+                # Reconnect all the output nodes in front
+                [
+                    _connect_node(
+                        dot_node,
+                        StraightenNode(
+                            con.getInputPropertyNode(), source_node.graph
+                        ),
+                        con,
+                    )
+                    for con in data.connection[i]
+                    if con.getInputPropertyNode().getPosition().x
+                    > dot_node.pos.x + settings.dot_node_distance * 2
+                ]
+                # for output_node in output_nodes_in_front:
+                #     _connect_node(dot_node, output_node, connection)
 
 
 def _connect_node(
@@ -299,8 +313,6 @@ def on_graph_view_created(_, api: APITool):
     settings = StraightenSettings(
         Path(__file__).parent / "bw_straighten_connection_settings.json"
     )
-    print(settings)
-
     icon = Path(__file__).parent / "resources" / "straighten_connection.png"
     action = api.graph_view_toolbar.addAction(
         QtGui.QIcon(str(icon.resolve())), ""
