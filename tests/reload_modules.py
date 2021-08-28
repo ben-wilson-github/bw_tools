@@ -26,7 +26,6 @@ from bw_tools.modules.bw_straighten_connection import (
 )
 
 from tests import (
-    run_unit_tests,
     test_chain_dimension,
     test_layout_graph,
     test_node,
@@ -52,7 +51,6 @@ modules = [
     straighten_node,
     straighten_behavior,
     test_straighten_connection,
-    run_unit_tests,
     test_layout_graph,
     test_node_selection,
     test_node,

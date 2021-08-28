@@ -131,6 +131,7 @@ dmypy.json
 # Substance
 .autosave/
 __test*.sbs
+__test*.png
 
 
 # Photoshop

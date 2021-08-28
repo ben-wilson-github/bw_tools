@@ -23,6 +23,7 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 # TODO: reframe to selection plugin
 # TODO: Add visual indents to settings frame
 # TODO: Add sub comments to settings (requires restart)
+# TODO: Test Threads for updating graph in real time?
 
 
 class LayoutSettings(ModuleSettings):

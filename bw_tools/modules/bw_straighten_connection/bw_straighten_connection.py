@@ -1,4 +1,5 @@
 from __future__ import annotations
+from bw_tools.common.bw_api_tool import SDSBSCompGraph
 from dataclasses import dataclass, field
 from bw_tools.common.bw_node import Float2, SDConnection
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
@@ -59,14 +60,21 @@ class StraightenConnectionData:
 
 
 def run_straighten_connection(
-    source_node: StraightenNode,
-    behavior: AbstractStraightenBehavior,
+    node: StraightenNode,
+    graph: SDSBSCompGraph,
     settings: StraightenSettings,
 ):
-    data = _create_connection_data_for_all_inputs(source_node)
-    _create_base_dot_nodes(source_node, data, behavior, settings)
-    _align_base_dot_nodes(source_node, data, behavior, settings)
-    _insert_target_dot_nodes(source_node, data, behavior, settings)
+    node.delete_output_dot_nodes()
+
+    if settings.alignment_behavior == 0:
+        behavior = BreakAtSource(graph)
+    else:
+        behavior = BreakAtTarget(graph)
+
+    data = _create_connection_data_for_all_inputs(node)
+    _create_base_dot_nodes(node, data, behavior, settings)
+    _align_base_dot_nodes(node, data, behavior, settings)
+    _insert_target_dot_nodes(node, data, behavior, settings)
     # _delete_base_dot_nodes(source_node, data, behavior, settings)
 
 
@@ -271,21 +279,29 @@ def on_clicked_straighten_connection(api: APITool):
         settings = StraightenSettings(
             Path(__file__).parent / "bw_straighten_connection_settings.json"
         )
+
         for node in api.current_selection:
             try:
                 node = StraightenNode(node, api.current_graph)
             except AttributeError:
                 # Occurs if the dot node was previously removed
                 continue
+            run_straighten_connection(node, api.current_graph, settings)
+        # for node in api.current_selection:
+        #     try:
+        #         node = StraightenNode(node, api.current_graph)
+        #     except AttributeError:
+        #         # Occurs if the dot node was previously removed
+        #         continue
 
-            node.delete_output_dot_nodes()
+        #     node.delete_output_dot_nodes()
 
-            if settings.alignment_behavior == 0:
-                behavior = BreakAtSource(api.current_graph)
-            else:
-                behavior = BreakAtTarget(api.current_graph)
+        #     if settings.alignment_behavior == 0:
+        #         behavior = BreakAtSource(api.current_graph)
+        #     else:
+        #         behavior = BreakAtTarget(api.current_graph)
 
-            run_straighten_connection(node, behavior, settings)
+        #     run_straighten_connection(node, behavior, settings)
 
 
 def on_clicked_remove_dot_nodes_from_selection(api: APITool):
