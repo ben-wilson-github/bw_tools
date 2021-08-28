@@ -49,17 +49,6 @@ class AbstractStraightenBehavior(ABC):
     ) -> bool:
         pass
 
-    # @abstractmethod
-    # def should_connect_base_node(
-    #     self,
-    #     source_node: StraightenNode,
-    #     target_node: StraightenNode,
-    #     data: StraightenConnectionData,
-    #     i: int,
-    #     settings: StraightenSettings
-    # ) -> bool:
-    #     pass
-
     @abstractmethod
     def should_create_target_dot_node(
         self,
@@ -111,8 +100,46 @@ class AbstractStraightenBehavior(ABC):
     ):
         return (
             output_node.pos.x
-            >= input_node.pos.x + settings.dot_node_distance# * 2
+            >= input_node.pos.x + settings.dot_node_distance  # * 2
         )
+
+    def _get_position_of_output_index(
+        self, source_node: StraightenNode, i: int
+    ):
+        # TODO: Move to node class
+        lower_bound = source_node.pos.y
+        for j in range(source_node.output_connectable_properties_count):
+            lower_bound = max(source_node.pos.y + (STRIDE * j), lower_bound)
+        mid_point = (source_node.pos.y + lower_bound) / 2
+        offset = source_node.pos.y - mid_point
+        return source_node.pos.y + offset + (STRIDE * i)
+
+    def _get_position_of_top_index_in_target(
+        self, source_node: StraightenNode, target_node: StraightenNode
+    ):
+        offset = (
+            self._calculate_mid_point_for_input_connections_in_target_node(
+                target_node
+            )
+        )
+
+        top_index_in_target = source_node.indices_in_target_node(target_node)[
+            0
+        ]
+
+        return target_node.pos.y + offset + (STRIDE * top_index_in_target)
+
+    def _calculate_mid_point_for_input_connections_in_target_node(
+        self, target_node: StraightenNode
+    ) -> float:
+        lower_bound = target_node.pos.y
+        # Stack positions
+        for i in range(target_node.input_connectable_properties_count):
+            pos = target_node.pos.y + (STRIDE * i)
+            lower_bound = max(lower_bound, pos)
+
+        mid_point = (target_node.pos.y + lower_bound) / 2
+        return target_node.pos.y - mid_point
 
 
 class BreakAtTarget(AbstractStraightenBehavior):
@@ -184,15 +211,26 @@ class BreakAtTarget(AbstractStraightenBehavior):
         i: int,
         settings: StraightenSettings,
     ) -> bool:
-        target_node = StraightenNode(
-            data.connection[i][0].getInputPropertyNode(), source_node.graph
-        )
-        return (
+        potential_pos = source_node.pos.x + settings.dot_node_distance
+        output_node = data.output_nodes[i][0]
+        limit = output_node.pos.x - settings.dot_node_distance
+
+        if potential_pos >= limit:
+            return False
+
+        if (
             source_node.output_connectable_properties_count
-            != data.properties_with_outputs_count
-            and target_node.pos.x
-            >= source_node.pos.x + settings.dot_node_distance * 2
-        )
+            == data.properties_with_outputs_count
+        ):
+            return False
+
+        if any(
+            output_node.pos.y == source_node.pos.y
+            for output_node in data.output_nodes[i]
+        ):
+            return False
+        else:
+            return True
 
     def should_connect_node(
         self,
@@ -213,29 +251,41 @@ class BreakAtTarget(AbstractStraightenBehavior):
         i: int,
         settings: StraightenSettings,
     ) -> bool:
-        if target_node.pos.x < dot_node.pos.x + settings.dot_node_distance * 2:
+        potential_pos = dot_node.pos.x + settings.dot_node_distance
+        limit = target_node.pos.x - settings.dot_node_distance
+        if potential_pos >= limit:
             return False
 
-        output_nodes_in_front = [
-            StraightenNode(con.getInputPropertyNode(), dot_node.graph)
-            for con in data.connection[i]
-            if con.getInputPropertyNode().getPosition().x
-            > dot_node.pos.x + settings.dot_node_distance * 2
-        ]
-        output_nodes_in_front = dot_node.output_nodes_in_front(settings)
+        pos_y_output_index = self._get_position_of_output_index(dot_node, i)
+        pos_y_input_index = self._get_position_of_top_index_in_target(
+            source_node, target_node
+        )
 
-        if any(
-            output_node.pos.y != dot_node.pos.y
-            for output_node in output_nodes_in_front
-        ):
+        if math.isclose(pos_y_output_index, pos_y_input_index):
+            return False
+        else:
             return True
 
-        if len(output_nodes_in_front) == 1:
-            if target_node.center_index in dot_node.indices_in_target_node(
-                target_node
-            ):
-                return False
-        return True
+        # output_nodes_in_front = [
+        #     StraightenNode(con.getInputPropertyNode(), dot_node.graph)
+        #     for con in data.connection[i]
+        #     if con.getInputPropertyNode().getPosition().x
+        #     > dot_node.pos.x + settings.dot_node_distance * 2
+        # ]
+        # output_nodes_in_front = dot_node.output_nodes_in_front(settings)
+
+        # if any(
+        #     output_node.pos.y != dot_node.pos.y
+        #     for output_node in output_nodes_in_front
+        # ):
+        #     return True
+
+        # if len(output_nodes_in_front) == 1:
+        #     if target_node.center_index in dot_node.indices_in_target_node(
+        #         target_node
+        #     ):
+        #         return False
+        # return True
 
 
 class BreakAtSource(AbstractStraightenBehavior):
@@ -273,20 +323,13 @@ class BreakAtSource(AbstractStraightenBehavior):
         settings: StraightenSettings,
     ) -> bool:
 
-        return target_node.pos.x >= source_node.pos.x + settings.dot_node_distance * 2
+        return (
+            target_node.pos.x
+            >= source_node.pos.x + settings.dot_node_distance * 2
+        )
         return (
             target_node.pos.x >= source_node.pos.x + settings.dot_node_distance
         )
-
-    def _get_position_of_output_index(self, source_node: StraightenNode, i: int):
-        # TODO: Move to node class
-        lower_bound = source_node.pos.y
-        for j in range(source_node.output_connectable_properties_count):
-            lower_bound = max(source_node.pos.y + (STRIDE * j), lower_bound)
-        mid_point = (source_node.pos.y + lower_bound) / 2
-        offset = source_node.pos.y - mid_point
-        return source_node.pos.y + offset + (STRIDE * i)
-
 
     def should_create_base_dot_node(
         self,
@@ -296,8 +339,8 @@ class BreakAtSource(AbstractStraightenBehavior):
         settings: StraightenSettings,
     ):
         potential_pos = source_node.pos.x + settings.dot_node_distance
-        # Should only create if some of the output nodes are far 
-        # enough away to be able to connect to the newly created 
+        # Should only create if some of the output nodes are far
+        # enough away to be able to connect to the newly created
         # dot node
         output_nodes_in_front = [
             output_node
@@ -307,8 +350,6 @@ class BreakAtSource(AbstractStraightenBehavior):
         if len(output_nodes_in_front) == 0:
             return False
 
-
-        
         limit = output_nodes_in_front[0].pos.x
         if potential_pos >= limit:
             return False
@@ -316,8 +357,12 @@ class BreakAtSource(AbstractStraightenBehavior):
         if len(output_nodes_in_front) == 1:
             output_node = output_nodes_in_front[0]
 
-            pos_y_output_index = self._get_position_of_output_index(source_node, i)
-            pos_y_input_index = self._get_position_of_top_index_in_target(source_node, output_node)
+            pos_y_output_index = self._get_position_of_output_index(
+                source_node, i
+            )
+            pos_y_input_index = self._get_position_of_top_index_in_target(
+                source_node, output_node
+            )
             if math.isclose(pos_y_output_index, pos_y_input_index):
                 return False
             else:
@@ -332,13 +377,13 @@ class BreakAtSource(AbstractStraightenBehavior):
             #         return False
             #     else:
             #         return True
-            
+
             # else:   # connects to multiple indices
             #     if source_node.pos.y == output_node.pos.y:
             #         return True
             #     else:
             #         return False
-        
+
         if len(output_nodes_in_front) >= 2:
             mid_point = self._calculate_mid_point_from_output_nodes(
                 source_node, output_nodes_in_front, data, i, settings
@@ -382,15 +427,19 @@ class BreakAtSource(AbstractStraightenBehavior):
 
         if len(output_nodes_in_front) == 1:
             if not dot_node.is_dot:
-                pos_y_output_index = self._get_position_of_output_index(dot_node, i)
+                pos_y_output_index = self._get_position_of_output_index(
+                    dot_node, i
+                )
             else:
                 pos_y_output_index = dot_node.pos.y
-            pos_y_input_index = self._get_position_of_top_index_in_target(source_node, output_nodes_in_front[0])
+            pos_y_input_index = self._get_position_of_top_index_in_target(
+                source_node, output_nodes_in_front[0]
+            )
             if math.isclose(pos_y_output_index, pos_y_input_index):
                 return False
             else:
                 return True
-            
+
         return True
 
         if len(dot_node.indices_in_target_node(output_nodes_in_front[0])) > 1:
@@ -427,21 +476,6 @@ class BreakAtSource(AbstractStraightenBehavior):
             target_node.pos.x - settings.dot_node_distance, source_node.pos.y
         )
 
-    def _get_position_of_top_index_in_target(
-        self, source_node: StraightenNode, target_node: StraightenNode
-    ):
-        offset = (
-            self._calculate_mid_point_for_input_connections_in_target_node(
-                target_node
-            )
-        )
-
-        top_index_in_target = source_node.indices_in_target_node(target_node)[
-            0
-        ]
-
-        return target_node.pos.y + offset + (STRIDE * top_index_in_target)
-
     def align_base_dot_node(
         self,
         source_node: StraightenNode,
@@ -453,7 +487,8 @@ class BreakAtSource(AbstractStraightenBehavior):
         output_nodes_in_front = [
             output_node
             for output_node in data.output_nodes[i]
-            if output_node.pos.x >= source_node.pos.x + settings.dot_node_distance * 2
+            if output_node.pos.x
+            >= source_node.pos.x + settings.dot_node_distance * 2
         ]
 
         if len(output_nodes_in_front) == 1:
@@ -466,22 +501,10 @@ class BreakAtSource(AbstractStraightenBehavior):
                 pos_y,
             )
 
-        else:   # multiple output nodes
+        else:  # multiple output nodes
             mid_point = self._calculate_mid_point_from_output_nodes(
                 source_node, output_nodes_in_front, data, i, settings
             )
             data.base_dot_node[i].set_position(
                 data.base_dot_node[i].pos.x, mid_point
             )
-
-    def _calculate_mid_point_for_input_connections_in_target_node(
-        self, target_node: StraightenNode
-    ) -> float:
-        lower_bound = target_node.pos.y
-        # Stack positions
-        for i in range(target_node.input_connectable_properties_count):
-            pos = target_node.pos.y + (STRIDE * i)
-            lower_bound = max(lower_bound, pos)
-
-        mid_point = (target_node.pos.y + lower_bound) / 2
-        return target_node.pos.y - mid_point

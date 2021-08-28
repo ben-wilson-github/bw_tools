@@ -6,7 +6,6 @@ from bw_tools.common import (
     bw_node,
     bw_node_selection,
 )
-
 from bw_tools.modules.bw_layout_graph import (
     aligner_mainline,
     aligner_vertical,
@@ -22,8 +21,8 @@ from bw_tools.modules.bw_settings import (
 )
 from bw_tools.modules.bw_straighten_connection import (
     bw_straighten_connection,
+    straighten_behavior,
     straighten_node,
-    straighten_behavior
 )
 
 from tests import (
@@ -32,30 +31,32 @@ from tests import (
     test_layout_graph,
     test_node,
     test_node_selection,
+    test_straighten_connection,
 )
 
 modules = [
     bw_settings,
     bw_settings_dialog,
     bw_settings_model,
+    bw_api_tool,
     bw_node,
-    node_sorting,
-    aligner_vertical,
-    bw_layout_graph,
     bw_node_selection,
     bw_chain_dimension,
+    bw_layout_graph,
+    node_sorting,
+    aligner_vertical,
     alignment_behavior,
-    layout_node,
     aligner_mainline,
-    bw_api_tool,
+    layout_node,
+    bw_straighten_connection,
+    straighten_node,
+    straighten_behavior,
+    test_straighten_connection,
     run_unit_tests,
     test_layout_graph,
     test_node_selection,
     test_node,
     test_chain_dimension,
-    bw_straighten_connection,
-    straighten_node,
-    straighten_behavior
 ]
 
 

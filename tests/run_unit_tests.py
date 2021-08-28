@@ -5,6 +5,7 @@ from tests import (
     test_layout_graph,
     test_node,
     test_node_selection,
+    test_straighten_connection,
 )
 
 
@@ -15,8 +16,8 @@ def run():
     unittest.main(module=test_node_selection, exit=False)
     print("Running test_chain_dimension")
     unittest.main(module=test_chain_dimension, exit=False)
-
-    # unittest.main(module=text_straighten_connection, exit=True)
+    print("Running test_straighten_connection")
+    unittest.main(module=test_straighten_connection, exit=True)
 
     # print("Running test_layout_graph")
     # unittest.main(module=test_layout_graph, exit=False)
