@@ -16,7 +16,6 @@ from bw_tools.common.bw_node import Node
 
 # TODO: MOVE Type vars to api tool
 # TODO: Snap to grid in layout tools option
-FIGURE OUT HOW TO TEST IMAGES ARE THE SAME
 
 STRIDE = 21.33  # Magic number between each input slot
 

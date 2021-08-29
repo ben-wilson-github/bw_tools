@@ -1,15 +1,22 @@
-from pathlib import Path
-import unittest
-from unittest.mock import Mock
-import time
-import sd
+import functools
+import logging
+import math
+import operator
 import os
-from sd.tools.export import exportSDGraphOutputs
 import shutil
+import time
+import unittest
+from pathlib import Path
+from unittest.mock import Mock
+
+import sd
 from bw_tools.common.bw_api_tool import APITool
 from bw_tools.modules.bw_straighten_connection import bw_straighten_connection
-from bw_tools.modules.bw_straighten_connection.straighten_node import StraightenNode
+from bw_tools.modules.bw_straighten_connection.straighten_node import (
+    StraightenNode,
+)
 from PIL import Image, ImageChops
+from sd.tools.export import exportSDGraphOutputs
 
 
 class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
@@ -32,7 +39,11 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s1.dot_node_distance = 128
         s1.alignment_behavior = 0
 
-        cls.settings = [s1]
+        s2 = Mock()
+        s2.dot_node_distance = 128
+        s2.alignment_behavior = 1
+
+        cls.settings = [s1, s2]
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         cls.api = APITool()
@@ -51,42 +62,127 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
             cls.pkg_mgr.unloadUserPackage(package)
         cls.package = cls.pkg_mgr.loadUserPackage(str(tmp_file_path.resolve()))
 
+        cls.correct_result_dir = cls.tmp_dir / "correct_result"
+        cls.source_result_dir = cls.tmp_dir / "source_result"
+        cls.target_result_dir = cls.tmp_dir / "target_result"
+        for folder in [
+            cls.correct_result_dir,
+            cls.source_result_dir,
+            cls.target_result_dir,
+        ]:
+            shutil.rmtree(folder)
+
+        _run_render_textures(
+            cls.package,
+            cls.correct_result_dir,
+            cls.source_result_dir,
+            cls.target_result_dir,
+            cls.settings,
+        )
+        _wait_for_files_to_render(
+            cls.correct_result_dir,
+            cls.source_result_dir,
+            cls.target_result_dir,
+        )
+        logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
+
     def test_straighten_connection_doesnt_affect_outputs_source(self):
         print("...test_straighten_connection_doesnt_affect_outputs_source")
-        graph = self.package.findResourceFromUrl(
-            "__test_straighten_connection_doesnt_affect_outputs"
+        self._run_test_outputs_are_the_same(
+            self.source_result_dir, "_outputs_source_"
         )
-        correct_result_dir = self.tmp_dir / "correct_result"
-        exportSDGraphOutputs(graph, str(correct_result_dir.resolve()))
 
-        graph = self.package.findResourceFromUrl(
-            "__test_straighten_connection_doesnt_affect_outputs_source"
+    def test_straighten_connection_doesnt_affect_outputs_target(self):
+        print("...test_straighten_connection_doesnt_affect_outputs_target")
+        self._run_test_outputs_are_the_same(
+            self.target_result_dir, "_outputs_target_"
         )
-        source_result_dir = self.tmp_dir / "source_result"
-        for node in graph.getNodes():
-            try:
-                node = StraightenNode(node, graph)
-            except AttributeError:
-                # Occurs if the dot node was previously removed
-                continue
-            bw_straighten_connection.run_straighten_connection(node, graph, self.settings[0])
-        exportSDGraphOutputs(graph, str(source_result_dir.resolve()))
+    
+    # def test_straighten_connection_1_source(self):
 
-        time.sleep(10)
-
-        for file in os.listdir(correct_result_dir):
-            correct = correct_result_dir / file
-            result = source_result_dir / file.replace("_outputs_", "_outputs_source_")
-            correct = Image.open(str(correct.resolve())).convert('RGB')
-            result = Image.open(str(result.resolve())).convert('RGB')
-            diff = ImageChops.difference(correct, result)
-            # self.assertFalse(diff.getbbox())
-            if diff.getbbox():
-                print("images are different")
-            else:
-                print("images are the same")
+    def _run_test_outputs_are_the_same(self, output_dir, str_replace):
+        for file in os.listdir(self.correct_result_dir):
+            correct = self.correct_result_dir / file
+            result = output_dir / file.replace("_outputs_", str_replace)
+            correct = Image.open(str(correct.resolve())).convert("RGB")
+            result = Image.open(str(result.resolve())).convert("RGB")
+            rms = _calculate_rms(correct, result)
+            # Designer doesnt render the same each time, so difference might
+            # be slightly off
+            self.assertAlmostEqual(rms, 0, places=1)
 
 
-            
-        
+def _wait_for_files_to_render(
+    correct_result_dir, source_result_dir, target_result_dir
+):
+    ready = False
+    for _ in range(10):
+        ready = True
+        for folder in [
+            correct_result_dir,
+            source_result_dir,
+            target_result_dir,
+        ]:
+            for f in os.listdir(folder):
+                file = folder / f
+                if not _check_file(file):
+                    ready = False
+                    break
 
+            if not ready:
+                break
+
+        if ready:
+            print("textures rendered")
+            return True
+        print("waiting for renders to finish")
+        time.sleep(1)
+    return False
+
+
+def _run_render_textures(
+    package, correct_result_dir, source_result_dir, target_result_dir, settings
+):
+    graph = package.findResourceFromUrl(
+        "__test_straighten_connection_doesnt_affect_outputs"
+    )
+    exportSDGraphOutputs(graph, str(correct_result_dir.resolve()))
+
+    graph = package.findResourceFromUrl(
+        "__test_straighten_connection_doesnt_affect_outputs_source"
+    )
+    _run_straighten(graph, settings[0])
+    exportSDGraphOutputs(graph, str(source_result_dir.resolve()))
+
+    graph = package.findResourceFromUrl(
+        "__test_straighten_connection_doesnt_affect_outputs_target"
+    )
+    _run_straighten(graph, settings[1])
+    exportSDGraphOutputs(graph, str(target_result_dir.resolve()))
+
+
+def _run_straighten(graph, settings):
+    for node in graph.getNodes():
+        try:
+            node = StraightenNode(node, graph)
+        except AttributeError:
+            # Occurs if the dot node was previously removed
+            continue
+        bw_straighten_connection.run_straighten_connection(
+            node, graph, settings
+        )
+
+
+def _calculate_rms(im1: Image, im2: Image) -> float:
+    h = ImageChops.difference(im1, im2).histogram()
+    return math.sqrt(
+        functools.reduce(
+            operator.add,
+            map(lambda h, i: i % 256 * (h ** 2), h, range(len(h))),
+        )
+        / (float(im1.size[0]) * im1.size[1])
+    )
+
+
+def _check_file(f: Path):
+    return f.exists() and f.stat().st_size >= 75
