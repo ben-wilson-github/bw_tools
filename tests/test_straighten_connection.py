@@ -97,8 +97,71 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         self._run_test_outputs_are_the_same(
             self.target_result_dir, "_outputs_target_"
         )
-    
-    # def test_straighten_connection_1_source(self):
+
+    def test_straighten_connection_1_source(self):
+        print("...test_straighten_connection_1_source")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_1_result_source"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_1_correct_source"
+        )
+        _run_straighten(result_graph, self.settings[0])
+
+        results_nodes = [
+            StraightenNode(n, result_graph) for n in result_graph.getNodes()
+        ]
+        for result_node in results_nodes:
+            self.assertTrue(
+                any(
+                    math.isclose(
+                        result_node.pos.x, node.getPosition().x, abs_tol=0.1
+                    )
+                    for node in correct_graph.getNodes()
+                )
+            )
+            self.assertTrue(
+                any(
+                    math.isclose(
+                        result_node.pos.y, node.getPosition().y, abs_tol=0.1
+                    )
+                    for node in correct_graph.getNodes()
+                )
+            )
+
+    def test_straighten_connection_1_target(self):
+        print("...test_straighten_connection_1_target")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_1_result_target"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_1_correct_target"
+        )
+        _run_straighten(result_graph, self.settings[1])
+
+        results_nodes = [
+            StraightenNode(n, result_graph) for n in result_graph.getNodes()
+        ]
+        for result_node in results_nodes:
+            self.assertTrue(
+                any(
+                    math.isclose(
+                        result_node.pos.x, node.getPosition().x, abs_tol=0.1
+                    )
+                    for node in correct_graph.getNodes()
+                )
+            )
+            self.assertTrue(
+                any(
+                    math.isclose(
+                        result_node.pos.y, node.getPosition().y, abs_tol=0.1
+                    )
+                    for node in correct_graph.getNodes()
+                )
+            )
+
+    def test_only_removes_nodes_in_node_selection(self):
+        self.assertFalse(True)
 
     def _run_test_outputs_are_the_same(self, output_dir, str_replace):
         for file in os.listdir(self.correct_result_dir):
