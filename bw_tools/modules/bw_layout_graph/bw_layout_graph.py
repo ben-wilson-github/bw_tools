@@ -24,6 +24,9 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 # TODO: Add visual indents to settings frame
 # TODO: Add sub comments to settings (requires restart)
 # TODO: Test Threads for updating graph in real time?
+# TODO: Snap to grid in layout tools option
+# TODO: MOVE Type vars to api tool
+# TODO: Icon for graph shelf
 
 
 class LayoutSettings(ModuleSettings):

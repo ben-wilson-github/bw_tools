@@ -4,15 +4,17 @@ from typing import List, TypeVar
 
 import sd
 from bw_tools.common import bw_toolbar
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtWidgets
 
-importlib.reload(bw_toolbar)
 
 # Types for type hinting
 TYPE_MODULES = TypeVar("TYPE_MODULES")
 SDContext = TypeVar("SDContext")
 SDNode = TypeVar("SDNode")
 SDSBSCompGraph = TypeVar("SDSBSCompGraph")
+SDSBSCompNode = TypeVar("SDSBSCompNode")
+SDProperty = TypeVar("SDProperty")
+SDConnection = TypeVar("SDConnection")
 
 
 class APITool:

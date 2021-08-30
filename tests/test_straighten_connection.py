@@ -12,6 +12,10 @@ from unittest.mock import Mock
 import sd
 from bw_tools.common.bw_api_tool import APITool
 from bw_tools.modules.bw_straighten_connection import bw_straighten_connection
+from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
+    BreakAtSource,
+    BreakAtTarget,
+)
 from bw_tools.modules.bw_straighten_connection.straighten_node import (
     StraightenNode,
 )
@@ -35,15 +39,17 @@ class TestStraightenConnection(unittest.TestCase):
         )
         tmp_file_path = cls.tmp_dir / "__test_straighten_connection.sbs"
 
-        s1 = Mock()
-        s1.dot_node_distance = 128
-        s1.alignment_behavior = 0
+        cls.settings = Mock()
+        cls.settings.dot_node_distance = 128
+        # s1 = Mock()
+        # s1.dot_node_distance = 128
+        # s1.alignment_behavior = 0
 
-        s2 = Mock()
-        s2.dot_node_distance = 128
-        s2.alignment_behavior = 1
+        # s2 = Mock()
+        # s2.dot_node_distance = 128
+        # s2.alignment_behavior = 1
 
-        cls.settings = [s1, s2]
+        # cls.settings = [s1, s2]
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         cls.api = APITool()
@@ -106,7 +112,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_1_correct_source"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtSource(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_1_target(self):
         print("...test_straighten_connection_1_target")
@@ -116,7 +127,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_1_correct_target"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtTarget(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_2_source(self):
         print("...test_straighten_connection_2_source")
@@ -126,7 +142,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_2_correct_source"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtSource(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_2_target(self):
         print("...test_straighten_connection_2_target")
@@ -136,7 +157,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_2_correct_target"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtTarget(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_3_source(self):
         print("...test_straighten_connection_3_source")
@@ -146,7 +172,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_3_correct_source"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtSource(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_3_target(self):
         print("...test_straighten_connection_3_target")
@@ -156,7 +187,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_3_correct_target"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtTarget(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_4_source(self):
         print("...test_straighten_connection_4_source")
@@ -166,7 +202,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_4_correct_source"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtSource(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_4_target(self):
         print("...test_straighten_connection_4_target")
@@ -176,7 +217,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_4_correct_target"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtTarget(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_5_source(self):
         print("...test_straighten_connection_5_source")
@@ -186,7 +232,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_5_correct_source"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtSource(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_5_target(self):
         print("...test_straighten_connection_5_target")
@@ -196,7 +247,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_5_correct_target"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtTarget(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_6_source(self):
         print("...test_straighten_connection_6_source")
@@ -206,7 +262,12 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_6_correct_source"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtSource(result_graph),
+            self.settings,
+        )
 
     def test_straighten_connection_6_target(self):
         print("...test_straighten_connection_6_target")
@@ -216,12 +277,17 @@ class TestStraightenConnection(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_6_correct_target"
         )
-        self._run_test_graph(result_graph, correct_graph, self.settings[1])
-
-    def test_only_removes_nodes_in_node_selection(self):
-        self.assertFalse(True)
+        self._run_test_graph(
+            result_graph,
+            correct_graph,
+            BreakAtTarget(result_graph),
+            self.settings,
+        )
 
     def _run_test_outputs_are_the_same(self, output_dir, str_replace):
+        """
+        The graphs are precalulated and exported in the setupClass function
+        """
         for file in os.listdir(self.correct_result_dir):
             correct = self.correct_result_dir / file
             result = output_dir / file.replace("_outputs_", str_replace)
@@ -232,8 +298,8 @@ class TestStraightenConnection(unittest.TestCase):
             # be slightly off
             self.assertAlmostEqual(rms, 0, places=1)
 
-    def _run_test_graph(self, result_graph, correct_graph, settings):
-        _run_straighten(result_graph, settings)
+    def _run_test_graph(self, result_graph, correct_graph, behavior, settings):
+        _run_straighten(result_graph, behavior, settings)
 
         results_nodes = [
             StraightenNode(n, result_graph) for n in result_graph.getNodes()
@@ -296,17 +362,17 @@ def _run_render_textures(
     graph = package.findResourceFromUrl(
         "__test_straighten_connection_doesnt_affect_outputs_source"
     )
-    _run_straighten(graph, settings[0])
+    _run_straighten(graph, BreakAtSource(graph), settings)
     exportSDGraphOutputs(graph, str(source_result_dir.resolve()))
 
     graph = package.findResourceFromUrl(
         "__test_straighten_connection_doesnt_affect_outputs_target"
     )
-    _run_straighten(graph, settings[1])
+    _run_straighten(graph, BreakAtTarget(graph), settings)
     exportSDGraphOutputs(graph, str(target_result_dir.resolve()))
 
 
-def _run_straighten(graph, settings):
+def _run_straighten(graph, behavior, settings):
     for node in graph.getNodes():
         try:
             node = StraightenNode(node, graph)
@@ -314,7 +380,7 @@ def _run_straighten(graph, settings):
             # Occurs if the dot node was previously removed
             continue
         bw_straighten_connection.run_straighten_connection(
-            node, graph, settings
+            node, behavior, settings
         )
 
 

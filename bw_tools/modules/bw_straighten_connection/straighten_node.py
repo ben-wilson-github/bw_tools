@@ -1,35 +1,22 @@
 from __future__ import annotations
 
-
 from dataclasses import dataclass, field
-from typing import Union, List, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .bw_straighten_connection import (
-        # StraightenConnectionData,
-        StraightenSettings,
-    )
+from typing import List
 
 import sd
-from bw_tools.common.bw_api_tool import SDSBSCompGraph
+from bw_tools.common.bw_api_tool import (
+    SDConnection,
+    SDProperty,
+    SDSBSCompGraph,
+)
 from bw_tools.common.bw_node import Node
 
-# TODO: MOVE Type vars to api tool
-# TODO: Snap to grid in layout tools option
-
 STRIDE = 21.33  # Magic number between each input slot
-
-
-class NoInputs(Exception):
-    pass
 
 
 @dataclass
 class StraightenNode(Node):
     graph: SDSBSCompGraph = field(repr=False)
-    output_dot_node: "StraightenNode" = field(
-        repr=False, init=False, default=None
-    )
 
     def delete_output_dot_nodes(self):
         for prop in self.output_connectable_properties:
@@ -47,7 +34,7 @@ class StraightenNode(Node):
                 self.graph.deleteNode(dot_node.api_node)
 
     def _rebuild_deleted_dot_connection(
-        self, dot_node: StraightenNode, input_node_property
+        self, dot_node: StraightenNode, input_node_property: SDProperty
     ):
         output_node_connections = (
             dot_node._get_connected_output_connections_for_property_id(
@@ -70,13 +57,15 @@ class StraightenNode(Node):
 
     def _get_connected_output_connections_for_property_id(
         self, api_property_id: str
-    ):
+    ) -> List[SDConnection]:
         p = self.api_node.getPropertyFromId(
             api_property_id, sd.api.sdproperty.SDPropertyCategory.Output
         )
         return [con for con in self.api_node.getPropertyConnections(p)]
 
-    def _get_connected_output_connections_for_property(self, api_property):
+    def _get_connected_output_connections_for_property(
+        self, api_property: SDProperty
+    ) -> List[SDConnection]:
         return [
             con for con in self.api_node.getPropertyConnections(api_property)
         ]
@@ -90,31 +79,10 @@ class StraightenNode(Node):
             == str(self.identifier)
         ]
 
-    @property
-    def center_index(self) -> Union[int, float]:
-        if self.input_connectable_properties_count == 0:
-            raise NoInputs()
-        elif self.input_connectable_properties_count == 1:
-            return 0
-        elif self.input_connectable_properties_count == 2:
-            return 0.5
-        else:
-            return 0.5 * (self.input_connectable_properties_count - 1)
-
-    def output_nodes_in_front(
-        self,
-        settings: StraightenSettings,
-    ):
-        return [
-            StraightenNode(con.getInputPropertyNode(), self.graph)
-            for p in self.output_connectable_properties
-            for con in self._get_connected_output_connections_for_property(p)
-            if con
-            and con.getInputPropertyNode().getPosition().x
-            >= self.pos.x + settings.dot_node_distance * 2
-        ]
-
-    def conntects_to_center_index_of_target(self, target_node: StraightenNode):
-        return target_node.center_index in self.indices_in_target_node(
-            target_node
-        )
+    def get_position_of_output_index(self, i: int) -> float:
+        lower_bound = self.pos.y
+        for j in range(self.output_connectable_properties_count):
+            lower_bound = max(self.pos.y + (STRIDE * j), lower_bound)
+        mid_point = (self.pos.y + lower_bound) / 2
+        offset = self.pos.y - mid_point
+        return self.pos.y + offset + (STRIDE * i)
