@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from bw_tools.common.bw_api_tool import SDSBSCompGraph
 from bw_tools.common.bw_node import Float2

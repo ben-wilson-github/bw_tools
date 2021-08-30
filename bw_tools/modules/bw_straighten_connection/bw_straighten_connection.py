@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List
 
 import sd
-from bw_tools.common.bw_api_tool import SDSBSCompGraph, SDConnection
+from bw_tools.common.bw_api_tool import SDConnection
 from bw_tools.common.bw_node import Float2
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
@@ -47,8 +47,9 @@ def run_straighten_connection(
     settings: StraightenSettings,
 ):
     """
-    Create and position a series of dot nodes from source node to each connected
-    output node. Dot node alignment is determined by a given behavior and its settings.
+    Create and position a series of dot nodes from source node to each
+    connected output node. Dot node alignment is determined by a given
+    behavior and its settings.
     """
     node.delete_output_dot_nodes()
     data = _create_connection_data_for_all_inputs(node)
@@ -150,11 +151,11 @@ def _insert_target_dot_nodes(
 
     The dot nodes are created one output at a time and in order from closest
     to farthest. Additionally, new connections will reuse existing dot nodes
-    if required. This means alignment behavior logic can not make any assumptions
-    about output nodes infront it. For example, making API calls to determin
-    how many outputs are connected to a newly created dot node will not work,
-    since not all the outputs may not have been processed yet. The other outputs
-    would still be connected to the source node.
+    if required. This means alignment behavior logic can not make any
+    assumptions about output nodes infront it. For example, making API calls
+    to determin how many outputs are connected to a newly created dot node
+    will not work, since not all the outputs may not have been processed yet.
+    The other outputs would still be connected to the source node.
     """
     for i, _ in enumerate(source_node.output_connectable_properties):
         if not data.output_nodes[i]:
@@ -283,7 +284,8 @@ def on_graph_view_created(_, api: APITool):
     )
     action.setShortcut(QtGui.QKeySequence(settings.target_hotkey))
     action.setToolTip(
-        "Straighten connections on selected nodes. Connections break near the target."
+        "Straighten connections on selected nodes. "
+        "Connections insert dot nodes near the output nodes."
     )
     action.triggered.connect(
         lambda: on_clicked_straighten_connection(
@@ -301,7 +303,8 @@ def on_graph_view_created(_, api: APITool):
     )
     action.setShortcut(QtGui.QKeySequence(settings.source_hotkey))
     action.setToolTip(
-        "Straighten connections on selected nodes. Connections break near the source."
+        "Straighten connections on selected nodes. "
+        "Connections insert dot nodes near the input node."
     )
     action.triggered.connect(
         lambda: on_clicked_straighten_connection(
@@ -314,7 +317,9 @@ def on_graph_view_created(_, api: APITool):
         QtGui.QIcon(str(icon.resolve())), ""
     )
     action.setShortcut(QtGui.QKeySequence(settings.remove_dot_nodes_hotkey))
-    action.setToolTip("Remove dot nodes from selected nodes.")
+    action.setToolTip(
+        "Remove all dot nodes connected to the outputs of the selected nodes."
+    )
     action.triggered.connect(
         lambda: on_clicked_remove_dot_nodes_from_selection(api)
     )
