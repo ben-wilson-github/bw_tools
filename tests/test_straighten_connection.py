@@ -19,7 +19,7 @@ from PIL import Image, ImageChops
 from sd.tools.export import exportSDGraphOutputs
 
 
-class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
+class TestStraightenConnection(unittest.TestCase):
     packages = None
     settings = None
     pkg_mgr = None
@@ -106,28 +106,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_1_correct_source"
         )
-        _run_straighten(result_graph, self.settings[0])
-
-        results_nodes = [
-            StraightenNode(n, result_graph) for n in result_graph.getNodes()
-        ]
-        for result_node in results_nodes:
-            self.assertTrue(
-                any(
-                    math.isclose(
-                        result_node.pos.x, node.getPosition().x, abs_tol=0.1
-                    )
-                    for node in correct_graph.getNodes()
-                )
-            )
-            self.assertTrue(
-                any(
-                    math.isclose(
-                        result_node.pos.y, node.getPosition().y, abs_tol=0.1
-                    )
-                    for node in correct_graph.getNodes()
-                )
-            )
+        self._run_test_graph(result_graph, correct_graph, self.settings[0])
 
     def test_straighten_connection_1_target(self):
         print("...test_straighten_connection_1_target")
@@ -137,28 +116,107 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         correct_graph = self.package.findResourceFromUrl(
             "test_straighten_connection_1_correct_target"
         )
-        _run_straighten(result_graph, self.settings[1])
+        self._run_test_graph(result_graph, correct_graph, self.settings[1])
 
-        results_nodes = [
-            StraightenNode(n, result_graph) for n in result_graph.getNodes()
-        ]
-        for result_node in results_nodes:
-            self.assertTrue(
-                any(
-                    math.isclose(
-                        result_node.pos.x, node.getPosition().x, abs_tol=0.1
-                    )
-                    for node in correct_graph.getNodes()
-                )
-            )
-            self.assertTrue(
-                any(
-                    math.isclose(
-                        result_node.pos.y, node.getPosition().y, abs_tol=0.1
-                    )
-                    for node in correct_graph.getNodes()
-                )
-            )
+    def test_straighten_connection_2_source(self):
+        print("...test_straighten_connection_2_source")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_2_result_source"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_2_correct_source"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+
+    def test_straighten_connection_2_target(self):
+        print("...test_straighten_connection_2_target")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_2_result_target"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_2_correct_target"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+
+    def test_straighten_connection_3_source(self):
+        print("...test_straighten_connection_3_source")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_3_result_source"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_3_correct_source"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+
+    def test_straighten_connection_3_target(self):
+        print("...test_straighten_connection_3_target")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_3_result_target"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_3_correct_target"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+
+    def test_straighten_connection_4_source(self):
+        print("...test_straighten_connection_4_source")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_4_result_source"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_4_correct_source"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+
+    def test_straighten_connection_4_target(self):
+        print("...test_straighten_connection_4_target")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_4_result_target"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_4_correct_target"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+
+    def test_straighten_connection_5_source(self):
+        print("...test_straighten_connection_5_source")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_5_result_source"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_5_correct_source"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+
+    def test_straighten_connection_5_target(self):
+        print("...test_straighten_connection_5_target")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_5_result_target"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_5_correct_target"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[1])
+
+    def test_straighten_connection_6_source(self):
+        print("...test_straighten_connection_6_source")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_6_result_source"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_6_correct_source"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[0])
+
+    def test_straighten_connection_6_target(self):
+        print("...test_straighten_connection_6_target")
+        result_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_6_result_target"
+        )
+        correct_graph = self.package.findResourceFromUrl(
+            "test_straighten_connection_6_correct_target"
+        )
+        self._run_test_graph(result_graph, correct_graph, self.settings[1])
 
     def test_only_removes_nodes_in_node_selection(self):
         self.assertFalse(True)
@@ -173,6 +231,30 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
             # Designer doesnt render the same each time, so difference might
             # be slightly off
             self.assertAlmostEqual(rms, 0, places=1)
+
+    def _run_test_graph(self, result_graph, correct_graph, settings):
+        _run_straighten(result_graph, settings)
+
+        results_nodes = [
+            StraightenNode(n, result_graph) for n in result_graph.getNodes()
+        ]
+        for result_node in results_nodes:
+            self.assertTrue(
+                any(
+                    math.isclose(
+                        result_node.pos.x, node.getPosition().x, abs_tol=0.1
+                    )
+                    for node in correct_graph.getNodes()
+                )
+            )
+            self.assertTrue(
+                any(
+                    math.isclose(
+                        result_node.pos.y, node.getPosition().y, abs_tol=0.1
+                    )
+                    for node in correct_graph.getNodes()
+                )
+            )
 
 
 def _wait_for_files_to_render(
