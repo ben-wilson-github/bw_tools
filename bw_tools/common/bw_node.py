@@ -166,6 +166,7 @@ class Node:
     def output_connectable_properties_count(self) -> int:
         return len(self.output_connectable_properties)
 
+    # TODO Move to straighten connection module and use enum
     @property
     def is_dot(self) -> bool:
         return (

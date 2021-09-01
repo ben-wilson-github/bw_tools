@@ -14,6 +14,14 @@ from bw_tools.common import bw_api_tool, bw_logging
 # TODO: Make sure its clear you need PIL in install dir to run unittests
 # TODO: integrate optimize graph module
 # TODO: integrate PBR reference module
+# TODO: Unit tests for all the settings
+# TODO: default setting files
+# TODO: reframe to selection plugin
+# TODO: Add visual indents to settings frame
+# TODO: Add sub comments to settings (requires restart)
+# TODO: Test Threads for updating graph in real time?
+# TODO: MOVE Type vars to api tool
+# TODO: Icon for graph shelf
 
 LOGGER = bw_logging.create_logger(ROOT_DIR / "bwtools.log")
 API_TOOL = bw_api_tool.APITool(LOGGER["logger"])

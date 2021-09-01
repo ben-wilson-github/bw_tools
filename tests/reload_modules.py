@@ -24,6 +24,10 @@ from bw_tools.modules.bw_straighten_connection import (
     straighten_behavior,
     straighten_node,
 )
+from bw_tools.modules.bw_optimize_graph import (
+    bw_optimize_graph,
+    optimize_uniform_color_nodes
+)
 
 from tests import (
     test_chain_dimension,
@@ -34,6 +38,8 @@ from tests import (
 )
 
 modules = [
+    bw_optimize_graph,
+    optimize_uniform_color_nodes,
     bw_settings,
     bw_settings_dialog,
     bw_settings_model,

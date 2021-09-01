@@ -1,6 +1,7 @@
 import importlib
 import logging
 from typing import List, TypeVar
+from enum import Enum
 
 import sd
 from bw_tools.common import bw_toolbar
@@ -15,6 +16,11 @@ SDSBSCompGraph = TypeVar("SDSBSCompGraph")
 SDSBSCompNode = TypeVar("SDSBSCompNode")
 SDProperty = TypeVar("SDProperty")
 SDConnection = TypeVar("SDConnection")
+
+
+class NodeID(Enum):
+    DOT = "sbs::compositing::passthrough"
+    UNIFORM_COLOR = "sbs::compositing::uniform"
 
 
 class APITool:
