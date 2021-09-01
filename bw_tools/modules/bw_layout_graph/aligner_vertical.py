@@ -150,7 +150,7 @@ class VerticalAligner:
             )
             upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(
                 node_to_move,
-                chain=node_to_move_chain,
+                selection=node_to_move_chain,
                 limit_bounds=limit_bounds,
             )
         except bw_chain_dimension.OutOfBoundsError:
@@ -171,7 +171,7 @@ class VerticalAligner:
                 left=smallest_cd.bounds.left
             )
             lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(
-                node_above, chain=node_above_chain, limit_bounds=limit_bounds
+                node_above, selection=node_above_chain, limit_bounds=limit_bounds
             )
         except bw_chain_dimension.OutOfBoundsError:
             # This can also happen when the node above is a root
