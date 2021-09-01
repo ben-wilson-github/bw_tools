@@ -12,6 +12,10 @@
         "widget": 4,
         "value": 0
     },
+    "Snap To Grid": {
+        "widget": 3,
+        "value": true
+    },
     "Mainline Settings": {
         "widget": 0,
         "value": {

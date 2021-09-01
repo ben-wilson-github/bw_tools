@@ -103,6 +103,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s1.mainline_min_threshold = 96
         s1.alignment_behavior = 0
         s1.run_straighten_connection = False
+        s1.snap_to_grid = False
 
         s2 = Mock()
         s2.mainline_enabled = True
@@ -112,6 +113,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s2.mainline_min_threshold = 96
         s2.alignment_behavior = 1
         s2.run_straighten_connection = False
+        s2.snap_to_grid = False
 
         s3 = Mock()
         s3.mainline_enabled = True
@@ -121,6 +123,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s3.mainline_min_threshold = 96
         s3.alignment_behavior = 2
         s3.run_straighten_connection = False
+        s3.snap_to_grid = False
 
         s4 = Mock()
         s4.mainline_enabled = False
@@ -130,6 +133,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s4.mainline_min_threshold = 96
         s4.alignment_behavior = 0
         s4.run_straighten_connection = False
+        s4.snap_to_grid = False
 
         s5 = Mock()
         s5.mainline_enabled = False
@@ -139,6 +143,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s5.mainline_min_threshold = 96
         s5.alignment_behavior = 1
         s5.run_straighten_connection = False
+        s5.snap_to_grid = False
 
         s6 = Mock()
         s6.mainline_enabled = False
@@ -148,6 +153,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s6.mainline_min_threshold = 96
         s6.alignment_behavior = 2
         s6.run_straighten_connection = False
+        s6.snap_to_grid = False
 
         s7 = Mock()
         s7.mainline_enabled = True
@@ -157,6 +163,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s7.mainline_min_threshold = 96
         s7.alignment_behavior = 0
         s7.run_straighten_connection = False
+        s7.snap_to_grid = False
 
         s8 = Mock()
         s8.mainline_enabled = True
@@ -166,6 +173,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s8.mainline_min_threshold = 96
         s8.alignment_behavior = 0
         s8.run_straighten_connection = False
+        s8.snap_to_grid = False
 
         s9 = Mock()
         s9.mainline_enabled = True
@@ -175,6 +183,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s9.mainline_min_threshold = 0
         s9.alignment_behavior = 0
         s9.run_straighten_connection = False
+        s9.snap_to_grid = False
 
         cls.settings = [s1, s2, s3, s4, s5, s6, s7, s8, s9]
 

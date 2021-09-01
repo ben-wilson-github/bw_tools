@@ -22,7 +22,6 @@ from .layout_node import LayoutNode, LayoutNodeSelection
 
 
 # TODO: Unit tests for all the settings
-# TODO: Run straighten connection after
 # TODO: default setting files
 # TODO: reframe to selection plugin
 # TODO: Add visual indents to settings frame
@@ -55,6 +54,7 @@ class LayoutSettings(ModuleSettings):
         self.straighten_connection_behavior: bool = self.get(
             "Straighten Connection Settings;value;Alignment;value"
         )
+        self.snap_to_grid: bool = self.get("Snap To Grid;value")
 
 
 def run_layout(
@@ -90,6 +90,9 @@ def run_layout(
     node: LayoutNode
     for node in node_selection.nodes:
         node.set_api_position()
+
+    if settings.snap_to_grid:
+        sd.tools.graphlayout.snapSDNodes(api.current_selection)
 
     if settings.run_straighten_connection:
         if settings.straighten_connection_behavior == 0:
