@@ -36,5 +36,22 @@
     "Node Count Warning": {
         "widget": 2,
         "value": 80
+    },
+    "Straighten Connection Settings": {
+        "widget": 0,
+        "value": {
+            "Enable": {
+                "widget": 3,
+                "value": true
+            },
+            "Alignment": {
+                "list": [
+                    "Break At Source",
+                    "Break At Target"
+                ],
+                "widget": 4,
+                "value": 0
+            }
+        }
     }
 }

@@ -18,7 +18,6 @@ def run():
     unittest.main(module=test_chain_dimension, exit=False)
     print("Running test_straighten_connection")
     unittest.main(module=test_straighten_connection, exit=False)
-
     print("Running test_layout_graph")
     unittest.main(module=test_layout_graph, exit=False)
 

@@ -6,6 +6,10 @@ import sd
 from bw_tools.common.bw_api_tool import APITool
 from bw_tools.common import bw_node_selection
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
+from bw_tools.modules.bw_straighten_connection import (
+    bw_straighten_connection,
+    straighten_behavior,
+)
 from PySide2 import QtGui, QtWidgets
 
 from . import aligner_vertical, aligner_mainline, node_sorting
@@ -45,6 +49,12 @@ class LayoutSettings(ModuleSettings):
         )
         self.alignment_behavior: int = self.get("Input Node Alignment;value")
         self.node_count_warning: int = self.get("Node Count Warning;value")
+        self.run_straighten_connection: bool = self.get(
+            "Straighten Connection Settings;value;Enable;value"
+        )
+        self.straighten_connection_behavior: bool = self.get(
+            "Straighten Connection Settings;value;Alignment;value"
+        )
 
 
 def run_layout(
@@ -80,6 +90,15 @@ def run_layout(
     node: LayoutNode
     for node in node_selection.nodes:
         node.set_api_position()
+
+    if settings.run_straighten_connection:
+        if settings.straighten_connection_behavior == 0:
+            behavior = straighten_behavior.BreakAtSource(api.current_graph)
+        else:
+            behavior = straighten_behavior.BreakAtTarget(api.current_graph)
+        bw_straighten_connection.on_clicked_straighten_connection(
+            api, behavior
+        )
 
     api.log.info("Finished running layout graph")
 
