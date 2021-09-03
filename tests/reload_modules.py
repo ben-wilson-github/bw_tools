@@ -26,7 +26,8 @@ from bw_tools.modules.bw_straighten_connection import (
 )
 from bw_tools.modules.bw_optimize_graph import (
     bw_optimize_graph,
-    optimize_uniform_color_nodes
+    optimize_uniform_color_nodes,
+    property_matcher
 )
 
 from tests import (
@@ -40,6 +41,7 @@ from tests import (
 modules = [
     bw_optimize_graph,
     optimize_uniform_color_nodes,
+    property_matcher,
     bw_settings,
     bw_settings_dialog,
     bw_settings_model,

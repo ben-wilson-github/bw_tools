@@ -362,11 +362,10 @@ def run(node_selection: NodeSelection):
     
 
     # Handle uniform colors
-    print(optimize_uniform_color_nodes.get_uniform_color_nodes(node_selection))
-    return
-    if verbose:
-        if moduleSettings['uniformColorNodes']['outputSize'] or moduleSettings['uniformColorNodes']['removeDuplicates']:
-            og.logger.info(f'{"."*5}Optimizing color nodes...')
+    optimize_uniform_color_nodes.run(node_selection)
+    # if verbose:
+    #     if moduleSettings['uniformColorNodes']['outputSize'] or moduleSettings['uniformColorNodes']['removeDuplicates']:
+    #         og.logger.info(f'{"."*5}Optimizing color nodes...')
             
     
     if moduleSettings['uniformColorNodes']['removeDuplicates']:

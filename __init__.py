@@ -10,6 +10,7 @@ if not ROOT_DIR.resolve() in sys.path:
 
 from bw_tools.common import bw_api_tool, bw_logging
 
+# TODO: Cant have toolbar on graph switch, not loading with pixel processors. Need to use graph ID
 # TODO: Is it possible to do frame plugin now?
 # TODO: Make sure its clear you need PIL in install dir to run unittests
 # TODO: integrate optimize graph module
