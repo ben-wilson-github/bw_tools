@@ -18,7 +18,7 @@ def input_properties_match(node: Node, other: Node) -> bool:
     for other_property in other.api_node.getProperties(
         SDPropertyCategory.Input
     ):
-        node_property = _get_matching_property(node, other_property)
+        node_property = get_matching_input_property(node, other_property)
         if node_property is None:
             return
 
@@ -28,7 +28,9 @@ def input_properties_match(node: Node, other: Node) -> bool:
             return
 
         if node_property.isConnectable():
-            if not _has_same_inputs(node, other, node_property, other_property):
+            if not _has_same_inputs(
+                node, other, node_property, other_property
+            ):
                 return
 
         if not _values_match(node, other, other_property):
@@ -60,16 +62,26 @@ def _has_same_inputs(
     return True
 
 
-def _get_matching_property(
+def get_matching_input_property(
     node: Node, property: SDProperty
+) -> Optional[SDProperty]:
+    return _get_matching_property(node, property, SDPropertyCategory.Input)
+
+
+def get_matching_output_property(
+    node: Node, property: SDProperty
+) -> Optional[SDProperty]:
+    return _get_matching_property(node, property, SDPropertyCategory.Output)
+
+
+def _get_matching_property(
+    node: Node, property: SDProperty, category: SDPropertyCategory
 ) -> Optional[SDProperty]:
     # try:
     #     node_property = node.api_node.getPropertyFromId(other_property.getId(), SDPropertyCategory.Input)
     # except AttributeError:
     #     return False
-    node_property = node.api_node.getPropertyFromId(
-        property.getId(), SDPropertyCategory.Input
-    )
+    node_property = node.api_node.getPropertyFromId(property.getId(), category)
     if node_property:
         return node_property
     return None

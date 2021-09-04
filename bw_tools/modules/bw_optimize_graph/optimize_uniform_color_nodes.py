@@ -1,7 +1,8 @@
 from __future__ import annotations, unicode_literals
+from dataclasses import dataclass
 from enum import unique
 from bw_tools.common.bw_api_tool import NodeID, SDSBSCompGraph
-from typing import List, TYPE_CHECKING, Tuple
+from typing import List, TYPE_CHECKING, Optional, Tuple, Dict
 from sd.api.sdproperty import SDPropertyCategory, SDPropertyInheritanceMethod
 from . import property_matcher
 
@@ -10,62 +11,96 @@ if TYPE_CHECKING:
     from bw_tools.common.bw_node_selection import NodeSelection
 
 
-def run(node_selection: NodeSelection):
-    uniform_color_nodes = _get_uniform_color_nodes(node_selection)
-    unique_nodes, duplicate_nodes = _sort_nodes(uniform_color_nodes)
-    print(duplicate_nodes)
+@dataclass
+class Optimizer:
+    node_selection: NodeSelection
 
+    def _reconnect_output_connections(
+        self, duplicate_node: Node, unique_node: Node
+    ):
+        for output_connection in duplicate_node.output_connections:
+            source_property = property_matcher.get_matching_output_property(
+                unique_node, output_connection.getOutputProperty()
+            )
+            unique_node.api_node.newPropertyConnection(
+                source_property,
+                output_connection.getInputPropertyNode(),
+                output_connection.getInputProperty(),
+            )
 
-def _get_uniform_color_nodes(node_selection: NodeSelection) -> List[Node]:
-    return [
-        node
-        for node in node_selection.nodes
-        if node.api_node.getDefinition().getId() == NodeID.UNIFORM_COLOR.value
-    ]
+    def _sort_nodes(self, nodes: List[Node]) -> Dict[Node, List[Node]]:
+        unique_nodes: Dict[Node, List[Node]] = dict()
+        for node in nodes:
+            duplicate_of: Node = self._is_duplicate_of_a_node(
+                node, unique_nodes
+            )
 
-
-def _sort_nodes(nodes: List[Node]) -> Tuple[Tuple[Node], Tuple[Node]]:
-    unique_nodes: List[Node] = list()
-    duplicate_nodes: List[Node] = list()
-    for node in nodes:
-        if _is_duplicate(node, unique_nodes):
-            duplicate_nodes.append(node)
-        else:
-            unique_nodes.append(node)
-    return tuple(unique_nodes), tuple(duplicate_nodes)
-
-
-def _is_duplicate(node: Node, unique_nodes: List[Node]):
-    return any(
-        property_matcher.input_properties_match(node, unique_node)
-        for unique_node in unique_nodes
-    )
-
-
-def delete_duplicate_nodes(self, graph: SDSBSCompGraph, node_list: List[Node]):
-    """
-    Given a list of nodes, will delete any duplicates found inside.
-    """
-    uniqueNodes = []
-    isDup = False
-    runAgain = False
-
-    for node in node_list:
-        # compare each node against a running list of unique nodes
-        for i, uniqueNode in enumerate(uniqueNodes):
-            if not self._isDuplicate(node, uniqueNode):
-                # It is not a duplicate, continue to check the rest
-                isDup = False
+            if duplicate_of is None:
+                unique_nodes[node.identifier] = list()
                 continue
-            else:
-                # It is a duplicate, so delete it
-                self.deleteNodeAndReconnect(aGraph, uniqueNode, node)
-                aDeleteCount += 1
-                isDup = True
-                runAgain = True
-                break
 
-        if not isDup:
-            uniqueNodes.append(node)
+            unique_nodes[duplicate_of.identifier].append(node)
+        return unique_nodes
 
-    return uniqueNodes, runAgain, aDeleteCount
+    def _is_duplicate_of_a_node(
+        self, node: Node, unique_nodes: Dict[Node, List[Node]]
+    ) -> Optional(Node):
+        for identifier in unique_nodes.keys():
+            unique_node = self.node_selection.node(identifier)
+            if property_matcher.input_properties_match(node, unique_node):
+                return unique_node
+        return None
+
+
+@dataclass
+class UniformOptimizer(Optimizer):
+    def run(self):
+        uniform_color_nodes = self._get_uniform_color_nodes()
+        node_dict = self._sort_nodes(uniform_color_nodes)
+        for identifier, duplicate_nodes in node_dict.items():
+            unique_node = self.node_selection.node(identifier)
+
+            for duplicate_node in duplicate_nodes:
+                self._reconnect_output_connections(duplicate_node, unique_node)
+
+    def _get_uniform_color_nodes(self) -> List[Node]:
+        return [
+            node
+            for node in self.node_selection.nodes
+            if node.api_node.getDefinition().getId()
+            == NodeID.UNIFORM_COLOR.value
+        ]
+
+
+
+
+def deleteNodeAndReconnect(graph: SDSBSCompGraph, node: Node):
+    """
+    Reconnect and delete any duplicate nodes.
+    """
+
+    output_properties = node.output_connectable_properties
+    output_connections = _get_output_connections(graph, node)
+    # Loop through each output property for the duplicate node
+    duplicateNodeProperties = aDuplicateNode.getProperties(
+        SDPropertyCategory.Output
+    )
+    for duplicateNodeProperty in duplicateNodeProperties:
+        # Loop through each connection for the given output property
+        connections = aDuplicateNode.getPropertyConnections(
+            duplicateNodeProperty
+        )
+        for connection in connections:
+            connectedNode = connection.getInputPropertyNode()
+            connectedNodeProperty = connection.getInputProperty()
+            uniqueNodeProperty = aUniqueNode.getPropertyFromId(
+                duplicateNodeProperty.getId(), SDPropertyCategory.Output
+            )
+
+            # create new connection between the unique node and the connected node
+            aUniqueNode.newPropertyConnection(
+                uniqueNodeProperty, connectedNode, connectedNodeProperty
+            )
+
+    #  Then delete the duplicate node
+    aGraph.deleteNode(aDuplicateNode)

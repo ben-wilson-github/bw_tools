@@ -166,6 +166,14 @@ class Node:
     def output_connectable_properties_count(self) -> int:
         return len(self.output_connectable_properties)
 
+    @property
+    def output_connections(self) -> Tuple[SDConnection]:
+        connections = list()
+        for property in self.output_connectable_properties:
+            for connection in self.api_node.getPropertyConnections(property):
+                connections.append(connection)
+        return tuple(connections)
+
     # TODO Move to straighten connection module and use enum
     @property
     def is_dot(self) -> bool:
