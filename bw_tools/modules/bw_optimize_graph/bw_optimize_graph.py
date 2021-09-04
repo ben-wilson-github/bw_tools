@@ -369,13 +369,6 @@ def run(node_selection: NodeSelection):
     #         og.logger.info(f'{"."*5}Optimizing color nodes...')
             
     
-    if moduleSettings['uniformColorNodes']['removeDuplicates']:
-        uniformColorNodes, _, deleteCount = og.deleteDuplicateNodes(currentGraph, uniformColorNodes, 0)
-        total_delete_count += deleteCount
-        if verbose:
-            og.logger.info(f'{"."*10}Looking for duplicate nodes...')
-            og.logger.info(f'{"."*15}Deleted {deleteCount} duplicate nodes')
-    
     if moduleSettings['uniformColorNodes']['outputSize']:
         for node in uniformColorNodes:
             og.optimizeUniformColor(node)

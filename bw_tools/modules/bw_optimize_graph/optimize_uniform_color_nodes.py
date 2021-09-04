@@ -28,7 +28,7 @@ class Optimizer:
                 output_connection.getInputProperty(),
             )
 
-    def _sort_nodes(self, nodes: List[Node]) -> Dict[Node, List[Node]]:
+    def _find_duplicates(self, nodes: List[Node]) -> Dict[Node, List[Node]]:
         unique_nodes: Dict[Node, List[Node]] = dict()
         for node in nodes:
             duplicate_of: Node = self._is_duplicate_of_a_node(
@@ -56,12 +56,16 @@ class Optimizer:
 class UniformOptimizer(Optimizer):
     def run(self):
         uniform_color_nodes = self._get_uniform_color_nodes()
-        node_dict = self._sort_nodes(uniform_color_nodes)
+        uniform_color_nodes.sort(key=lambda n: n.pos.x)
+        node_dict = self._find_duplicates(uniform_color_nodes)
         for identifier, duplicate_nodes in node_dict.items():
             unique_node = self.node_selection.node(identifier)
 
             for duplicate_node in duplicate_nodes:
                 self._reconnect_output_connections(duplicate_node, unique_node)
+                self.node_selection.api_graph.deleteNode(duplicate_node.api_node)
+            
+
 
     def _get_uniform_color_nodes(self) -> List[Node]:
         return [
@@ -72,35 +76,31 @@ class UniformOptimizer(Optimizer):
         ]
 
 
+    @staticmethod
+    def _set_output_size(node: Node, size: int):
+        output_size_property = node.api_node.getPropertyFromId('$outputsize', SDPropertyCategory.Input)
+        node.api_node.setPropertyInheritanceMethod(output_size_property, SDPropertyInheritanceMethod.Absolute)
+        node.api_node.setPropertyValue(output_size_property, SDValueInt2.sNew(int2(size, size)))
 
+    def optimizeUniformColor(self, node: Node):
+        """
+        Forces a uniform color node to 16x16 and sets any connected nodes to relativeToParent if
+        they were not manually modified
+        """
+        self._set_output_size(node, 4)
 
-def deleteNodeAndReconnect(graph: SDSBSCompGraph, node: Node):
-    """
-    Reconnect and delete any duplicate nodes.
-    """
-
-    output_properties = node.output_connectable_properties
-    output_connections = _get_output_connections(graph, node)
-    # Loop through each output property for the duplicate node
-    duplicateNodeProperties = aDuplicateNode.getProperties(
-        SDPropertyCategory.Output
-    )
-    for duplicateNodeProperty in duplicateNodeProperties:
-        # Loop through each connection for the given output property
-        connections = aDuplicateNode.getPropertyConnections(
-            duplicateNodeProperty
-        )
-        for connection in connections:
-            connectedNode = connection.getInputPropertyNode()
-            connectedNodeProperty = connection.getInputProperty()
-            uniqueNodeProperty = aUniqueNode.getPropertyFromId(
-                duplicateNodeProperty.getId(), SDPropertyCategory.Output
-            )
-
-            # create new connection between the unique node and the connected node
-            aUniqueNode.newPropertyConnection(
-                uniqueNodeProperty, connectedNode, connectedNodeProperty
-            )
-
-    #  Then delete the duplicate node
-    aGraph.deleteNode(aDuplicateNode)
+        # Handle connected nodes
+        output_property = node.api_node.getPropertyFromId('unique_filter_output', SDPropertyCategory.Output)
+        for connection in node.output_connections:
+            CONTINUE REFACTOR HERE
+            # If we are able to get the connected node properties, then ignore it. Likely connected to an output node
+            try:
+                connectedNode = connection.getInputPropertyNode()
+                connectedNodeOutputSizeProperty = connectedNode.getPropertyFromId('$outputsize', SDPropertyCategory.Input)
+                connectedNodeInheritanceMethod = connectedNode.getPropertyInheritanceMethod(connectedNodeOutputSizeProperty)
+            except AttributeError:
+                continue
+            else:
+                # If relative to input, force to relative to parent
+                if connectedNodeInheritanceMethod == SDPropertyInheritanceMethod.RelativeToInput:
+                    connectedNode.setPropertyInheritanceMethod(connectedNodeOutputSizeProperty, SDPropertyInheritanceMethod.RelativeToParent)
