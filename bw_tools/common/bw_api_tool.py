@@ -16,11 +16,13 @@ SDSBSCompGraph = TypeVar("SDSBSCompGraph")
 SDSBSCompNode = TypeVar("SDSBSCompNode")
 SDProperty = TypeVar("SDProperty")
 SDConnection = TypeVar("SDConnection")
+SDGraph = TypeVar("SDGraph")
 
 
 class NodeID(Enum):
     DOT = "sbs::compositing::passthrough"
     UNIFORM_COLOR = "sbs::compositing::uniform"
+    COMP_GRAPH = "sbs::compositing::sbscompgraph_instance"
 
 
 class APITool:

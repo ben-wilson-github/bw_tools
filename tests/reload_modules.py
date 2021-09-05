@@ -28,6 +28,8 @@ from bw_tools.modules.bw_optimize_graph import (
     bw_optimize_graph,
     optimizer,
     uniform_color_optimizer,
+    comp_graph_optimizer,
+    atomic_optimizer,
     property_matcher
 )
 
@@ -43,6 +45,8 @@ modules = [
     bw_optimize_graph,
     optimizer,
     uniform_color_optimizer,
+    comp_graph_optimizer,
+    atomic_optimizer,
     property_matcher,
     bw_settings,
     bw_settings_dialog,

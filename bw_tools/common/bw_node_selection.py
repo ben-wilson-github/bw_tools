@@ -47,6 +47,9 @@ class NodeGroupInterface(ABC):
     def add_node(self, node: Node):
         self._node_list[node.identifier] = node
 
+    def remove_node(self, node: Node):
+        del self._node_list[node.identifier]
+
     def contains(self, node: Node) -> bool:
         try:
             node = self._node_list[node.identifier]

@@ -7,6 +7,7 @@ from bw_tools.common.bw_api_tool import (
     SDNode,
     SDProperty,
     SDSBSCompGraph,
+    SDGraph
 )
 from sd.api.sdproperty import SDPropertyCategory
 
@@ -21,9 +22,13 @@ def input_properties_match(node: Node, other: Node) -> bool:
         node_property = get_matching_input_property(node, other_property)
         if node_property is None:
             return
+        # print(node_property.getLabel())
+        # if node_property.getLabel() == "Random Seed":
+        #     print('asda')
 
-        if _has_exposed_graph(node, node_property) or _has_exposed_graph(
-            other, other_property
+        if (
+            _get_exposed_graph(node, node_property) is not None
+            or _get_exposed_graph(other, other_property) is not None
         ):
             return
 
@@ -49,7 +54,7 @@ def _has_same_inputs(
     node_connections = node.api_node.getPropertyConnections(node_property)
     other_connections = other.api_node.getPropertyConnections(other_property)
     if not _connection_counts_match(node_connections, other_connections):
-        return
+        return False
 
     nodes, other_nodes = _get_connected_nodes_from_connections(
         node_connections, other_connections
@@ -58,7 +63,7 @@ def _has_same_inputs(
         nodes[i].getIdentifier() != other_nodes[i].getIdentifier()
         for i in range(len(nodes))
     ):
-        return
+        return False
     return True
 
 
@@ -87,7 +92,9 @@ def _get_matching_property(
     return None
 
 
-def _has_exposed_graph(node: Node, property: SDProperty) -> bool:
+def _get_exposed_graph(
+    node: Node, property: SDProperty
+) -> Optional[SDGraph]:
     return node.api_node.getPropertyGraph(property)
 
 
@@ -107,14 +114,20 @@ def _get_connected_nodes_from_connections(
         other_connected_nodes.append(
             other_connections[i].getInputPropertyNode()
         )
-    return tuple(connected_nodes, other_connected_nodes)
+    return tuple(connected_nodes), tuple(other_connected_nodes)
 
 
 def _values_match(node: Node, other_node: Node, property: SDProperty) -> bool:
-    value = node.api_node.getInputPropertyValueFromId(property.getId()).get()
+    value = node.api_node.getInputPropertyValueFromId(property.getId())
+    if value is not None:
+        value = value.get()
+
     other_value = other_node.api_node.getInputPropertyValueFromId(
         property.getId()
-    ).get()
+    )
+    if other_value is not None:
+        other_value = other_value.get()
+
     return str(value) == str(other_value)
     # # Then make sure the values match
     # try:

@@ -9,6 +9,7 @@ from sd.api.sdproperty import SDPropertyCategory, SDPropertyInheritanceMethod
 from . import property_matcher
 
 if TYPE_CHECKING:
+    from bw_tools.common.bw_api_tool import NodeID
     from bw_tools.common.bw_node import Node
     from bw_tools.common.bw_node_selection import NodeSelection
 
@@ -16,8 +17,28 @@ if TYPE_CHECKING:
 @dataclass
 class Optimizer:
     node_selection: NodeSelection
+    deleted_count: int = 0
 
-    def _find_duplicates(self, nodes: List[Node]) -> Dict[Node, List[Node]]:
+    def delete_duplicate_nodes(self, node_dict: Dict[Node, List[Node]]):
+        self.deleted_count = 0
+        for identifier, duplicate_nodes in node_dict.items():
+            unique_node = self.node_selection.node(identifier)
+            for duplicate_node in duplicate_nodes:
+                self._reconnect_output_connections(duplicate_node, unique_node)
+                self.node_selection.api_graph.deleteNode(
+                    duplicate_node.api_node
+                )
+                self.deleted_count += 1
+                self.node_selection.remove_node(duplicate_node)
+
+    def get_nodes(self, node_id: NodeID) -> List[Node]:
+        return [
+            node
+            for node in self.node_selection.nodes
+            if node.api_node.getDefinition().getId() == node_id.value
+        ]
+
+    def find_duplicates(self, nodes: List[Node]) -> Dict[Node, List[Node]]:
         """
         Returns a dictionary of unique nodes in the keys and a list of
         duplciate nodes which match the unique node.

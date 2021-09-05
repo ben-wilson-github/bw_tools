@@ -14,33 +14,16 @@ if TYPE_CHECKING:
 
 @dataclass
 class UniformOptimizer(optimizer.Optimizer):
-    duplicate_node_count: int = 0
-
     def run(self):
-        uniform_color_nodes = self._get_uniform_color_nodes()
+        uniform_color_nodes = self.get_nodes(NodeID.UNIFORM_COLOR)
         uniform_color_nodes.sort(key=lambda n: n.pos.x)
-        node_dict = self._find_duplicates(uniform_color_nodes)
-        for identifier, duplicate_nodes in node_dict.items():
-            # Keep track of duplicate nodes for displaying infor
-            # to user
-            self.duplicate_node_count += len(duplicate_nodes)
 
+        node_dict = self.find_duplicates(uniform_color_nodes)
+        self.delete_duplicate_nodes(node_dict)
+
+        for identifier, _ in node_dict.items():
             unique_node = self.node_selection.node(identifier)
-            for duplicate_node in duplicate_nodes:
-                self._reconnect_output_connections(duplicate_node, unique_node)
-                self.node_selection.api_graph.deleteNode(
-                    duplicate_node.api_node
-                )
-
             self._optimize_output_size(unique_node)
-
-    def _get_uniform_color_nodes(self) -> List[Node]:
-        return [
-            node
-            for node in self.node_selection.nodes
-            if node.api_node.getDefinition().getId()
-            == NodeID.UNIFORM_COLOR.value
-        ]
 
     def _optimize_output_size(self, node: Node):
         self._set_output_size(node, 4)
