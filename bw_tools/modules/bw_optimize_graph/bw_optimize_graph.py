@@ -1,4 +1,5 @@
 from __future__ import annotations
+from bw_tools.modules.bw_optimize_graph import uniform_color_optimizer
 from bw_tools.common.bw_node_selection import NodeSelection
 from bw_tools.common.bw_api_tool import SDNode
 
@@ -10,7 +11,7 @@ from functools import partial
 import json, os, time
 import importlib.util
 
-from . import optimize_uniform_color_nodes
+from . import uniform_color_optimizer
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import APITool
@@ -362,21 +363,10 @@ def run(node_selection: NodeSelection):
     
 
     # Handle uniform colors
-    optimizer = optimize_uniform_color_nodes.UniformOptimizer(node_selection)
+    optimizer = uniform_color_optimizer.UniformOptimizer(node_selection)
     optimizer.run()
-    # if verbose:
-    #     if moduleSettings['uniformColorNodes']['outputSize'] or moduleSettings['uniformColorNodes']['removeDuplicates']:
-    #         og.logger.info(f'{"."*5}Optimizing color nodes...')
-            
-    
-    if moduleSettings['uniformColorNodes']['outputSize']:
-        for node in uniformColorNodes:
-            og.optimizeUniformColor(node)
-        if verbose:
-            og.logger.info(f'{"."*10}Setting Uniform Color nodes output size...')
-            og.logger.info(f'{"."*15}Optimized {len(uniformColorNodes)} nodes')
-        total_uniform_nodes += len(uniformColorNodes)
-    
+    print(optimizer.duplicate_node_count)
+
     # Handle Blend Nodes
     if moduleSettings['blendNodes']['ignoreAlpha']:
         successCounter = 0

@@ -174,7 +174,6 @@ class Node:
                 connections.append(connection)
         return tuple(connections)
 
-    # TODO Move to straighten connection module and use enum
     @property
     def is_dot(self) -> bool:
         return (
