@@ -1,0 +1,19 @@
+{
+    "Hotkey": {
+        "widget": 1,
+        "value": "Alt+B"
+    },
+    "Recursive": {
+        "widget": 3,
+        "value": true
+    },
+    "Uniform Color Node Settings": {
+        "widget": 0,
+        "value": {
+            "Force Output Size (16x16)": {
+                "widget": 3,
+                "value": true
+            }
+        }
+    }
+}

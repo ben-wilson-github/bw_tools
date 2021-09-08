@@ -4,10 +4,9 @@ from typing import TYPE_CHECKING, Optional, Tuple
 
 from bw_tools.common.bw_api_tool import (
     SDConnection,
+    SDGraph,
     SDNode,
     SDProperty,
-    SDSBSCompGraph,
-    SDGraph
 )
 from sd.api.sdproperty import SDPropertyCategory
 
@@ -22,9 +21,6 @@ def input_properties_match(node: Node, other: Node) -> bool:
         node_property = get_matching_input_property(node, other_property)
         if node_property is None:
             return
-        # print(node_property.getLabel())
-        # if node_property.getLabel() == "Random Seed":
-        #     print('asda')
 
         if (
             _get_exposed_graph(node, node_property) is not None
@@ -82,19 +78,13 @@ def get_matching_output_property(
 def _get_matching_property(
     node: Node, property: SDProperty, category: SDPropertyCategory
 ) -> Optional[SDProperty]:
-    # try:
-    #     node_property = node.api_node.getPropertyFromId(other_property.getId(), SDPropertyCategory.Input)
-    # except AttributeError:
-    #     return False
     node_property = node.api_node.getPropertyFromId(property.getId(), category)
     if node_property:
         return node_property
     return None
 
 
-def _get_exposed_graph(
-    node: Node, property: SDProperty
-) -> Optional[SDGraph]:
+def _get_exposed_graph(node: Node, property: SDProperty) -> Optional[SDGraph]:
     return node.api_node.getPropertyGraph(property)
 
 
@@ -109,6 +99,7 @@ def _get_connected_nodes_from_connections(
 ) -> Tuple[Tuple[SDNode], Tuple[SDNode]]:
     connected_nodes = list()
     other_connected_nodes = list()
+
     for i in range(len(node_connections)):
         connected_nodes.append(node_connections[i].getInputPropertyNode())
         other_connected_nodes.append(
@@ -129,14 +120,3 @@ def _values_match(node: Node, other_node: Node, property: SDProperty) -> bool:
         other_value = other_value.get()
 
     return str(value) == str(other_value)
-    # # Then make sure the values match
-    # try:
-    #     nodeValue = aNode.getInputPropertyValueFromId(other_property.getId()).get()
-    #     uniqueNodeValue = other.getInputPropertyValueFromId(other_property.getId()).get()
-    # except OSError as e:
-    #     return False
-    # except AttributeError:
-    #     continue
-    # else:
-    #     if str(nodeValue) != str(uniqueNodeValue):
-    #         return False

@@ -1,4 +1,4 @@
-from __future__ import annotations, unicode_literals
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional
@@ -12,11 +12,13 @@ if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import NodeID
     from bw_tools.common.bw_node import Node
     from bw_tools.common.bw_node_selection import NodeSelection
+    from .bw_optimize_graph import OptimizeSettings
 
 
 @dataclass
 class Optimizer:
     node_selection: NodeSelection
+    settings: OptimizeSettings
     deleted_count: int = 0
 
     def delete_duplicate_nodes(self, node_dict: Dict[Node, List[Node]]):
@@ -61,6 +63,8 @@ class Optimizer:
     ) -> Optional(Node):
         for identifier in unique_nodes.keys():
             unique_node = self.node_selection.node(identifier)
+            if node.label != unique_node.label:
+                continue
             if property_matcher.input_properties_match(node, unique_node):
                 return unique_node
         return None
