@@ -54,6 +54,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)
@@ -69,6 +70,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)
@@ -84,6 +86,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)
@@ -103,6 +106,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = True
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         uniform_node = graph.getNodeFromId("1422819514")
@@ -156,6 +160,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = True
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         uniform_node = graph.getNodeFromId("1422819514")
@@ -205,6 +210,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)
@@ -220,6 +226,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = True
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)
@@ -235,6 +242,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = False
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)
@@ -250,6 +258,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.uniform_force_output_size = False
         settings.recursive = False
         settings.popup_on_complete = False
+        settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
         node_selection = NodeSelection(graph.getNodes(), graph)

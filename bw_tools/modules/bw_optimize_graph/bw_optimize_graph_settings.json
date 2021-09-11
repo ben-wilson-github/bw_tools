@@ -7,6 +7,10 @@
         "widget": 3,
         "value": true
     },
+    "Run Layout Tools": {
+        "widget": 3,
+        "value": true
+    },
     "Popup On Complete": {
         "widget": 3,
         "value": true

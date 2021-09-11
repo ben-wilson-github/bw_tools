@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from bw_tools.common.bw_node_selection import NodeSelection
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
+from bw_tools.modules.bw_layout_graph import bw_layout_graph
 
 from . import atomic_optimizer, comp_graph_optimizer, uniform_color_optimizer
 
@@ -15,10 +16,6 @@ if TYPE_CHECKING:
 from PySide2 import QtGui, QtWidgets
 from sd.api.sdhistoryutils import SDHistoryUtils
 
-# TODO: unit tests
-# TODO: Add auto layout and straighten option
-# TODO: popup on completion
-
 
 class OptimizeSettings(ModuleSettings):
     def __init__(self, file_path: Path):
@@ -26,6 +23,7 @@ class OptimizeSettings(ModuleSettings):
         self.hotkey: str = self.get("Hotkey;value")
         self.recursive: bool = self.get("Recursive;value")
         self.popup_on_complete: bool = self.get("Popup On Complete;value")
+        self.run_layout_tools: bool = self.get("Run Layout Tools;value")
         self.uniform_force_output_size: bool = self.get(
             "Uniform Color Node Settings;value;Force Output Size (16x16);value"
         )
@@ -69,6 +67,15 @@ def run(
         )
         optimizer.run()
         uniform_color_count = optimizer.optimized_count
+
+    if settings.run_layout_tools:
+        api_nodes = [n.api_node for n in node_selection.nodes]
+        bw_layout_graph.run_layout(
+            bw_layout_graph.LayoutNodeSelection(
+                api_nodes, node_selection.api_graph
+            ),
+            api,
+        )
 
     msg = (
         f"Found {uniform_color_count + atomic_count + comp_graph_count}"

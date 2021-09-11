@@ -1,10 +1,10 @@
 from functools import partial
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import sd
-from bw_tools.common.bw_api_tool import APITool
 from bw_tools.common import bw_node_selection
+from bw_tools.common.bw_api_tool import APITool
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from bw_tools.modules.bw_straighten_connection import (
     bw_straighten_connection,
@@ -12,7 +12,7 @@ from bw_tools.modules.bw_straighten_connection import (
 )
 from PySide2 import QtGui, QtWidgets
 
-from . import aligner_vertical, aligner_mainline, node_sorting
+from . import aligner_mainline, aligner_vertical, node_sorting
 from .alignment_behavior import (
     VerticalAlignFarthestInput,
     VerticalAlignMidPoint,
@@ -47,9 +47,16 @@ class LayoutSettings(ModuleSettings):
 
 
 def run_layout(
-    node_selection: LayoutNodeSelection, api: APITool, settings: LayoutSettings
+    node_selection: LayoutNodeSelection,
+    api: APITool,
+    settings: Optional[LayoutSettings] = None,
 ):
     api.log.info("Running layout Graph")
+
+    if settings is None:
+        settings = LayoutSettings(
+            Path(__file__).parent / "bw_layout_graph_settings.json"
+        )
 
     node_sorter = node_sorting.NodeSorter(settings)
     for root_node in node_selection.root_nodes:
