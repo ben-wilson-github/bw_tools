@@ -32,6 +32,9 @@ from bw_tools.modules.bw_optimize_graph import (
     atomic_optimizer,
     property_matcher
 )
+from bw_tools.modules.bw_pbr_reference import (
+    bw_pbr_reference
+)
 
 from tests import (
     test_chain_dimension,
@@ -65,6 +68,7 @@ modules = [
     bw_straighten_connection,
     straighten_node,
     straighten_behavior,
+    bw_pbr_reference,
     test_straighten_connection,
     test_layout_graph,
     test_node_selection,

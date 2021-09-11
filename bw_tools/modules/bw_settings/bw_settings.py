@@ -55,13 +55,6 @@ def on_initialize(api):
     settings_action.setToolTip("BW Tools Settings")
     settings_action.triggered.connect(lambda: on_clicked_settings(api))
 
-    # settings = Settings(Path(__file__).parent / "bw_settings_settings.json")
-    # if settings.dev_mode:
-    #     api.menu.addSeparator()
-    #     unit_test_action = api.menu.addAction("Run unit tests...")
-    #     unit_test_action.triggered.connect(lambda: run_unit_tests.run())
-
-
 def on_clicked_settings(api):
     dialog = bw_settings_dialog.SettingsDialog(api)
     dialog.show()
