@@ -4,7 +4,7 @@ from typing import List, TypeVar
 from enum import Enum
 
 import sd
-from bw_tools.common import bw_toolbar
+from bw_tools.common import bw_toolbar, bw_ui_tools
 from PySide2 import QtWidgets
 
 
@@ -63,11 +63,11 @@ class APITool:
         )
         self.main_window: QtWidgets.QMainWindow = self.ui_mgr.getMainWindow()
         self.loaded_modules: List[TYPE_MODULES] = []
-        self.graph_view_toolbar: bw_toolbar.BWToolbar = None
         self.menu = None
         self.callback_ids: List[int] = []
         self.debug: bool = True
 
+        self._graph_view_toolbar_list: dict[int, bw_toolbar.BWToolbar] = dict()
         self._menu_object_name = "bw_tools_menu_obj"
         self._menu_label = " BW Tools"
 
@@ -84,6 +84,16 @@ class APITool:
     @property
     def log(self) -> logging.RootLogger:
         return self.logger
+
+    def get_graph_view_toolbar(
+        self, graph_view_id: int
+    ) -> bw_toolbar.BWToolbar:
+        try:
+            toolbar = self._graph_view_toolbar_list[graph_view_id]
+        except KeyError:
+            return None
+        else:
+            return toolbar
 
     def initialize(self, module: TYPE_MODULES) -> bool:
         """Initialize a module by calling the modules .on_initialize()"""
@@ -125,25 +135,25 @@ class APITool:
     def remove_menu(self):
         self.ui_mgr.deleteMenu(self._menu_object_name)
 
-    def add_toolbar_to_graph_view(self) -> bool:
-        self.logger.info("Registering on graph view created callback")
-        self.register_on_graph_view_created_callback(
-            self._create_graph_view_toolbar
-        )
-        return True
-
     def unregister_callbacks(self):
         for callback in self.callback_ids:
             self.ui_mgr.unregisterCallback(callback)
 
-    def register_on_graph_view_created_callback(self, func):
-        self.callback_ids.append(
-            self.ui_mgr.registerGraphViewCreatedCallback(func)
-        )
+    def register_on_graph_view_created_callback(self, func) -> int:
+        graph_view_id = self.ui_mgr.registerGraphViewCreatedCallback(func)
+        self.callback_ids.append(graph_view_id)
+        return graph_view_id
 
-    def _create_graph_view_toolbar(self, graph_view_id):
-        toolbar = bw_toolbar.BWToolbar()
+    def create_graph_view_toolbar(
+        self, graph_view_id: int
+    ) -> bw_toolbar.BWToolbar:
+        toolbar = bw_toolbar.BWToolbar(self.main_window)
         self.ui_mgr.addToolbarToGraphView(
             graph_view_id, toolbar, icon=None, tooltip="BW Toolbar"
         )
-        self.graph_view_toolbar = toolbar
+        self._graph_view_toolbar_list[graph_view_id] = toolbar
+        return toolbar
+
+    def remove_toolbars(self):
+        for toolbar in self._graph_view_toolbar_list.values():
+            toolbar.deleteLater()

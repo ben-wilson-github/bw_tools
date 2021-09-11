@@ -107,15 +107,17 @@ def _on_clicked_run(api: APITool):
         run(node_selection, api, settings)
 
 
-def on_graph_view_created(_, api: APITool):
+def on_graph_view_created(graph_view_id, api: APITool):
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
+    if toolbar is None:
+        toolbar = api.create_graph_view_toolbar(graph_view_id)
+
     settings = OptimizeSettings(
         Path(__file__).parent / "bw_optimize_graph_settings.json"
     )
 
     icon = Path(__file__).parent / "resources/icons/bw_optimize_graph.png"
-    action = api.graph_view_toolbar.addAction(
-        QtGui.QIcon(str(icon.resolve())), ""
-    )
+    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
     action.setShortcut(QtGui.QKeySequence(settings.hotkey))
     action.setToolTip("Optimize graph")
     action.triggered.connect(lambda: _on_clicked_run(api))

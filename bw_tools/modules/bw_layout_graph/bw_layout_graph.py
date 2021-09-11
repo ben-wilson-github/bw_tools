@@ -130,11 +130,13 @@ def on_clicked_layout_graph(api: APITool):
         run_layout(node_selection, api, settings)
 
 
-def on_graph_view_created(_, api: APITool):
+def on_graph_view_created(graph_view_id, api: APITool):
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
+    if toolbar is None:
+        toolbar = api.create_graph_view_toolbar(graph_view_id)
+
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
-    action = api.graph_view_toolbar.addAction(
-        QtGui.QIcon(str(icon_path.resolve())), ""
-    )
+    action = toolbar.addAction(QtGui.QIcon(str(icon_path.resolve())), "")
 
     settings = LayoutSettings(
         Path(__file__).parent / "bw_layout_graph_settings.json"

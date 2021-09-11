@@ -269,7 +269,11 @@ def on_clicked_remove_dot_nodes_from_selection(api: APITool):
             node.delete_output_dot_nodes()
 
 
-def on_graph_view_created(_, api: APITool):
+def on_graph_view_created(graph_view_id, api: APITool):
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
+    if toolbar is None:
+        toolbar = api.create_graph_view_toolbar(graph_view_id)
+
     settings = StraightenSettings(
         Path(__file__).parent / "bw_straighten_connection_settings.json"
     )
@@ -279,7 +283,7 @@ def on_graph_view_created(_, api: APITool):
         / "resources"
         / "straighten_connection_target.png"
     )
-    action = api.graph_view_toolbar.addAction(
+    action = toolbar.addAction(
         QtGui.QIcon(str(icon.resolve())), ""
     )
     action.setShortcut(QtGui.QKeySequence(settings.target_hotkey))
@@ -298,7 +302,7 @@ def on_graph_view_created(_, api: APITool):
         / "resources"
         / "straighten_connection_source.png"
     )
-    action = api.graph_view_toolbar.addAction(
+    action = toolbar.addAction(
         QtGui.QIcon(str(icon.resolve())), ""
     )
     action.setShortcut(QtGui.QKeySequence(settings.source_hotkey))
@@ -313,7 +317,7 @@ def on_graph_view_created(_, api: APITool):
     )
 
     icon = Path(__file__).parent / "resources" / "remove_dot_node_selected.png"
-    action = api.graph_view_toolbar.addAction(
+    action = toolbar.addAction(
         QtGui.QIcon(str(icon.resolve())), ""
     )
     action.setShortcut(QtGui.QKeySequence(settings.remove_dot_nodes_hotkey))

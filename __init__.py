@@ -30,7 +30,6 @@ API_TOOL = bw_api_tool.APITool(LOGGER["logger"])
 
 def initializeSDPlugin():
     API_TOOL.add_menu()
-    API_TOOL.add_toolbar_to_graph_view()
 
     modules_dir = ROOT_DIR / "bw_tools/modules"
     for name in os.listdir(modules_dir):
@@ -49,4 +48,5 @@ def uninitializeSDPlugin():
     LOGGER["logger"].removeHandler(LOGGER["file_handler"])
     LOGGER["logger"].removeHandler(LOGGER["stream_handler"])
     API_TOOL.unregister_callbacks()
+    API_TOOL.remove_toolbars()
     API_TOOL.remove_menu()
