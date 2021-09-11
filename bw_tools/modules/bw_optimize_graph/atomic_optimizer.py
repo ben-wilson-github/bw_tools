@@ -17,7 +17,7 @@ class AtomicOptimizer(optimizer.Optimizer):
     def run(self):
         atmoic_nodes = self.get_nodes()
         atmoic_nodes.sort(key=lambda n: n.pos.x)
-        
+
         node_dict = self.find_duplicates(atmoic_nodes)
         self.delete_duplicate_nodes(node_dict)
 

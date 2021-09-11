@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -18,6 +17,7 @@ from sd.api.sdhistoryutils import SDHistoryUtils
 
 # TODO: unit tests
 # TODO: Add auto layout and straighten option
+# TODO: popup on completion
 
 
 class OptimizeSettings(ModuleSettings):
@@ -25,18 +25,17 @@ class OptimizeSettings(ModuleSettings):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
         self.recursive: bool = self.get("Recursive;value")
+        self.popup_on_complete: bool = self.get("Popup On Complete;value")
         self.uniform_force_output_size: bool = self.get(
             "Uniform Color Node Settings;value;Force Output Size (16x16);value"
         )
 
 
-def run(node_selection: NodeSelection, api: APITool):
+def run(
+    node_selection: NodeSelection, api: APITool, settings: OptimizeSettings
+):
     if node_selection.node_count == 0:
         return
-
-    settings = OptimizeSettings(
-        Path(__file__).parent / "bw_optimize_graph_settings.json"
-    )
 
     atomic_count = 0
     comp_graph_count = 0
@@ -81,8 +80,7 @@ def run(node_selection: NodeSelection, api: APITool):
 
     api.log.info(msg)
 
-    # if moduleSettings['popupOnCompletion']:
-    if True:
+    if settings.popup_on_complete:
         QtWidgets.QMessageBox.information(
             None, "", msg, QtWidgets.QMessageBox.Ok
         )
@@ -94,7 +92,12 @@ def _on_clicked_run(api: APITool):
         node_selection = NodeSelection(
             api.current_selection, api.current_graph
         )
-        run(node_selection, api)
+
+        settings = OptimizeSettings(
+            Path(__file__).parent / "bw_optimize_graph_settings.json"
+        )
+
+        run(node_selection, api, settings)
 
 
 def on_graph_view_created(_, api: APITool):
@@ -115,33 +118,3 @@ def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
-
-
-def writeDefaultSettings(aSettingsFilePath):
-    bwOptimizeGraphSettings = {}
-    bwOptimizeGraphSettings["hotkey"] = "Ctrl+Alt+C"
-    bwOptimizeGraphSettings["popupOnCompletion"] = True
-    bwOptimizeGraphSettings["detailedLog"] = False
-
-    uniformColorNodes = {}
-    uniformColorNodes["removeDuplicates"] = True
-    uniformColorNodes["outputSize"] = 16
-    bwOptimizeGraphSettings["uniformColorNodes"] = uniformColorNodes
-
-    blendNodes = {}
-    blendNodes["ignoreAlpha"] = False
-    bwOptimizeGraphSettings["blendNodes"] = blendNodes
-
-    compositeNodes = {}
-    compositeNodes["removeDuplicates"] = True
-    compositeNodes["evaluateInputChain"] = True
-    bwOptimizeGraphSettings["compositeNodes"] = compositeNodes
-
-    with open(aSettingsFilePath) as settingsFile:
-        data = json.load(settingsFile)
-        data["module"][
-            bwSettings.SupportedModules.OptimizeGraph.value
-        ] = bwOptimizeGraphSettings
-
-    with open(aSettingsFilePath, "w") as settingsFile:
-        json.dump(data, settingsFile, indent=4)

@@ -39,6 +39,7 @@ from tests import (
     test_node,
     test_node_selection,
     test_straighten_connection,
+    test_optimize_graph
 )
 
 modules = [
@@ -69,6 +70,7 @@ modules = [
     test_node_selection,
     test_node,
     test_chain_dimension,
+    test_optimize_graph
 ]
 
 
