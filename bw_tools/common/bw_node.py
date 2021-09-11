@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, TypeVar
+from typing import TYPE_CHECKING, Optional, List, Tuple
+
+if TYPE_CHECKING:
+    from bw_tools.common.bw_api_tool import (
+        SDProperty,
+        SDConnection,
+        SDSBSCompNode,
+    )
 
 import sd
-
-SDSBSCompNode = TypeVar("SDSBSCompNode")
-SDProperty = TypeVar("SDProperty")
-SDSBSCompGraph = TypeVar("SDSBSCompGraph")
-SDConnection = TypeVar("SDConnection")
 
 
 @dataclass
@@ -37,7 +39,7 @@ class OutputConnectionData(ConnectionData):
 
 @dataclass
 class Node:
-    api_node: "SDSBSCompNode" = field(repr=False)
+    api_node: SDSBSCompNode = field(repr=False)
 
     label: str = field(init=False)
     identifier: int = field(init=False)
