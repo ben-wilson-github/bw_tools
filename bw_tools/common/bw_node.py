@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional, List, Tuple
+from bw_tools.common.bw_api_tool import CompNodeID, FunctionNodeId
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import (
@@ -179,8 +180,9 @@ class Node:
     @property
     def is_dot(self) -> bool:
         return (
-            self.api_node.getDefinition().getId()
-            == "sbs::compositing::passthrough"
+            self.api_node.getDefinition().getId() == CompNodeID.DOT.value
+            or self.api_node.getDefinition().getId()
+            == FunctionNodeId.DOT.value
         )
 
     @property

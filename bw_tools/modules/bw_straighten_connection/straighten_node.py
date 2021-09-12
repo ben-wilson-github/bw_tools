@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Union
 
 import sd
 from bw_tools.common.bw_api_tool import (
     SDConnection,
     SDProperty,
     SDSBSCompGraph,
+    SDSBSFunctionGraph
 )
 from bw_tools.common.bw_node import Node
 
@@ -16,7 +17,7 @@ STRIDE = 21.33  # Magic number between each input slot
 
 @dataclass
 class StraightenNode(Node):
-    graph: SDSBSCompGraph = field(repr=False)
+    graph: Union[SDSBSCompGraph, SDSBSFunctionGraph] = field(repr=False)
 
     def delete_output_dot_nodes(self):
         for prop in self.output_connectable_properties:

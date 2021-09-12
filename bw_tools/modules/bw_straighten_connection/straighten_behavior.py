@@ -3,9 +3,9 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Union
 
-from bw_tools.common.bw_api_tool import SDSBSCompGraph
+from bw_tools.common.bw_api_tool import SDSBSCompGraph, SDSBSFunctionGraph
 from bw_tools.common.bw_node import Float2
 
 from .straighten_node import StraightenNode
@@ -21,7 +21,7 @@ STRIDE = 21.33  # Magic number between each input slot
 
 @dataclass
 class AbstractStraightenBehavior(ABC):
-    graph: SDSBSCompGraph
+    graph: Union[SDSBSCompGraph, SDSBSFunctionGraph]
 
     @abstractmethod
     def should_create_base_dot_node(

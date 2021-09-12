@@ -1,10 +1,9 @@
 from __future__ import annotations, unicode_literals
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
+from typing import List
 
-from bw_tools.common.bw_api_tool import NodeID
-from sd.api.sdproperty import SDPropertyInheritanceMethod, SDPropertyCategory
+from sd.api.sdproperty import SDPropertyCategory
 
 from . import optimizer
 

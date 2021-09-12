@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import sd
-from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_api_tool import APITool, FunctionNodeId
 from bw_tools.modules.bw_straighten_connection import bw_straighten_connection
 from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
     BreakAtSource,
@@ -41,15 +41,6 @@ class TestStraightenConnection(unittest.TestCase):
 
         cls.settings = Mock()
         cls.settings.dot_node_distance = 128
-        # s1 = Mock()
-        # s1.dot_node_distance = 128
-        # s1.alignment_behavior = 0
-
-        # s2 = Mock()
-        # s2.dot_node_distance = 128
-        # s2.alignment_behavior = 1
-
-        # cls.settings = [s1, s2]
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         cls.api = APITool()
@@ -282,6 +273,57 @@ class TestStraightenConnection(unittest.TestCase):
             correct_graph,
             BreakAtTarget(result_graph),
             self.settings,
+        )
+
+    def test_can_run_on_function_graph(self):
+        print("...test_can_run_on_function_graph")
+        # Expected graph
+        expected_graph = self.package.findResourceFromUrl(
+            "test_can_run_on_function_graph_expected"
+        )
+        node = expected_graph.getNodes()[0]
+        property = node.getPropertyFromId(
+            "perpixel", sd.api.sdproperty.SDPropertyCategory.Input
+        )
+        expected_px_graph = expected_graph.getNodes()[0].getPropertyGraph(
+            property
+        )
+
+        # Test graph
+        test_graph = self.package.findResourceFromUrl(
+            "test_can_run_on_function_graph"
+        )
+        node = test_graph.getNodes()[0]
+        property = node.getPropertyFromId(
+            "perpixel", sd.api.sdproperty.SDPropertyCategory.Input
+        )
+        test_px_graph = test_graph.getNodes()[0].getPropertyGraph(property)
+
+        _run_straighten(
+            test_px_graph, BreakAtTarget(test_px_graph), self.settings
+        )
+
+        test_dot_node = [
+            n
+            for n in test_px_graph.getNodes()
+            if n.getDefinition().getId() == FunctionNodeId.DOT.value
+        ]
+        expected_dot_node = [
+            n
+            for n in expected_px_graph.getNodes()
+            if n.getDefinition().getId() == FunctionNodeId.DOT.value
+        ]
+        self.assertTrue(
+            math.isclose(
+                test_dot_node[0].getPosition().x,
+                expected_dot_node[0].getPosition().x,
+            )
+        )
+        self.assertTrue(
+            math.isclose(
+                test_dot_node[0].getPosition().y,
+                expected_dot_node[0].getPosition().y,
+            )
         )
 
     def _run_test_outputs_are_the_same(self, output_dir, str_replace):

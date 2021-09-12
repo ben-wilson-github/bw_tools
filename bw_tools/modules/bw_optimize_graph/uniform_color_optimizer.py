@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from bw_tools.common.bw_api_tool import NodeID
+from bw_tools.common.bw_api_tool import CompNodeID
 from sd.api.sdproperty import SDPropertyInheritanceMethod
 
 from . import optimizer
@@ -17,7 +17,7 @@ class UniformOptimizer(optimizer.Optimizer):
     optimized_count = 0
 
     def run(self):
-        uniform_color_nodes = self.get_nodes(NodeID.UNIFORM_COLOR)
+        uniform_color_nodes = self.get_nodes(CompNodeID.UNIFORM_COLOR)
         uniform_color_nodes.sort(key=lambda n: n.pos.x)
 
         for node in uniform_color_nodes:

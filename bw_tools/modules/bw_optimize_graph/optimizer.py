@@ -9,7 +9,7 @@ from sd.api.sdproperty import SDPropertyCategory, SDPropertyInheritanceMethod
 from . import property_matcher
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import NodeID
+    from bw_tools.common.bw_api_tool import CompNodeID
     from bw_tools.common.bw_node import Node
     from bw_tools.common.bw_node_selection import NodeSelection
     from .bw_optimize_graph import OptimizeSettings
@@ -33,7 +33,7 @@ class Optimizer:
                 self.deleted_count += 1
                 self.node_selection.remove_node(duplicate_node)
 
-    def get_nodes(self, node_id: NodeID) -> List[Node]:
+    def get_nodes(self, node_id: CompNodeID) -> List[Node]:
         return [
             node
             for node in self.node_selection.nodes

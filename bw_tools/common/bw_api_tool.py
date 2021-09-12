@@ -4,7 +4,7 @@ from typing import List, TypeVar
 from enum import Enum
 
 import sd
-from bw_tools.common import bw_toolbar, bw_ui_tools
+from bw_tools.common import bw_toolbar
 from PySide2 import QtWidgets
 
 
@@ -17,12 +17,17 @@ SDSBSCompNode = TypeVar("SDSBSCompNode")
 SDProperty = TypeVar("SDProperty")
 SDConnection = TypeVar("SDConnection")
 SDGraph = TypeVar("SDGraph")
+SDSBSFunctionGraph = TypeVar("SDSBSFunctionGraph")
 
 
-class NodeID(Enum):
+class CompNodeID(Enum):
     DOT = "sbs::compositing::passthrough"
     UNIFORM_COLOR = "sbs::compositing::uniform"
     COMP_GRAPH = "sbs::compositing::sbscompgraph_instance"
+
+
+class FunctionNodeId(Enum):
+    DOT = "sbs::function::passthrough"
 
 
 class APITool:

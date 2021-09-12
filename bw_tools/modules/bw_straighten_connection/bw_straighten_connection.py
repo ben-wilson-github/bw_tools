@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List
 
 import sd
-from bw_tools.common.bw_api_tool import SDConnection
+from bw_tools.common.bw_api_tool import (
+    FunctionNodeId,
+    SDConnection,
+    CompNodeID,
+)
 from bw_tools.common.bw_node import Float2
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
@@ -123,7 +127,9 @@ def _create_base_dot_nodes(
             continue
 
         dot_node = StraightenNode(
-            source_node.graph.newNode("sbs::compositing::passthrough"),
+            source_node.graph.newNode(
+                _get_dot_node_id_for_graph(source_node.graph)
+            ),
             source_node.graph,
         )
         data.base_dot_node[i] = dot_node
@@ -136,6 +142,13 @@ def _create_base_dot_nodes(
         _connect_node(source_node, dot_node, data.connection[i][0])
 
         stack_index += 1
+
+
+def _get_dot_node_id_for_graph(graph) -> str:
+    if isinstance(graph, sd.api.sbs.sdsbsfunctiongraph.SDSBSFunctionGraph):
+        return FunctionNodeId.DOT.value
+    else:
+        return CompNodeID.DOT.value
 
 
 def _insert_target_dot_nodes(
@@ -172,7 +185,9 @@ def _insert_target_dot_nodes(
                 source_node, dot_node, output_node, data, i, settings
             ):
                 new_dot_node = StraightenNode(
-                    source_node.graph.newNode("sbs::compositing::passthrough"),
+                    source_node.graph.newNode(
+                        _get_dot_node_id_for_graph(source_node.graph)
+                    ),
                     source_node.graph,
                 )
                 new_dot_node_pos: Float2 = behavior.get_position_target_dot(
@@ -283,9 +298,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
         / "resources"
         / "straighten_connection_target.png"
     )
-    action = toolbar.addAction(
-        QtGui.QIcon(str(icon.resolve())), ""
-    )
+    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
     action.setShortcut(QtGui.QKeySequence(settings.target_hotkey))
     action.setToolTip(
         "Straighten connections on selected nodes. "
@@ -302,9 +315,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
         / "resources"
         / "straighten_connection_source.png"
     )
-    action = toolbar.addAction(
-        QtGui.QIcon(str(icon.resolve())), ""
-    )
+    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
     action.setShortcut(QtGui.QKeySequence(settings.source_hotkey))
     action.setToolTip(
         "Straighten connections on selected nodes. "
@@ -317,9 +328,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
     )
 
     icon = Path(__file__).parent / "resources" / "remove_dot_node_selected.png"
-    action = toolbar.addAction(
-        QtGui.QIcon(str(icon.resolve())), ""
-    )
+    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
     action.setShortcut(QtGui.QKeySequence(settings.remove_dot_nodes_hotkey))
     action.setToolTip(
         "Remove all dot nodes connected to the outputs of the selected nodes."
