@@ -18,6 +18,8 @@ SDProperty = TypeVar("SDProperty")
 SDConnection = TypeVar("SDConnection")
 SDGraph = TypeVar("SDGraph")
 SDSBSFunctionGraph = TypeVar("SDSBSFunctionGraph")
+SDGraphObject = TypeVar("SDGraphObject")
+SDGraphObjectFrame = TypeVar("SDGraphObjectFrame")
 
 
 class CompNodeID(Enum):
@@ -79,12 +81,16 @@ class APITool:
         self.logger.info(f"{self.__class__.__name__} initialized.")
 
     @property
-    def current_selection(self) -> List[SDNode]:
+    def current_node_selection(self) -> List[SDNode]:
         return self.ui_mgr.getCurrentGraphSelectedNodes()
 
     @property
     def current_graph(self) -> SDSBSCompGraph:
         return self.ui_mgr.getCurrentGraph()
+    
+    @property
+    def current_graph_object_selection(self) -> List[SDGraphObject]:
+        return self.ui_mgr.getCurrentGraphSelectedObjects()
 
     @property
     def log(self) -> logging.RootLogger:

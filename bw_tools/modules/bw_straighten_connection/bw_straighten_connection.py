@@ -262,7 +262,7 @@ def on_clicked_straighten_connection(
             Path(__file__).parent / "bw_straighten_connection_settings.json"
         )
 
-        for node in api.current_selection:
+        for node in api.current_node_selection:
             try:
                 node = StraightenNode(node, api.current_graph)
             except AttributeError:
@@ -275,7 +275,7 @@ def on_clicked_remove_dot_nodes_from_selection(api: APITool):
     with SDHistoryUtils.UndoGroup("Remove Dot Nodes Undo Group"):
         api.logger.info("Running remove dot nodes from selection")
 
-        for node in api.current_selection:
+        for node in api.current_node_selection:
             try:
                 node = StraightenNode(node, api.current_graph)
             except AttributeError:

@@ -88,7 +88,7 @@ def run_layout(
         node.set_api_position()
 
     if settings.snap_to_grid:
-        sd.tools.graphlayout.snapSDNodes(api.current_selection)
+        sd.tools.graphlayout.snapSDNodes(api.current_node_selection)
 
     if settings.run_straighten_connection:
         if settings.straighten_connection_behavior == 0:
@@ -105,7 +105,7 @@ def run_layout(
 def on_clicked_layout_graph(api: APITool):
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         api_nodes = bw_node_selection.remove_dot_nodes(
-            api.current_selection, api.current_graph
+            api.current_node_selection, api.current_graph
         )
         node_selection = LayoutNodeSelection(api_nodes, api.current_graph)
 

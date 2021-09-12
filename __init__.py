@@ -10,8 +10,6 @@ if not ROOT_DIR.resolve() in sys.path:
 
 from bw_tools.common import bw_api_tool, bw_logging
 
-# TODO: Error on straighten connection when run inside px processor
-# TODO: Unable to remove dot nodes when run from inside px processor
 # TODO: Is it possible to do frame plugin now?
 # TODO: Make sure its clear you need PIL in install dir to run unittests
 # TODO: default setting files

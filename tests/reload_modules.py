@@ -30,11 +30,10 @@ from bw_tools.modules.bw_optimize_graph import (
     uniform_color_optimizer,
     comp_graph_optimizer,
     atomic_optimizer,
-    property_matcher
+    property_matcher,
 )
-from bw_tools.modules.bw_pbr_reference import (
-    bw_pbr_reference
-)
+from bw_tools.modules.bw_pbr_reference import bw_pbr_reference
+from bw_tools.modules.bw_framer import bw_framer
 
 from tests import (
     test_chain_dimension,
@@ -42,7 +41,7 @@ from tests import (
     test_node,
     test_node_selection,
     test_straighten_connection,
-    test_optimize_graph
+    test_optimize_graph,
 )
 
 modules = [
@@ -69,12 +68,13 @@ modules = [
     straighten_node,
     straighten_behavior,
     bw_pbr_reference,
+    bw_framer,
     test_straighten_connection,
     test_layout_graph,
     test_node_selection,
     test_node,
     test_chain_dimension,
-    test_optimize_graph
+    test_optimize_graph,
 ]
 
 

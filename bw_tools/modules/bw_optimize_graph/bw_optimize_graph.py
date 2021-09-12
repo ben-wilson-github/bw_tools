@@ -97,7 +97,7 @@ def _on_clicked_run(api: APITool):
     with SDHistoryUtils.UndoGroup("Optimize Nodes"):
         api.log.info("Running optimize graph...")
         node_selection = NodeSelection(
-            api.current_selection, api.current_graph
+            api.current_node_selection, api.current_graph
         )
 
         settings = OptimizeSettings(

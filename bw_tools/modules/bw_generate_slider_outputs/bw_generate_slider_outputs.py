@@ -47,7 +47,7 @@ def set_int_value(node, id, value):
 def generate_slider_outputs(api: bw_api_tool.APITool):
     increment = 0.02
 
-    nodes = sort_nodes_by_y(api.current_selection)
+    nodes = sort_nodes_by_y(api.current_node_selection)
     with SDHistoryUtils.UndoGroup('Straighten Connection Undo Group'):
         for i, node in enumerate(nodes):
             # set_float_value(node, 'accurate_cell_size_transition', i * increment)
