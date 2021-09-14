@@ -6,10 +6,8 @@ from enum import Enum
 
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings import bw_settings_model
+from .widgets import StringValueWidget, IntValueWidget, RGBAValueWidget
 from PySide2 import QtCore, QtGui, QtWidgets
-
-importlib.reload(bw_ui_tools)
-importlib.reload(bw_settings_model)
 
 
 class WidgetTypes(Enum):
@@ -18,6 +16,7 @@ class WidgetTypes(Enum):
     SPINBOX = 2
     CHECKBOX = 3
     COMBOBOX = 4
+    RGBA = 5
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -166,13 +165,17 @@ class SettingsDialog(QtWidgets.QDialog):
                 row = self.add_item_to_settings_frame(value_item.child(i), row)
 
         elif widget_type is WidgetTypes.LINEEDIT:
-            func = self._ui_add_string_value_to_settings_frame
+            self.module_settings_layout.addWidget(
+                    StringValueWidget(setting_name, value)
+                )
 
         elif widget_type is WidgetTypes.SPINBOX:
             if isinstance(value, float):
                 func = self._ui_add_float_value_to_settings_frame
             else:
-                func = self._ui_add_int_value_to_settings_frame
+                self.module_settings_layout.addWidget(
+                    IntValueWidget(setting_name, value)
+                )
 
         elif widget_type is WidgetTypes.CHECKBOX:
             func = self._ui_add_bool_value_to_settings_frame
@@ -181,11 +184,15 @@ class SettingsDialog(QtWidgets.QDialog):
             row = self._ui_add_combobox_value_to_settings_frame(
                 setting_name, value, self.get_combobox_list(item), row
             )
+        elif widget_type is WidgetTypes.RGBA:
+            self.module_settings_layout.addWidget(
+                RGBAValueWidget(setting_name, tuple(value)), row, 0
+            )
 
         if func:
             row = func(setting_name, value, row)
 
-        return row
+        return row + 1
 
     def clear_settings_frame(self):
         def _delete_children(layout):
@@ -420,16 +427,6 @@ class SettingsDialog(QtWidgets.QDialog):
             row += 1
         return row
 
-    def _ui_add_string_value_to_settings_frame(self, name, value, row):
-        self._ui_add_value_name_to_settings_frame(name, row)
-        w = QtWidgets.QLineEdit()
-        w.setText(value)
-        w.textChanged.connect(self.on_str_value_changed)
-        w.setStyleSheet(f"background : {self._value_background}")
-        w.setAlignment(QtCore.Qt.AlignRight)
-        self.module_settings_layout.addWidget(w, row, 1)
-        return row + 1
-
     def _ui_add_list_value_to_settings_frame(self, name, value, row):
         self._ui_add_value_name_to_settings_frame(name, row)
         if not all(
@@ -463,23 +460,6 @@ class SettingsDialog(QtWidgets.QDialog):
         w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
             "QDoubleSpinBox"
-            "{"
-            f"background : {self._value_background};"
-            "color : #cccccc;"
-            "}"
-        )
-        w.setAlignment(QtCore.Qt.AlignRight)
-        self.module_settings_layout.addWidget(w, row, 1)
-        return row + 1
-
-    def _ui_add_int_value_to_settings_frame(self, name, value, row):
-        self._ui_add_value_name_to_settings_frame(name, row)
-        w = QtWidgets.QSpinBox()
-        w.setMaximum(99999)
-        w.setValue(value)
-        w.valueChanged.connect(self.on_int_float_value_changed)
-        w.setStyleSheet(
-            "QSpinBox"
             "{"
             f"background : {self._value_background};"
             "color : #cccccc;"
