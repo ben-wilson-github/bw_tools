@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 SPACER = 32
 DEFAULT_COLOR = (0.0, 0.0, 0.0, 0.25)
+DEFAULT_FRAME_TITLE = ""
 
 # class StraightenSettings(ModuleSettings):
 #     def __init__(self, file_path: Path):
@@ -75,12 +76,13 @@ def run_framer(
         delete_frames(graph, frames[1:])
     else:
         frame = sd.api.sdgraphobjectframe.SDGraphObjectFrame.sNew(graph)
+        frame.setTitle(DEFAULT_FRAME_TITLE)
+        frame.setColor(sd.api.sdbasetypes.ColorRGBA(0.0, 0.0, 0.0, 0.25))
 
     frame.setPosition(
         sd.api.sdbasetypes.float2(min_x - SPACER, min_y - SPACER * 2)
     )
     frame.setSize(sd.api.sdbasetypes.float2(width, height))
-    frame.setColor(sd.api.sdbasetypes.ColorRGBA(0.0, 0.0, 0.0, 0.25))
 
 
 def on_clicked_run_framer(api: APITool):
