@@ -10,6 +10,8 @@ from bw_tools.common.bw_api_tool import (
 from functools import partial
 from typing import TYPE_CHECKING, Union
 from bw_tools.common.bw_node import Node
+from pathlib import Path
+from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 
 import sd
 from sd.api.sdhistoryutils import SDHistoryUtils
@@ -19,17 +21,17 @@ if TYPE_CHECKING:
 
 SPACER = 32
 DEFAULT_COLOR = (0.0, 0.0, 0.0, 0.25)
-DEFAULT_FRAME_TITLE = ""
+DEFAULT_TITLE = ""
 
-# class StraightenSettings(ModuleSettings):
-#     def __init__(self, file_path: Path):
-#         super().__init__(file_path)
-#         self.target_hotkey: str = self.get("Break At Target Hotkey;value")
-#         self.source_hotkey: str = self.get("Break At Source Hotkey;value")
-#         self.remove_dot_nodes_hotkey: str = self.get(
-#             "Remove Connected Dot Nodes Hotkey;value"
-#         )
-#         self.dot_node_distance: str = self.get("Dot Node Distance;value")
+class FramerSettings(ModuleSettings):
+    def __init__(self, file_path: Path):
+        super().__init__(file_path)
+        self.hotkey: str = self.get("Hotkey;value")
+        self.margin: float = self.get("Margin;value")
+        self.default_color: list = self.get(
+            "Default Color;value"
+        )
+        self.dot_node_distance: str = self.get("Dot Node Distance;value")
 
 
 def get_frames(graph_objects: list[SDGraphObject]) -> list[SDGraphObjectFrame]:
@@ -76,7 +78,7 @@ def run_framer(
         delete_frames(graph, frames[1:])
     else:
         frame = sd.api.sdgraphobjectframe.SDGraphObjectFrame.sNew(graph)
-        frame.setTitle(DEFAULT_FRAME_TITLE)
+        frame.setTitle(DEFAULT_TITLE)
         frame.setColor(sd.api.sdbasetypes.ColorRGBA(0.0, 0.0, 0.0, 0.25))
 
     frame.setPosition(

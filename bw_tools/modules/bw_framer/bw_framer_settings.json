@@ -1,0 +1,18 @@
+{
+    "Hotkey": {
+        "widget": 1,
+        "value": "Alt+D"
+    },
+    "Margin": {
+        "widget": 2,
+        "value": 32
+    },
+    "Default Color": {
+        "widget": 1,
+        "value": [0.0, 0.0, 0.0, 0.25]
+    },
+    "Default Title": {
+        "widget": 1,
+        "value": ""
+    }
+}
