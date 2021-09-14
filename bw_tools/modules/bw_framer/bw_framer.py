@@ -9,6 +9,7 @@ from bw_tools.common.bw_api_tool import (
 
 from functools import partial
 from typing import TYPE_CHECKING, Union
+from bw_tools.common.bw_node import Node
 
 import sd
 from sd.api.sdhistoryutils import SDHistoryUtils
@@ -16,6 +17,8 @@ from sd.api.sdhistoryutils import SDHistoryUtils
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import APITool
 
+SPACER = 32
+DEFAULT_COLOR = (0.0, 0.0, 0.0, 0.25)
 
 # class StraightenSettings(ModuleSettings):
 #     def __init__(self, file_path: Path):
@@ -41,7 +44,6 @@ def delete_frames(
     frames: list[SDGraphObjectFrame],
 ):
     [graph.deleteGraphObject(frame) for frame in frames]
-    print("sds")
 
 
 def run_framer(
@@ -49,18 +51,37 @@ def run_framer(
     graph_objects: list[SDGraphObject],
     graph: Union[SDSBSCompGraph, SDSBSFunctionGraph],
 ):
+    x0 = min(nodes, key=lambda node: node.getPosition().x)
+    x1 = max(nodes, key=lambda node: node.getPosition().x)
+    y0 = max(nodes, key=lambda node: node.getPosition().y)
+    y1 = min(nodes, key=lambda node: node.getPosition().y)
+
+    x0 = Node(x0)
+    x1 = Node(x1)
+    y0 = Node(y0)
+    y1 = Node(y1)
+
+    min_x = x0.pos.x - x0.width / 2
+    max_x = x1.pos.x - x1.width / 2
+    min_y = y1.pos.y - y1.width / 2
+    max_y = y0.pos.y - y0.width / 2
+    width = (max_x - min_x) + x1.width + SPACER * 2
+    height = (max_y - min_y) + y0.height + SPACER * 3
+
     frames = get_frames(graph_objects)
-    print(frames)
-    delete_frames(graph, frames)
+    if frames:
+        frames.sort(key=lambda f: f.getPosition().x)
+        frame = frames[0]
+        delete_frames(graph, frames[1:])
+    else:
+        frame = sd.api.sdgraphobjectframe.SDGraphObjectFrame.sNew(graph)
 
-    x0 = min(nodes, key=lambda node: node.getPosition().x).getPosition().x
-    x1 = max(nodes, key=lambda node: node.getPosition().x).getPosition().x
-    y0 = max(nodes, key=lambda node: node.getPosition().y).getPosition().y
-    y1 = min(nodes, key=lambda node: node.getPosition().y).getPosition().y
-    print(x0)
-    print(x1)
+    frame.setPosition(
+        sd.api.sdbasetypes.float2(min_x - SPACER, min_y - SPACER * 2)
+    )
+    frame.setSize(sd.api.sdbasetypes.float2(width, height))
+    frame.setColor(sd.api.sdbasetypes.ColorRGBA(0.0, 0.0, 0.0, 0.25))
 
-    CONTINUE HERE
 
 def on_clicked_run_framer(api: APITool):
     with SDHistoryUtils.UndoGroup("Framer"):
