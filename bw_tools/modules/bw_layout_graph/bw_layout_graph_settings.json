@@ -12,6 +12,14 @@
         "widget": 4,
         "value": 0
     },
+    "Node Spacing": {
+        "widget": 2,
+        "value": 32
+    },
+    "Node Count Warning": {
+        "widget": 2,
+        "value": 80
+    },
     "Snap To Grid": {
         "widget": 3,
         "value": true
@@ -32,14 +40,6 @@
                 "value": 96
             }
         }
-    },
-    "Node Spacing": {
-        "widget": 2,
-        "value": 32
-    },
-    "Node Count Warning": {
-        "widget": 2,
-        "value": 80
     },
     "Straighten Connection Settings": {
         "widget": 0,

@@ -1,5 +1,6 @@
 from PySide2 import QtWidgets, QtCore
-from typing import Union, Tuple, Optional
+from typing import Tuple, Optional
+from bw_tools.common import bw_ui_tools
 
 BACKGROUND = "#151515"
 MIN_LABEL_WIDTH = 200
@@ -8,13 +9,13 @@ MIN_LABEL_WIDTH = 200
 class SettingWidget(QtWidgets.QWidget):
     def __init__(self, label: str, parent=None):
         super().__init__(parent=parent)
-        self.setLayout(QtWidgets.QGridLayout())
+        self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setStyleSheet("border-radius: 0px; padding: 3px")
 
         label_widget = QtWidgets.QLabel(label)
         label_widget.setMinimumWidth(MIN_LABEL_WIDTH)
-        self.layout().addWidget(label_widget, 0, 0)
+        self.layout().addWidget(label_widget)
 
 
 class StringValueWidget(SettingWidget):
@@ -28,7 +29,38 @@ class StringValueWidget(SettingWidget):
             f"background : {BACKGROUND}; border-radius: 3px"
         )
         line_edit.setAlignment(QtCore.Qt.AlignRight)
-        self.layout().addWidget(line_edit, 0, 1)
+        self.layout().addWidget(line_edit)
+
+
+class BoolValueWidget(SettingWidget):
+    def __init__(self, label: str, value: bool, parent=None):
+        super().__init__(label, parent=parent)
+        w = QtWidgets.QCheckBox()
+        w.setChecked(value)
+        # w.stateChanged.connect(self.on_bool_value_changed)
+        self.layout().addWidget(w)
+        self.layout().setAlignment(w, QtCore.Qt.AlignRight)
+
+
+class FloatValueWidget(SettingWidget):
+    def __init__(self, label: str, value: int, parent=None):
+        super().__init__(label, parent=parent)
+
+        w = QtWidgets.QDoubleSpinBox(self)
+        w.setMaximum(999)
+        w.setValue(value)
+        # w.valueChanged.connect(self.on_int_float_value_changed)
+        w.setStyleSheet(
+            "QDoubleSpinBox"
+            "{"
+            f"background : {BACKGROUND};"
+            "color : #cccccc;"
+            "border-radius: 3px;"
+            "}"
+        )
+        w.setMaximumWidth(50)
+        w.setAlignment(QtCore.Qt.AlignRight)
+        self.layout().addWidget(w)
 
 
 class IntValueWidget(SettingWidget):
@@ -49,7 +81,26 @@ class IntValueWidget(SettingWidget):
         )
         w.setMaximumWidth(50)
         w.setAlignment(QtCore.Qt.AlignRight)
-        self.layout().addWidget(w, 0, 1)
+        self.layout().addWidget(w)
+
+
+class DropDownWidget(SettingWidget):
+    def __init__(self, label: str, value: int, values: Tuple, parent=None):
+        super().__init__(label, parent=parent)
+
+        combo = QtWidgets.QComboBox()
+        combo.addItems(values)
+        combo.setCurrentIndex(value)
+        combo.setStyleSheet(
+            "QComboBox"
+            "{"
+            f"background: {BACKGROUND};"
+            "color: #cccccc;"
+            "border-radius: 3px;"
+            "}"
+        )
+        # combo.currentIndexChanged.connect(self.on_combobox_value_changed)
+        self.layout().addWidget(combo)
 
 
 class RGBAValueWidget(SettingWidget):
@@ -58,25 +109,50 @@ class RGBAValueWidget(SettingWidget):
     ):
         super().__init__(label, parent=parent)
 
-        r = SettingDoubleSpinBox(color="red", parent=self)
+        r = BWColorComponentSpinBox(color="red", parent=self)
         r.setValue(value[0])
-        self.layout().addWidget(r, 0, 1)
+        self.layout().addWidget(r)
 
-        g = SettingDoubleSpinBox(color="green", parent=self)
+        g = BWColorComponentSpinBox(color="green", parent=self)
         g.setValue(value[1])
-        self.layout().addWidget(g, 0, 2)
+        self.layout().addWidget(g)
 
-        b = SettingDoubleSpinBox(color="blue", parent=self)
+        b = BWColorComponentSpinBox(color="blue", parent=self)
         b.setValue(value[2])
-        self.layout().addWidget(b, 0, 3)
+        self.layout().addWidget(b)
 
-        a = SettingDoubleSpinBox(color="white", parent=self)
+        a = BWColorComponentSpinBox(color="white", parent=self)
         a.setValue(value[3])
 
-        self.layout().addWidget(a, 0, 4)
+        self.layout().addWidget(a)
 
 
-class SettingDoubleSpinBox(QtWidgets.QDoubleSpinBox):
+class BWGroupBox(QtWidgets.QGroupBox):
+    def __init__(self, label: str, parent=None) -> None:
+        super().__init__(parent=parent)
+        self.setTitle(label)
+        self.setFlat(False)
+
+        self.setLayout(QtWidgets.QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.setStyleSheet(
+            "QGroupBox {"
+            "border-radius: 0px;"
+            # "border-bottom: 1px solid #333333;"
+            "padding-left: 15px;"
+            "padding-right: 0px;"
+            "padding-top: 10px;"
+            "padding-bottom: 5px;"
+            "}"
+            "QGroupBox::title {"
+            "background-color: transparent;"
+            "padding-left: 0px;"
+            "color: gray;"
+            "}"
+        )
+
+
+class BWColorComponentSpinBox(QtWidgets.QDoubleSpinBox):
     def __init__(self, color=Optional[str], parent=None):
         super().__init__(parent=parent)
         self.setMinimumWidth(50)
