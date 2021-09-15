@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 from enum import Enum
-from typing import Any
+from typing import Any, Dict, Optional
 
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings import bw_settings_model
@@ -29,6 +29,8 @@ class WidgetTypes(Enum):
 
 
 class SettingsDialog(QtWidgets.QDialog):
+    # value_updated = QtCore.Signal(Any)
+
     def __init__(self, api):
         super(SettingsDialog, self).__init__(parent=api.main_window)
         self._value_background = "#151515"
@@ -43,8 +45,10 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_settings_layout = QtWidgets.QVBoxLayout()
         self.settings_file_dir = Path(__file__).parent / ".."
 
+        # self.value_updated.connect(self.on_value_updated)
+
+        self._add_modules_to_model()
         self._create_ui()
-        self.add_modules_to_model()
 
         # Select first item in list
         index = self.module_model.index(0, 0)
@@ -52,10 +56,9 @@ class SettingsDialog(QtWidgets.QDialog):
             index, QtCore.QItemSelectionModel.SelectCurrent
         )
 
-    def get_selected_module_item_from_model(self):
-        """
-        @return: QStandardItem
-        """
+    def get_selected_module_item_from_model(
+        self,
+    ) -> Optional[QtGui.QStandardItem]:
         try:
             index = self.module_view_widget.selectedIndexes()[0]
         except IndexError:
@@ -86,19 +89,18 @@ class SettingsDialog(QtWidgets.QDialog):
         module_item = self.get_selected_module_item_from_model()
         return _find_setting_item(module_item, setting_name)
 
-    def get_settings_for_module(self, file_path):
+    def get_settings_for_module(self, file_path: Path) -> Dict:
         """
         Returns the setting read from given file path.
         Returns FileNotFoundError is there was an issue reading the .json
         @param file_path: Str
         @return: Dict() || FileNotFoundError
         """
-
-        if not os.path.isfile(file_path):
+        if not file_path.is_file():
             raise FileNotFoundError("This module has no settings.")
 
         try:
-            with open(file_path) as settings_file:
+            with open(str(file_path.resolve())) as settings_file:
                 data = json.load(settings_file)
         except json.JSONDecodeError:
             raise FileNotFoundError(
@@ -161,23 +163,53 @@ class SettingsDialog(QtWidgets.QDialog):
     def get_combobox_list(self, item):
         return self.get_child_item_with_key(item, "list").data()
 
-    def add_item_to_settings_frame(self, layout: QtWidgets.QLayout, item):
-        setting_name = item.text()
-        widget_type = self.get_widget_type(item)
-        value = self.get_value(item)
+    def add_item_to_settings_frame(
+        self, layout: QtWidgets.QLayout, setting_item: QtGui.QStandardItem
+    ):
+        widget_item = None
+        value_item = None
+        list_item = None
+        for i in range(setting_item.rowCount()):
+            text = setting_item.child(i).text()
+            if text == "widget":
+                widget_item = setting_item.child(i)
+            elif text == "value":
+                value_item = setting_item.child(i)
+            elif text == "list":
+                list_item = setting_item.child(i)
+
+        setting_name = setting_item.text()
+        if widget_item is not None:
+            widget_type = WidgetTypes(widget_item.child(0).data())
 
         if widget_type is WidgetTypes.GROUPBOX:
             group_box = BWGroupBox(setting_name)
             layout.addWidget(group_box)
 
-            value_item = self.get_child_item_with_key(item, "value")
             for i in range(value_item.rowCount()):
                 self.add_item_to_settings_frame(
                     group_box.layout(), value_item.child(i)
                 )
+            return
 
-        elif widget_type is WidgetTypes.LINEEDIT:
-            layout.addWidget(StringValueWidget(setting_name, value))
+        if value_item is not None:
+            if value_item.rowCount() > 1:
+                value = [
+                    value_item.child(i).data()
+                    for i in range(value_item.rowCount())
+                ]
+            else:
+                value = value_item.child(0).data()
+        if list_item is not None:
+            value_lists = [
+                list_item.child(i).data() for i in range(list_item.rowCount())
+            ]
+
+        if widget_type is WidgetTypes.LINEEDIT:
+            layout.addWidget(
+                StringValueWidget(setting_name, value, self.module_model)
+            )
+            PASS MODEL TO WIDGETS AND SETUP DATAMAPPERS
         elif widget_type is WidgetTypes.SPINBOX:
             if isinstance(value, float):
                 layout.addWidget(FloatValueWidget(setting_name, value))
@@ -186,11 +218,7 @@ class SettingsDialog(QtWidgets.QDialog):
         elif widget_type is WidgetTypes.CHECKBOX:
             layout.addWidget(BoolValueWidget(setting_name, value))
         elif widget_type is WidgetTypes.COMBOBOX:
-            layout.addWidget(
-                DropDownWidget(
-                    setting_name, value, self.get_combobox_list(item)
-                )
-            )
+            layout.addWidget(DropDownWidget(setting_name, value, value_lists))
         elif widget_type is WidgetTypes.RGBA:
             layout.addWidget(RGBAValueWidget(setting_name, tuple(value)))
 
@@ -213,7 +241,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         _delete_children(self.module_settings_layout)
 
-    def add_modules_to_model(self):
+    def _add_modules_to_model(self):
         self.module_model.clear()
 
         for row, module in enumerate(self.api.loaded_modules):
@@ -221,32 +249,40 @@ class SettingsDialog(QtWidgets.QDialog):
             self.module_model.setItem(row, 0, module_item)
 
             try:
-                file_path = self.settings_file_dir.joinpath(
-                    f"{module}/{module}_settings.json"
-                )
                 settings = self.get_settings_for_module(
-                    str(file_path.resolve())
+                    self.settings_file_dir / module / f"{module}_settings.json"
                 )
             except FileNotFoundError as e:
-                self.api.logger.warning(str(e))
                 module_item.setData(e)
             else:
-                self.add_settings_to_model_item(
+                self._add_module_settings_to_model(
                     module_item, settings
                 )  # Must take in settings, as setting data will reorder
 
-    def add_settings_to_model_item(self, parent_item, settings):
-        """
-        @param parent_item: QtStandardItem
-        @param settings: dict()
-        """
-        for name, value in settings.items():
-            item = QtGui.QStandardItem(name)
-            parent_item.appendRow(item)
+    def _add_module_settings_to_model(
+        self, parent_item: QtGui.QStandardItem, settings: Dict
+    ):
+        for setting_name, value in settings.items():
+            setting_item = QtGui.QStandardItem(setting_name)
+            parent_item.appendRow(setting_item)
+
             if isinstance(value, dict):
-                self.add_settings_to_model_item(item, value)
-            else:
-                item.setData(value)
+                self._add_module_settings_to_model(setting_item, value)
+                continue
+
+            if isinstance(value, (list, tuple)):
+                for v in value:
+                    value_item = QtGui.QStandardItem(str(v))
+                    value_item.setData(v)
+                    setting_item.appendRow(value_item)
+                continue
+
+            value_item = QtGui.QStandardItem(str(value))
+            value_item.setData(value)
+            setting_item.appendRow(value_item)
+
+    def on_value_updated(self):
+        pass
 
     def on_str_value_changed(self):
         item = self.get_model_item_from_value_widget(self.sender())
@@ -283,9 +319,6 @@ class SettingsDialog(QtWidgets.QDialog):
 
         for i in range(module.rowCount()):
             item = module.child(i)
-            setting_name = item.text()
-            widget_type = self.get_widget_type(item)
-            value = self.get_value(item)
             self.add_item_to_settings_frame(self.module_settings_layout, item)
 
     def on_clicked_apply(self):
