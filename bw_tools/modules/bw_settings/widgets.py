@@ -1,4 +1,4 @@
-from PySide2 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore, QtGui
 from typing import Tuple, Optional
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
@@ -20,7 +20,13 @@ class SettingWidget(QtWidgets.QWidget):
 
 
 class StringValueWidget(SettingWidget):
-    def __init__(self, label: str, value: str, model: ModuleModel):
+    def __init__(
+        self,
+        label: str,
+        value: str,
+        model: ModuleModel,
+        item: QtGui.QStandardItem,
+    ):
         super().__init__(label)
 
         line_edit = QtWidgets.QLineEdit(self)
@@ -31,6 +37,11 @@ class StringValueWidget(SettingWidget):
         )
         line_edit.setAlignment(QtCore.Qt.AlignRight)
         self.layout().addWidget(line_edit)
+
+        self.mapper = QtWidgets.QDataWidgetMapper()
+        self.mapper.setModel(model)
+        self.mapper.setCurrentModelIndex(model.indexFromItem(item))
+        self.mapper.addMapping(line_edit, 0)
 
 
 class BoolValueWidget(SettingWidget):

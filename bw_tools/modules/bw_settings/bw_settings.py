@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from bw_tools.modules.bw_settings import bw_settings_dialog
-# from tests import run_unit_tests
 
 
 @dataclass

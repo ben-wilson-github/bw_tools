@@ -3,29 +3,13 @@ import json
 import os
 from pathlib import Path
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings import bw_settings_model
-from bw_tools.modules.bw_settings.widgets import (
-    BWGroupBox,
-    BoolValueWidget,
-    DropDownWidget,
-    FloatValueWidget,
-    StringValueWidget,
-    IntValueWidget,
-    RGBAValueWidget,
-)
+from bw_tools.modules.bw_settings import settings_loader
+
 from PySide2 import QtCore, QtGui, QtWidgets
-
-
-class WidgetTypes(Enum):
-    GROUPBOX = 0
-    LINEEDIT = 1
-    SPINBOX = 2
-    CHECKBOX = 3
-    COMBOBOX = 4
-    RGBA = 5
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -163,84 +147,6 @@ class SettingsDialog(QtWidgets.QDialog):
     def get_combobox_list(self, item):
         return self.get_child_item_with_key(item, "list").data()
 
-    def add_item_to_settings_frame(
-        self, layout: QtWidgets.QLayout, setting_item: QtGui.QStandardItem
-    ):
-        widget_item = None
-        value_item = None
-        list_item = None
-        for i in range(setting_item.rowCount()):
-            text = setting_item.child(i).text()
-            if text == "widget":
-                widget_item = setting_item.child(i)
-            elif text == "value":
-                value_item = setting_item.child(i)
-            elif text == "list":
-                list_item = setting_item.child(i)
-
-        setting_name = setting_item.text()
-        if widget_item is not None:
-            widget_type = WidgetTypes(widget_item.child(0).data())
-
-        if widget_type is WidgetTypes.GROUPBOX:
-            group_box = BWGroupBox(setting_name)
-            layout.addWidget(group_box)
-
-            for i in range(value_item.rowCount()):
-                self.add_item_to_settings_frame(
-                    group_box.layout(), value_item.child(i)
-                )
-            return
-
-        if value_item is not None:
-            if value_item.rowCount() > 1:
-                value = [
-                    value_item.child(i).data()
-                    for i in range(value_item.rowCount())
-                ]
-            else:
-                value = value_item.child(0).data()
-        if list_item is not None:
-            value_lists = [
-                list_item.child(i).data() for i in range(list_item.rowCount())
-            ]
-
-        if widget_type is WidgetTypes.LINEEDIT:
-            layout.addWidget(
-                StringValueWidget(setting_name, value, self.module_model)
-            )
-            PASS MODEL TO WIDGETS AND SETUP DATAMAPPERS
-        elif widget_type is WidgetTypes.SPINBOX:
-            if isinstance(value, float):
-                layout.addWidget(FloatValueWidget(setting_name, value))
-            else:
-                layout.addWidget(IntValueWidget(setting_name, value))
-        elif widget_type is WidgetTypes.CHECKBOX:
-            layout.addWidget(BoolValueWidget(setting_name, value))
-        elif widget_type is WidgetTypes.COMBOBOX:
-            layout.addWidget(DropDownWidget(setting_name, value, value_lists))
-        elif widget_type is WidgetTypes.RGBA:
-            layout.addWidget(RGBAValueWidget(setting_name, tuple(value)))
-
-    def clear_settings_frame(self):
-        def _delete_children(layout):
-            for i in reversed(range(layout.count())):
-                item = layout.itemAt(i)
-                if isinstance(
-                    item,
-                    (
-                        QtWidgets.QGridLayout,
-                        QtWidgets.QHBoxLayout,
-                        QtWidgets.QVBoxLayout,
-                    ),
-                ):
-                    _delete_children(item)
-                else:
-                    widget = item.widget()
-                    widget.deleteLater()
-
-        _delete_children(self.module_settings_layout)
-
     def _add_modules_to_model(self):
         self.module_model.clear()
 
@@ -305,11 +211,11 @@ class SettingsDialog(QtWidgets.QDialog):
         value_item.setData(self.sender().currentIndex())
 
     def on_clicked_module(self):
-        self.clear_settings_frame()
-
         module = self.get_selected_module_item_from_model()
         if module is None:
             return
+
+        settings_loader.clear_layout(self.module_settings_layout)
 
         if isinstance(module.data(), FileNotFoundError):
             self.module_settings_layout.addWidget(
@@ -318,8 +224,9 @@ class SettingsDialog(QtWidgets.QDialog):
             return
 
         for i in range(module.rowCount()):
-            item = module.child(i)
-            self.add_item_to_settings_frame(self.module_settings_layout, item)
+            settings_loader.add_setting_to_layout(
+                self.module_settings_layout, module.child(i), self.module_model
+            )
 
     def on_clicked_apply(self):
         for row in range(self.module_model.rowCount()):
