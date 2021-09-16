@@ -40,8 +40,9 @@ class StringValueWidget(SettingWidget):
 
         self.mapper = QtWidgets.QDataWidgetMapper()
         self.mapper.setModel(model)
-        self.mapper.setCurrentModelIndex(model.indexFromItem(item))
         self.mapper.addMapping(line_edit, 0)
+        print(item.text())
+        self.mapper.setRootIndex(model.indexFromItem(item))
 
 
 class BoolValueWidget(SettingWidget):

@@ -13,14 +13,6 @@ from bw_tools.modules.bw_settings.widgets import (
 )
 
 
-class WidgetTypes(Enum):
-    GROUPBOX = 0
-    LINEEDIT = 1
-    SPINBOX = 2
-    CHECKBOX = 3
-    COMBOBOX = 4
-    RGBA = 5
-
 from PySide2.QtWidgets import (
     QLayout,
     QGridLayout,
@@ -30,6 +22,15 @@ from PySide2.QtWidgets import (
 
 if TYPE_CHECKING:
     from PySide2.QtGui import QStandardItem, QStandardItemModel
+
+
+class WidgetTypes(Enum):
+    GROUPBOX = 0
+    LINEEDIT = 1
+    SPINBOX = 2
+    CHECKBOX = 3
+    COMBOBOX = 4
+    RGBA = 5
 
 
 def clear_layout(layout: QLayout):

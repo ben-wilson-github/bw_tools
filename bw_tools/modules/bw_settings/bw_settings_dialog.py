@@ -32,6 +32,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # self.value_updated.connect(self.on_value_updated)
 
         self._add_modules_to_model()
+        self._create_module_widgets()
         self._create_ui()
 
         # Select first item in list
@@ -39,6 +40,33 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_view_widget.selectionModel().setCurrentIndex(
             index, QtCore.QItemSelectionModel.SelectCurrent
         )
+    
+    def _create_module_widgets(self):
+        for i in range(self.module_model.rowCount()):
+            module_name = self.module_model.item(i, 0).text()
+            print(module_name)
+
+            DATAMAPPER WASNT WORKING. NEED TO SEPERATE FURTHER.
+            CONTINUE WITH CREATING UNIQUE WIDGET PER MODULE AND 
+            TOGGLE VISIBILITY INSTEAD OF REBUILDING A NEW UI THE ENTIRE TIME
+
+        # module = self.get_selected_module_item_from_model()
+        # if module is None:
+        #     return
+
+        # settings_loader.clear_layout(self.module_settings_layout)
+
+        # if isinstance(module.data(), FileNotFoundError):
+        #     self.module_settings_layout.addWidget(
+        #         QtWidgets.QLabel(str(module.data()))
+        #     )
+        #     return
+
+        # for i in range(module.rowCount()):
+        #     settings_loader.add_setting_to_layout(
+        #         self.module_settings_layout, module.child(i), self.module_model
+        #     )
+
 
     def get_selected_module_item_from_model(
         self,
