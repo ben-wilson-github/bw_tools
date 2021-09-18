@@ -4,12 +4,12 @@
         "value": "C"
     },
     "Input Node Alignment": {
+        "widget": 5,
         "list": [
             "Mainline",
             "Center",
             "Top"
         ],
-        "widget": 5,
         "value": 0
     },
     "Node Spacing": {
@@ -49,11 +49,11 @@
                 "value": true
             },
             "Alignment": {
+                "widget": 5,
                 "list": [
                     "Break At Source",
                     "Break At Target"
                 ],
-                "widget": 5,
                 "value": 1
             }
         }

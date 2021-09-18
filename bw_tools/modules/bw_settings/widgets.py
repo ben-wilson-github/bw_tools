@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from PySide2 import QtWidgets, QtCore, QtGui
 from typing import Tuple, Optional, List, Any
 from bw_tools.common import bw_ui_tools
@@ -10,8 +10,10 @@ MIN_LABEL_WIDTH = 200
 
 
 class SettingWidget(QtWidgets.QWidget):
-    def __init__(self, label: str):
+    def __init__(self, label: str, value_item: QtGui.QStandardItem = None):
         super().__init__(parent=None)
+        self.value_item = value_item
+
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setStyleSheet("border-radius: 0px; padding: 3px")
@@ -109,12 +111,11 @@ class IntValueWidget(SettingWidget):
         value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
-        super().__init__(label)
+        super().__init__(label, value_property_item)
 
-        w = QtWidgets.QSpinBox(self)
-        w.setMaximum(999)
-        # w.valueChanged.connect(self.on_int_float_value_changed)
-        w.setStyleSheet(
+        self.widget = QtWidgets.QSpinBox(self)
+        self.widget.setMaximum(999)
+        self.widget.setStyleSheet(
             "QSpinBox"
             "{"
             f"background : {BACKGROUND};"
@@ -122,11 +123,11 @@ class IntValueWidget(SettingWidget):
             "border-radius: 3px;"
             "}"
         )
-        w.setMaximumWidth(50)
-        w.setAlignment(QtCore.Qt.AlignRight)
-        self.layout().addWidget(w)
+        self.widget.setMaximumWidth(50)
+        self.widget.setAlignment(QtCore.Qt.AlignRight)
+        self.layout().addWidget(self.widget)
 
-        self.set_up_mapper(model, w, 0, value_property_item)
+        self.set_up_mapper(model, self.widget, 0, value_property_item)
 
 
 class DropDownWidget(SettingWidget):

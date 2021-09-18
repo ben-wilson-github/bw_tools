@@ -19,6 +19,7 @@ from bw_tools.modules.bw_settings import (
     bw_settings_dialog,
     bw_settings_model,
     settings_loader,
+    setting_writer,
     widgets
 )
 from bw_tools.modules.bw_straighten_connection import (
@@ -59,6 +60,7 @@ modules = [
     bw_settings_model,
     widgets,
     settings_loader,
+    setting_writer,
     bw_api_tool,
     bw_node,
     bw_node_selection,

@@ -94,11 +94,11 @@ def add_setting_to_layout(
         widget_property_item,
         value_property_item,
         list_property_item,
-    ) = _get_setting_properties_from_model(setting_item)
+    ) = get_setting_properties(setting_item)
 
     setting_name = setting_item.text()
-    possible_values = _get_possible_values(list_property_item)
-    widget_type = WidgetTypes(widget_property_item.child(0).data())
+    possible_values = get_possible_values(list_property_item)
+    widget_type = WidgetTypes(int(widget_property_item.child(0).text()))
 
     if widget_type is WidgetTypes.GROUPBOX:
         widget_constructor = WIDGET_MAP[widget_type.value]
@@ -118,16 +118,16 @@ def add_setting_to_layout(
     layout.addWidget(w)
 
 
-def _get_possible_values(list_property_item: QStandardItem) -> Tuple[Any, ...]:
+def get_possible_values(list_property_item: QStandardItem) -> Tuple[Any, ...]:
     if list_property_item is None:
         return None
     return [
-        list_property_item.child(i).data()
+        list_property_item.child(i).text()
         for i in range(list_property_item.rowCount())
     ]
 
 
-def _get_setting_properties_from_model(
+def get_setting_properties(
     setting_item: QStandardItem,
 ) -> Tuple[QStandardItem, QStandardItem, QStandardItem]:
     widget_item = None

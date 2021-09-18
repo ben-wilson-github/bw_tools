@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings import bw_settings_model
-from bw_tools.modules.bw_settings import settings_loader
+from bw_tools.modules.bw_settings import settings_loader, setting_writer
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -70,46 +70,6 @@ class SettingsDialog(QtWidgets.QDialog):
         else:
             return data
 
-    def write_module_settings(self, module, file_path):
-        """
-        Writes the settings for the module to the given file path.
-        @param module: QStandardItem
-        @param file_path: Str
-        """
-
-        def _build_dict(parent_item, data):
-            for row in range(parent_item.rowCount()):
-                setting_item = parent_item.child(row)
-                setting_name = setting_item.text()
-                widget_type = self.get_widget_type(setting_item)
-                value_item = self.get_child_item_with_key(
-                    setting_item, "value"
-                )
-                value = value_item.data()
-
-                data[setting_name] = {}
-
-                if widget_type is WidgetTypes.GROUPBOX:
-                    value = _build_dict(value_item, {})
-                elif widget_type is WidgetTypes.COMBOBOX:
-                    data[setting_name]["list"] = self.get_combobox_list(
-                        setting_item
-                    )
-                else:
-                    value = value_item.data()
-
-                data[setting_name]["widget"] = widget_type.value
-                data[setting_name]["value"] = value
-            return data
-
-        # Does not handle error or permission right now
-        data = _build_dict(module, {})
-
-        with open(file_path, "w") as settings_file:
-            json.dump(data, settings_file, indent=4)
-
-        self.api.logger.info(f"Writing settings for {module.text()}")
-
     def get_child_item_with_key(self, item, key):
         for i in range(item.rowCount()):
             if item.child(i).text() == key:
@@ -134,13 +94,19 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def on_clicked_apply(self):
         for row in range(self.module_model.rowCount()):
-            item = self.module_model.item(row, 0)
+            module_item = self.module_model.item(row, 0)
 
-            file_path = self.settings_file_dir.joinpath(
-                f"{item.text()}/{item.text()}_settings.json"
+            settings_file_path: Path = (
+                self.settings_file_dir
+                / module_item.text()
+                / f"{module_item.text()}_settings.json"
             )
+            if not settings_file_path.exists():
+                continue
 
-            self.write_module_settings(item, file_path)
+            setting_writer.write_module_settings(
+                module_item, settings_file_path
+            )
 
     def on_clicked_ok(self):
         self.on_clicked_apply()
@@ -167,24 +133,62 @@ class SettingsDialog(QtWidgets.QDialog):
     def _add_module_settings_to_model(
         self, parent_item: QtGui.QStandardItem, settings: Dict
     ):
-        for setting_name, value in settings.items():
+        for setting_name, values in settings.items():
             setting_item = QtGui.QStandardItem(setting_name)
             parent_item.appendRow(setting_item)
 
-            if isinstance(value, dict):
-                self._add_module_settings_to_model(setting_item, value)
-                continue
+            try:
+                widget_type = values["widget"]
+            except KeyError:
+                widget_type = None
 
-            if isinstance(value, (list, tuple)):
-                for v in value:
-                    value_item = QtGui.QStandardItem(str(v))
-                    value_item.setData(v)
-                    setting_item.appendRow(value_item)
-                continue
+            try:
+                possible_values = values["list"]
+            except KeyError:
+                possible_values = None
 
-            value_item = QtGui.QStandardItem(str(value))
-            value_item.setData(value)
-            setting_item.appendRow(value_item)
+            try:
+                value = values["value"]
+            except KeyError:
+                value = None
+
+            if widget_type is not None:
+                widget_item = QtGui.QStandardItem("widget")
+                setting_item.appendRow(widget_item)
+
+                item = QtGui.QStandardItem(str(widget_type))
+                item.setData(widget_type)
+                widget_item.appendRow(item)
+
+            if possible_values is not None:
+                list_item = QtGui.QStandardItem("list")
+                setting_item.appendRow(list_item)
+
+                for v in possible_values:
+                    item = QtGui.QStandardItem(str(v))
+                    item.setData(v)
+                    list_item.appendRow(item)
+
+            if value is not None:
+                value_item = QtGui.QStandardItem("value")
+                value_item.setData(False)
+                setting_item.appendRow(value_item)
+
+                if isinstance(value, dict):
+                    value_item.setData(True)
+                    self._add_module_settings_to_model(value_item, value)
+                    continue
+
+                if isinstance(value, (list, tuple)):
+                    for v in value:
+                        item = QtGui.QStandardItem(str(v))
+                        item.setData(v)
+                        value_item.appendRow(item)
+                    continue
+
+                item = QtGui.QStandardItem(str(value))
+                item.setData(value)
+                value_item.appendRow(item)
 
     def _create_module_setting_widgets(self):
         for i in range(self.module_model.rowCount()):
