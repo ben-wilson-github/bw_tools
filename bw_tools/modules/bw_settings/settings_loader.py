@@ -1,4 +1,5 @@
 from __future__ import annotations
+from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Tuple
 
@@ -87,7 +88,7 @@ def get_module_widget(
 def add_setting_to_layout(
     layout: QLayout,
     setting_item: QStandardItem,
-    model: QStandardItemModel,
+    model: ModuleModel,
 ):
     (
         widget_property_item,
@@ -97,8 +98,6 @@ def add_setting_to_layout(
 
     setting_name = setting_item.text()
     possible_values = _get_possible_values(list_property_item)
-    value_items_in_model = _get_value_items(value_property_item)
-    values = _get_values(value_items_in_model)
     widget_type = WidgetTypes(widget_property_item.child(0).data())
 
     if widget_type is WidgetTypes.GROUPBOX:
@@ -114,7 +113,7 @@ def add_setting_to_layout(
 
     widget_constructor = WIDGET_MAP[widget_type.value]
     w = widget_constructor(
-        setting_name, values, possible_values, value_items_in_model, model
+        setting_name, possible_values, value_property_item, model
     )
     layout.addWidget(w)
 
@@ -143,16 +142,3 @@ def _get_setting_properties_from_model(
         elif text == "list":
             list_item = setting_item.child(i)
     return widget_item, value_item, list_item
-
-
-def _get_value_items(
-    value_item: QStandardItem,
-) -> Tuple[QStandardItem, ...]:
-    if value_item.rowCount() > 1:
-        return [value_item.child(i) for i in range(value_item.rowCount())]
-    else:
-        return [value_item.child(0)]
-
-
-def _get_values(value_items: Tuple[QStandardItem]) -> Tuple(Any, ...):
-    return [value.data() for value in value_items]

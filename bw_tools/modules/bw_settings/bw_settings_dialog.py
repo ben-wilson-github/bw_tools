@@ -13,8 +13,6 @@ from PySide2 import QtCore, QtGui, QtWidgets
 
 
 class SettingsDialog(QtWidgets.QDialog):
-    # value_updated = QtCore.Signal(Any)
-
     def __init__(self, api):
         super(SettingsDialog, self).__init__(parent=api.main_window)
         self._value_background = "#151515"
@@ -31,10 +29,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self._module_setting_widgets: dict[str, QtWidgets.QWidget] = {}
 
-        # self.value_updated.connect(self.on_value_updated)
-
         self._add_modules_to_model()
-        self._create_module_widgets()
+        self._create_module_setting_widgets()
         self._create_ui()
 
         # Select first item in list
@@ -42,16 +38,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_view_widget.selectionModel().setCurrentIndex(
             index, QtCore.QItemSelectionModel.SelectCurrent
         )
-    
-    def _create_module_widgets(self):
-        for i in range(self.module_model.rowCount()):
-            module_item = self.module_model.item(i, 0)
-            module_name = module_item.text()
-
-            module_widget = settings_loader.get_module_widget(module_item, self.module_model)
-            self.module_settings_layout.addWidget(module_widget)
-
-            self._module_setting_widgets[module_name] = module_widget
 
     def get_selected_module_item_from_model(
         self,
@@ -63,28 +49,6 @@ class SettingsDialog(QtWidgets.QDialog):
 
         item = self.module_model.itemFromIndex(index)
         return item
-
-    def get_model_item_from_value_widget(self, value_widget):
-        def _find_setting_item(parent_item, setting_name):
-            ret = None
-            for row in range(parent_item.rowCount()):
-                setting_item = parent_item.child(row)
-                if setting_item.text() == setting_name:
-                    return setting_item
-                ret = _find_setting_item(setting_item, setting_name)
-                if ret is not None:
-                    break
-            return ret
-
-        # Get setting name from the value widget
-        for i in range(self.module_settings_layout.count()):
-            if self.module_settings_layout.itemAt(i).widget() is value_widget:
-                setting_name = (
-                    self.module_settings_layout.itemAt(i - 1).widget().text()
-                )
-
-        module_item = self.get_selected_module_item_from_model()
-        return _find_setting_item(module_item, setting_name)
 
     def get_settings_for_module(self, file_path: Path) -> Dict:
         """
@@ -151,14 +115,36 @@ class SettingsDialog(QtWidgets.QDialog):
             if item.child(i).text() == key:
                 return item.child(i)
 
-    def get_value(self, item):
-        return self.get_child_item_with_key(item, "value").data()
-
     def get_widget_type(self, item):
         return WidgetTypes(self.get_child_item_with_key(item, "widget").data())
 
     def get_combobox_list(self, item):
         return self.get_child_item_with_key(item, "list").data()
+
+    def on_clicked_module(self):
+        module = self.get_selected_module_item_from_model()
+        if module is None:
+            return
+        module_name = module.text()
+        for name, widget in self._module_setting_widgets.items():
+            if module_name == name:
+                widget.show()
+            else:
+                widget.hide()
+
+    def on_clicked_apply(self):
+        for row in range(self.module_model.rowCount()):
+            item = self.module_model.item(row, 0)
+
+            file_path = self.settings_file_dir.joinpath(
+                f"{item.text()}/{item.text()}_settings.json"
+            )
+
+            self.write_module_settings(item, file_path)
+
+    def on_clicked_ok(self):
+        self.on_clicked_apply()
+        self.close()
 
     def _add_modules_to_model(self):
         self.module_model.clear()
@@ -200,68 +186,17 @@ class SettingsDialog(QtWidgets.QDialog):
             value_item.setData(value)
             setting_item.appendRow(value_item)
 
-    def on_value_updated(self):
-        pass
+    def _create_module_setting_widgets(self):
+        for i in range(self.module_model.rowCount()):
+            module_item = self.module_model.item(i, 0)
+            module_name = module_item.text()
 
-    def on_str_value_changed(self):
-        item = self.get_model_item_from_value_widget(self.sender())
-        value_item = self.get_child_item_with_key(item, "value")
-        value_item.setData(self.sender().text())
-
-    def on_int_float_value_changed(self):
-        item = self.get_model_item_from_value_widget(self.sender())
-        value_item = self.get_child_item_with_key(item, "value")
-        value_item.setData(self.sender().value())
-
-    def on_bool_value_changed(self):
-        item = self.get_model_item_from_value_widget(self.sender())
-        value_item = self.get_child_item_with_key(item, "value")
-        value_item.setData(self.sender().isChecked())
-
-    def on_combobox_value_changed(self):
-        item = self.get_model_item_from_value_widget(self.sender())
-        value_item = self.get_child_item_with_key(item, "value")
-        value_item.setData(self.sender().currentIndex())
-
-    def on_clicked_module(self):
-        module = self.get_selected_module_item_from_model()
-        if module is None:
-            return
-
-        module_name = module.text()
-
-        for name, widget in self._module_setting_widgets.items():
-            if module_name == name:
-                widget.show()
-            else:
-                widget.hide()
-
-        # settings_loader.clear_layout(self.module_settings_layout)
-
-        # if isinstance(module.data(), FileNotFoundError):
-        #     self.module_settings_layout.addWidget(
-        #         QtWidgets.QLabel(str(module.data()))
-        #     )
-        #     return
-
-        # for i in range(module.rowCount()):
-        #     settings_loader.add_setting_to_layout(
-        #         self.module_settings_layout, module.child(i), self.module_model
-        #     )
-
-    def on_clicked_apply(self):
-        for row in range(self.module_model.rowCount()):
-            item = self.module_model.item(row, 0)
-
-            file_path = self.settings_file_dir.joinpath(
-                f"{item.text()}/{item.text()}_settings.json"
+            module_widget = settings_loader.get_module_widget(
+                module_item, self.module_model
             )
+            self.module_settings_layout.addWidget(module_widget)
 
-            self.write_module_settings(item, file_path)
-
-    def on_clicked_ok(self):
-        self.on_clicked_apply()
-        self.close()
+            self._module_setting_widgets[module_name] = module_widget
 
     def _create_ui(self):
         self._ui_frame_modules_list(0)

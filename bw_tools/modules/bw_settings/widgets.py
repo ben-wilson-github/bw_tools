@@ -20,20 +20,32 @@ class SettingWidget(QtWidgets.QWidget):
         label_widget.setMinimumWidth(MIN_LABEL_WIDTH)
         self.layout().addWidget(label_widget)
 
+    def set_up_mapper(
+        self,
+        model: ModuleModel,
+        widget: QtWidgets.QWidget,
+        column: int,
+        parent_item: QtGui.QStandardItem,
+    ):
+        self.mapper = QtWidgets.QDataWidgetMapper()
+        self.mapper.setModel(model)
+        self.mapper.addMapping(widget, column)
+        self.mapper.setRootIndex(model.indexFromItem(parent_item))
+        self.mapper.toFirst()
+
 
 class StringValueWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        values: Tuple[str],
         possible_values: Tuple[Any],
-        value_items_in_model: Tuple[QtGui.QStandardItem],
+        value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
         super().__init__(label)
 
         line_edit = QtWidgets.QLineEdit(self)
-        line_edit.setText(values[0])
+        # line_edit.setText(values[0])
         # line_edit.textChanged.connect(self.on_str_value_changed)
         line_edit.setStyleSheet(
             f"background : {BACKGROUND}; border-radius: 3px"
@@ -41,43 +53,38 @@ class StringValueWidget(SettingWidget):
         line_edit.setAlignment(QtCore.Qt.AlignRight)
         self.layout().addWidget(line_edit)
 
-        # self.mapper = QtWidgets.QDataWidgetMapper()
-        # self.mapper.setModel(model)
-        # self.mapper.addMapping(line_edit, 0)
-        # self.mapper.setRootIndex(model.indexFromItem(value_items_in_model[0]))
+        self.set_up_mapper(model, line_edit, 0, value_property_item)
 
 
 class BoolValueWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        values: Tuple[bool],
         possible_values: Tuple[bool],
-        value_items_in_model: Tuple[QtGui.QStandardItem],
+        value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
         super().__init__(label)
         w = QtWidgets.QCheckBox()
-        w.setChecked(values[0])
         # w.stateChanged.connect(self.on_bool_value_changed)
         self.layout().addWidget(w)
         self.layout().setAlignment(w, QtCore.Qt.AlignRight)
+
+        self.set_up_mapper(model, w, 0, value_property_item)
 
 
 class FloatValueWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        values: Tuple[bool],
         possible_values: Tuple[bool],
-        value_items_in_model: Tuple[QtGui.QStandardItem],
+        value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
         super().__init__(label)
 
         w = QtWidgets.QDoubleSpinBox(self)
         w.setMaximum(999)
-        w.setValue(values[0])
         # w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
             "QDoubleSpinBox"
@@ -91,21 +98,21 @@ class FloatValueWidget(SettingWidget):
         w.setAlignment(QtCore.Qt.AlignRight)
         self.layout().addWidget(w)
 
+        self.set_up_mapper(model, w, 0, value_property_item)
+
 
 class IntValueWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        values: Tuple[bool],
         possible_values: Tuple[bool],
-        value_items_in_model: Tuple[QtGui.QStandardItem],
+        value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
         super().__init__(label)
 
         w = QtWidgets.QSpinBox(self)
         w.setMaximum(999)
-        w.setValue(values[0])
         # w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
             "QSpinBox"
@@ -119,21 +126,21 @@ class IntValueWidget(SettingWidget):
         w.setAlignment(QtCore.Qt.AlignRight)
         self.layout().addWidget(w)
 
+        self.set_up_mapper(model, w, 0, value_property_item)
+
 
 class DropDownWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        values: Tuple[bool],
         possible_values: Tuple[bool],
-        value_items_in_model: Tuple[QtGui.QStandardItem],
+        value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
         super().__init__(label)
 
         combo = QtWidgets.QComboBox()
         combo.addItems(possible_values)
-        combo.setCurrentIndex(values[0])
         combo.setStyleSheet(
             "QComboBox"
             "{"
@@ -145,34 +152,59 @@ class DropDownWidget(SettingWidget):
         # combo.currentIndexChanged.connect(self.on_combobox_value_changed)
         self.layout().addWidget(combo)
 
+        self.set_up_mapper(model, combo, 0, value_property_item)
+
 
 class RGBAValueWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        values: Tuple[bool],
         possible_values: Tuple[bool],
-        value_items_in_model: Tuple[QtGui.QStandardItem],
+        value_property_item: QtGui.QStandardItem,
         model: ModuleModel,
     ):
         super().__init__(label)
 
-        r = BWColorComponentSpinBox(color="red")
-        r.setValue(values[0])
-        self.layout().addWidget(r)
+        self.r = BWColorComponentSpinBox(color="red")
+        self.layout().addWidget(self.r)
 
-        g = BWColorComponentSpinBox(color="green")
-        g.setValue(values[1])
-        self.layout().addWidget(g)
+        self.g = BWColorComponentSpinBox(color="green")
+        self.layout().addWidget(self.g)
 
-        b = BWColorComponentSpinBox(color="blue")
-        b.setValue(values[2])
-        self.layout().addWidget(b)
+        self.b = BWColorComponentSpinBox(color="blue")
+        self.layout().addWidget(self.b)
 
-        a = BWColorComponentSpinBox(color="white")
-        a.setValue(values[3])
+        self.a = BWColorComponentSpinBox(color="white")
+        self.layout().addWidget(self.a)
 
-        self.layout().addWidget(a)
+        self.set_up_mapper(model, value_property_item)
+
+    def set_up_mapper(
+        self, model: ModuleModel, parent_item: QtGui.QStandardItem
+    ):
+        self.mapper_r = QtWidgets.QDataWidgetMapper()
+        self.mapper_r.setModel(model)
+        self.mapper_r.addMapping(self.r, 0)
+        self.mapper_r.setRootIndex(model.indexFromItem(parent_item))
+        self.mapper_r.setCurrentIndex(0)
+
+        self.mapper_g = QtWidgets.QDataWidgetMapper()
+        self.mapper_g.setModel(model)
+        self.mapper_g.addMapping(self.g, 0)
+        self.mapper_g.setRootIndex(model.indexFromItem(parent_item))
+        self.mapper_g.setCurrentIndex(1)
+
+        self.mapper_b = QtWidgets.QDataWidgetMapper()
+        self.mapper_b.setModel(model)
+        self.mapper_b.addMapping(self.b, 0)
+        self.mapper_b.setRootIndex(model.indexFromItem(parent_item))
+        self.mapper_b.setCurrentIndex(2)
+
+        self.mapper_a = QtWidgets.QDataWidgetMapper()
+        self.mapper_a.setModel(model)
+        self.mapper_a.addMapping(self.a, 0)
+        self.mapper_a.setRootIndex(model.indexFromItem(parent_item))
+        self.mapper_a.setCurrentIndex(3)
 
 
 class BWGroupBox(QtWidgets.QGroupBox):
