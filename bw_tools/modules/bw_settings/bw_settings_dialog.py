@@ -29,6 +29,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_settings_layout = QtWidgets.QVBoxLayout()
         self.settings_file_dir = Path(__file__).parent / ".."
 
+        self._module_setting_widgets: dict[str, QtWidgets.QWidget] = {}
+
         # self.value_updated.connect(self.on_value_updated)
 
         self._add_modules_to_model()
@@ -43,30 +45,13 @@ class SettingsDialog(QtWidgets.QDialog):
     
     def _create_module_widgets(self):
         for i in range(self.module_model.rowCount()):
-            module_name = self.module_model.item(i, 0).text()
-            print(module_name)
+            module_item = self.module_model.item(i, 0)
+            module_name = module_item.text()
 
-            DATAMAPPER WASNT WORKING. NEED TO SEPERATE FURTHER.
-            CONTINUE WITH CREATING UNIQUE WIDGET PER MODULE AND 
-            TOGGLE VISIBILITY INSTEAD OF REBUILDING A NEW UI THE ENTIRE TIME
+            module_widget = settings_loader.get_module_widget(module_item, self.module_model)
+            self.module_settings_layout.addWidget(module_widget)
 
-        # module = self.get_selected_module_item_from_model()
-        # if module is None:
-        #     return
-
-        # settings_loader.clear_layout(self.module_settings_layout)
-
-        # if isinstance(module.data(), FileNotFoundError):
-        #     self.module_settings_layout.addWidget(
-        #         QtWidgets.QLabel(str(module.data()))
-        #     )
-        #     return
-
-        # for i in range(module.rowCount()):
-        #     settings_loader.add_setting_to_layout(
-        #         self.module_settings_layout, module.child(i), self.module_model
-        #     )
-
+            self._module_setting_widgets[module_name] = module_widget
 
     def get_selected_module_item_from_model(
         self,
@@ -243,18 +228,26 @@ class SettingsDialog(QtWidgets.QDialog):
         if module is None:
             return
 
-        settings_loader.clear_layout(self.module_settings_layout)
+        module_name = module.text()
 
-        if isinstance(module.data(), FileNotFoundError):
-            self.module_settings_layout.addWidget(
-                QtWidgets.QLabel(str(module.data()))
-            )
-            return
+        for name, widget in self._module_setting_widgets.items():
+            if module_name == name:
+                widget.show()
+            else:
+                widget.hide()
 
-        for i in range(module.rowCount()):
-            settings_loader.add_setting_to_layout(
-                self.module_settings_layout, module.child(i), self.module_model
-            )
+        # settings_loader.clear_layout(self.module_settings_layout)
+
+        # if isinstance(module.data(), FileNotFoundError):
+        #     self.module_settings_layout.addWidget(
+        #         QtWidgets.QLabel(str(module.data()))
+        #     )
+        #     return
+
+        # for i in range(module.rowCount()):
+        #     settings_loader.add_setting_to_layout(
+        #         self.module_settings_layout, module.child(i), self.module_model
+        #     )
 
     def on_clicked_apply(self):
         for row in range(self.module_model.rowCount()):

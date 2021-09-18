@@ -1,7 +1,9 @@
+from abc import ABC
 from PySide2 import QtWidgets, QtCore, QtGui
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Any
 from bw_tools.common import bw_ui_tools
 from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
+from dataclasses import dataclass
 
 BACKGROUND = "#151515"
 MIN_LABEL_WIDTH = 200
@@ -23,14 +25,15 @@ class StringValueWidget(SettingWidget):
     def __init__(
         self,
         label: str,
-        value: str,
+        values: Tuple[str],
+        possible_values: Tuple[Any],
+        value_items_in_model: Tuple[QtGui.QStandardItem],
         model: ModuleModel,
-        item: QtGui.QStandardItem,
     ):
         super().__init__(label)
 
         line_edit = QtWidgets.QLineEdit(self)
-        line_edit.setText(value)
+        line_edit.setText(values[0])
         # line_edit.textChanged.connect(self.on_str_value_changed)
         line_edit.setStyleSheet(
             f"background : {BACKGROUND}; border-radius: 3px"
@@ -38,30 +41,43 @@ class StringValueWidget(SettingWidget):
         line_edit.setAlignment(QtCore.Qt.AlignRight)
         self.layout().addWidget(line_edit)
 
-        self.mapper = QtWidgets.QDataWidgetMapper()
-        self.mapper.setModel(model)
-        self.mapper.addMapping(line_edit, 0)
-        print(item.text())
-        self.mapper.setRootIndex(model.indexFromItem(item))
+        # self.mapper = QtWidgets.QDataWidgetMapper()
+        # self.mapper.setModel(model)
+        # self.mapper.addMapping(line_edit, 0)
+        # self.mapper.setRootIndex(model.indexFromItem(value_items_in_model[0]))
 
 
 class BoolValueWidget(SettingWidget):
-    def __init__(self, label: str, value: bool):
+    def __init__(
+        self,
+        label: str,
+        values: Tuple[bool],
+        possible_values: Tuple[bool],
+        value_items_in_model: Tuple[QtGui.QStandardItem],
+        model: ModuleModel,
+    ):
         super().__init__(label)
         w = QtWidgets.QCheckBox()
-        w.setChecked(value)
+        w.setChecked(values[0])
         # w.stateChanged.connect(self.on_bool_value_changed)
         self.layout().addWidget(w)
         self.layout().setAlignment(w, QtCore.Qt.AlignRight)
 
 
 class FloatValueWidget(SettingWidget):
-    def __init__(self, label: str, value: int):
+    def __init__(
+        self,
+        label: str,
+        values: Tuple[bool],
+        possible_values: Tuple[bool],
+        value_items_in_model: Tuple[QtGui.QStandardItem],
+        model: ModuleModel,
+    ):
         super().__init__(label)
 
         w = QtWidgets.QDoubleSpinBox(self)
         w.setMaximum(999)
-        w.setValue(value)
+        w.setValue(values[0])
         # w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
             "QDoubleSpinBox"
@@ -77,12 +93,19 @@ class FloatValueWidget(SettingWidget):
 
 
 class IntValueWidget(SettingWidget):
-    def __init__(self, label: str, value: int):
+    def __init__(
+        self,
+        label: str,
+        values: Tuple[bool],
+        possible_values: Tuple[bool],
+        value_items_in_model: Tuple[QtGui.QStandardItem],
+        model: ModuleModel,
+    ):
         super().__init__(label)
 
         w = QtWidgets.QSpinBox(self)
         w.setMaximum(999)
-        w.setValue(value)
+        w.setValue(values[0])
         # w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
             "QSpinBox"
@@ -98,12 +121,19 @@ class IntValueWidget(SettingWidget):
 
 
 class DropDownWidget(SettingWidget):
-    def __init__(self, label: str, value: int, values: Tuple):
+    def __init__(
+        self,
+        label: str,
+        values: Tuple[bool],
+        possible_values: Tuple[bool],
+        value_items_in_model: Tuple[QtGui.QStandardItem],
+        model: ModuleModel,
+    ):
         super().__init__(label)
 
         combo = QtWidgets.QComboBox()
-        combo.addItems(values)
-        combo.setCurrentIndex(value)
+        combo.addItems(possible_values)
+        combo.setCurrentIndex(values[0])
         combo.setStyleSheet(
             "QComboBox"
             "{"
@@ -117,23 +147,30 @@ class DropDownWidget(SettingWidget):
 
 
 class RGBAValueWidget(SettingWidget):
-    def __init__(self, label: str, value: Tuple[float, float, float, float]):
+    def __init__(
+        self,
+        label: str,
+        values: Tuple[bool],
+        possible_values: Tuple[bool],
+        value_items_in_model: Tuple[QtGui.QStandardItem],
+        model: ModuleModel,
+    ):
         super().__init__(label)
 
         r = BWColorComponentSpinBox(color="red")
-        r.setValue(value[0])
+        r.setValue(values[0])
         self.layout().addWidget(r)
 
         g = BWColorComponentSpinBox(color="green")
-        g.setValue(value[1])
+        g.setValue(values[1])
         self.layout().addWidget(g)
 
         b = BWColorComponentSpinBox(color="blue")
-        b.setValue(value[2])
+        b.setValue(values[2])
         self.layout().addWidget(b)
 
         a = BWColorComponentSpinBox(color="white")
-        a.setValue(value[3])
+        a.setValue(values[3])
 
         self.layout().addWidget(a)
 

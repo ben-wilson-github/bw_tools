@@ -18,6 +18,8 @@ from PySide2.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QVBoxLayout,
+    QWidget,
+    QLabel,
 )
 
 if TYPE_CHECKING:
@@ -27,10 +29,22 @@ if TYPE_CHECKING:
 class WidgetTypes(Enum):
     GROUPBOX = 0
     LINEEDIT = 1
-    SPINBOX = 2
-    CHECKBOX = 3
-    COMBOBOX = 4
-    RGBA = 5
+    SPINBOXINT = 2
+    SPINBOXFLOAT = 3
+    CHECKBOX = 4
+    COMBOBOX = 5
+    RGBA = 6
+
+
+WIDGET_MAP = {
+    WidgetTypes.GROUPBOX.value: BWGroupBox,
+    WidgetTypes.LINEEDIT.value: StringValueWidget,
+    WidgetTypes.SPINBOXFLOAT.value: FloatValueWidget,
+    WidgetTypes.SPINBOXINT.value: IntValueWidget,
+    WidgetTypes.CHECKBOX.value: BoolValueWidget,
+    WidgetTypes.COMBOBOX.value: DropDownWidget,
+    WidgetTypes.RGBA.value: RGBAValueWidget,
+}
 
 
 def clear_layout(layout: QLayout):
@@ -53,6 +67,23 @@ def clear_layout(layout: QLayout):
     _delete_children(layout)
 
 
+def get_module_widget(
+    module_item: QStandardItem, model: QStandardItemModel
+) -> QWidget:
+    if isinstance(module_item.data(), FileNotFoundError):
+        return QLabel(str(module_item.data()))
+
+    module_widget = QWidget()
+    module_widget.setLayout(QVBoxLayout())
+    module_widget.layout().setContentsMargins(0, 0, 0, 0)
+
+    for i in range(module_item.rowCount()):
+        setting_item = module_item.child(i)
+        add_setting_to_layout(module_widget.layout(), setting_item, model)
+
+    return module_widget
+
+
 def add_setting_to_layout(
     layout: QLayout,
     setting_item: QStandardItem,
@@ -66,45 +97,26 @@ def add_setting_to_layout(
 
     setting_name = setting_item.text()
     possible_values = _get_possible_values(list_property_item)
-    value_items = _get_value_items(value_property_item)
-    values = _get_values(value_items)
+    value_items_in_model = _get_value_items(value_property_item)
+    values = _get_values(value_items_in_model)
     widget_type = WidgetTypes(widget_property_item.child(0).data())
 
     if widget_type is WidgetTypes.GROUPBOX:
-        group_box = BWGroupBox(setting_name)
-        layout.addWidget(group_box)
+        widget_constructor = WIDGET_MAP[widget_type.value]
+        w = widget_constructor(setting_name)
+        layout.addWidget(w)
 
         for i in range(value_property_item.rowCount()):
             add_setting_to_layout(
-                group_box.layout(), value_property_item.child(i), model
+                w.layout(), value_property_item.child(i), model
             )
+        return
 
-    elif widget_type is WidgetTypes.LINEEDIT:
-        layout.addWidget(
-            StringValueWidget(
-                setting_name,
-                values[0],
-                model,
-                value_items[0],
-            )
-        )
-
-    elif widget_type is WidgetTypes.SPINBOX:
-        if isinstance(values[0], float):
-            layout.addWidget(FloatValueWidget(setting_name, values[0]))
-        else:
-            layout.addWidget(IntValueWidget(setting_name, values[0]))
-
-    elif widget_type is WidgetTypes.CHECKBOX:
-        layout.addWidget(BoolValueWidget(setting_name, values[0]))
-
-    elif widget_type is WidgetTypes.COMBOBOX:
-        layout.addWidget(
-            DropDownWidget(setting_name, values[0], possible_values)
-        )
-
-    elif widget_type is WidgetTypes.RGBA:
-        layout.addWidget(RGBAValueWidget(setting_name, tuple(values)))
+    widget_constructor = WIDGET_MAP[widget_type.value]
+    w = widget_constructor(
+        setting_name, values, possible_values, value_items_in_model, model
+    )
+    layout.addWidget(w)
 
 
 def _get_possible_values(list_property_item: QStandardItem) -> Tuple[Any, ...]:

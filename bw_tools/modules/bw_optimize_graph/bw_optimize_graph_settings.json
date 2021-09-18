@@ -4,22 +4,22 @@
         "value": "Alt+B"
     },
     "Recursive": {
-        "widget": 3,
+        "widget": 4,
         "value": true
     },
     "Run Layout Tools": {
-        "widget": 3,
+        "widget": 4,
         "value": true
     },
     "Popup On Complete": {
-        "widget": 3,
+        "widget": 4,
         "value": true
     },
     "Uniform Color Node Settings": {
         "widget": 0,
         "value": {
             "Force Output Size (16x16)": {
-                "widget": 3,
+                "widget": 4,
                 "value": true
             }
         }

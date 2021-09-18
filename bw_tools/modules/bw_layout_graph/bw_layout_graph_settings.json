@@ -9,7 +9,7 @@
             "Center",
             "Top"
         ],
-        "widget": 4,
+        "widget": 5,
         "value": 0
     },
     "Node Spacing": {
@@ -21,14 +21,14 @@
         "value": 80
     },
     "Snap To Grid": {
-        "widget": 3,
+        "widget": 4,
         "value": true
     },
     "Mainline Settings": {
         "widget": 0,
         "value": {
             "Enable": {
-                "widget": 3,
+                "widget": 4,
                 "value": true
             },
             "Additional Offset": {
@@ -45,7 +45,7 @@
         "widget": 0,
         "value": {
             "Enable": {
-                "widget": 3,
+                "widget": 4,
                 "value": true
             },
             "Alignment": {
@@ -53,7 +53,7 @@
                     "Break At Source",
                     "Break At Target"
                 ],
-                "widget": 4,
+                "widget": 5,
                 "value": 1
             }
         }
