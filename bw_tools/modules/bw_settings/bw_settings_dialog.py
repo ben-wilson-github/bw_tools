@@ -13,6 +13,17 @@ from PySide2 import QtCore, QtGui, QtWidgets
 
 
 class SettingsDialog(QtWidgets.QDialog):
+    """
+    Popup dialog containing settings for all modules present.
+
+    Settings are dynamically built upon finding a <module_name_settings.json>
+    file. See settings_loader.py for documentation on the format for a
+    settings file.
+
+    The dialog uses a model which directly correllates to the settings file, 
+    where each QStandardItem.text() contains the str representation of every
+    value and the actual value in QStandardItem.data().
+    """
     def __init__(self, api):
         super(SettingsDialog, self).__init__(parent=api.main_window)
         self._value_background = "#151515"
@@ -133,62 +144,61 @@ class SettingsDialog(QtWidgets.QDialog):
     def _add_module_settings_to_model(
         self, parent_item: QtGui.QStandardItem, settings: Dict
     ):
-        for setting_name, values in settings.items():
+        for setting_name, setting_params in settings.items():
             setting_item = QtGui.QStandardItem(setting_name)
             parent_item.appendRow(setting_item)
 
             try:
-                widget_type = values["widget"]
+                widget_type = setting_params["widget"]
             except KeyError:
                 widget_type = None
+            else:
+                widget_param_item = QtGui.QStandardItem("widget")
+                setting_item.appendRow(widget_param_item)
+
+                widget_type_item = QtGui.QStandardItem(str(widget_type))
+                widget_type_item.setData(widget_type)
+                widget_param_item.appendRow(widget_type_item)
 
             try:
-                possible_values = values["list"]
+                possible_values = setting_params["list"]
             except KeyError:
                 possible_values = None
-
-            try:
-                value = values["value"]
-            except KeyError:
-                value = None
-
-            if widget_type is not None:
-                widget_item = QtGui.QStandardItem("widget")
-                setting_item.appendRow(widget_item)
-
-                item = QtGui.QStandardItem(str(widget_type))
-                item.setData(widget_type)
-                widget_item.appendRow(item)
-
-            if possible_values is not None:
-                list_item = QtGui.QStandardItem("list")
-                setting_item.appendRow(list_item)
+            else:
+                list_param_item = QtGui.QStandardItem("list")
+                setting_item.appendRow(list_param_item)
 
                 for v in possible_values:
                     item = QtGui.QStandardItem(str(v))
                     item.setData(v)
-                    list_item.appendRow(item)
+                    list_param_item.appendRow(item)
 
-            if value is not None:
-                value_item = QtGui.QStandardItem("value")
-                value_item.setData(False)
-                setting_item.appendRow(value_item)
-
-                if isinstance(value, dict):
-                    value_item.setData(True)
-                    self._add_module_settings_to_model(value_item, value)
-                    continue
+            try:
+                value = setting_params["value"]
+            except KeyError:
+                value = None
+            else:
+                value_param_item = QtGui.QStandardItem("value")
+                setting_item.appendRow(value_param_item)
 
                 if isinstance(value, (list, tuple)):
                     for v in value:
                         item = QtGui.QStandardItem(str(v))
                         item.setData(v)
-                        value_item.appendRow(item)
-                    continue
+                        value_param_item.appendRow(item)
+                else:
+                    item = QtGui.QStandardItem(str(value))
+                    item.setData(value)
+                    value_param_item.appendRow(item)
 
-                item = QtGui.QStandardItem(str(value))
-                item.setData(value)
-                value_item.appendRow(item)
+            try:
+                content = setting_params["content"]
+            except KeyError:
+                continue
+            else:
+                content_param_item = QtGui.QStandardItem("content")
+                setting_item.appendRow(content_param_item)
+                self._add_module_settings_to_model(content_param_item, content)
 
     def _create_module_setting_widgets(self):
         for i in range(self.module_model.rowCount()):

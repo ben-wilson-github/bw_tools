@@ -10,7 +10,7 @@
             "Center",
             "Top"
         ],
-        "value": 0
+        "value": "Mainline"
     },
     "Node Spacing": {
         "widget": 2,
@@ -26,7 +26,7 @@
     },
     "Mainline Settings": {
         "widget": 0,
-        "value": {
+        "content": {
             "Enable": {
                 "widget": 4,
                 "value": true
@@ -43,7 +43,7 @@
     },
     "Straighten Connection Settings": {
         "widget": 0,
-        "value": {
+        "content": {
             "Enable": {
                 "widget": 4,
                 "value": true
@@ -54,7 +54,7 @@
                     "Break At Source",
                     "Break At Target"
                 ],
-                "value": 1
+                "value": "Break At Source"
             }
         }
     }

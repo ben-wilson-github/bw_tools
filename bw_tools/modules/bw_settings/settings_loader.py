@@ -1,8 +1,10 @@
 from __future__ import annotations
-from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
-from enum import Enum
-from typing import TYPE_CHECKING, Any, Tuple
 
+from enum import Enum
+from typing import TYPE_CHECKING, Any, List, Tuple
+
+from bw_tools.modules.bw_settings import widgets
+from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
 from bw_tools.modules.bw_settings.widgets import (
     BoolValueWidget,
     BWGroupBox,
@@ -12,15 +14,13 @@ from bw_tools.modules.bw_settings.widgets import (
     RGBAValueWidget,
     StringValueWidget,
 )
-
-
 from PySide2.QtWidgets import (
-    QLayout,
     QGridLayout,
     QHBoxLayout,
+    QLabel,
+    QLayout,
     QVBoxLayout,
     QWidget,
-    QLabel,
 )
 
 if TYPE_CHECKING:
@@ -48,24 +48,24 @@ WIDGET_MAP = {
 }
 
 
-def clear_layout(layout: QLayout):
-    def _delete_children(layout):
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if isinstance(
-                item,
-                (
-                    QGridLayout,
-                    QHBoxLayout,
-                    QVBoxLayout,
-                ),
-            ):
-                _delete_children(item)
-            else:
-                widget = item.widget()
-                widget.deleteLater()
-
-    _delete_children(layout)
+def get_setting_property_items(
+    setting_item: QStandardItem,
+) -> Tuple[QStandardItem, QStandardItem, QStandardItem, QStandardItem]:
+    widget_item = None
+    value_item = None
+    list_item = None
+    content_item = None
+    for i in range(setting_item.rowCount()):
+        text = setting_item.child(i).text()
+        if text == "widget":
+            widget_item = setting_item.child(i)
+        elif text == "value":
+            value_item = setting_item.child(i)
+        elif text == "list":
+            list_item = setting_item.child(i)
+        elif text == "content":
+            content_item = setting_item.child(i)
+    return widget_item, value_item, list_item, content_item
 
 
 def get_module_widget(
@@ -80,65 +80,91 @@ def get_module_widget(
 
     for i in range(module_item.rowCount()):
         setting_item = module_item.child(i)
-        add_setting_to_layout(module_widget.layout(), setting_item, model)
+        _add_setting_to_layout(module_widget.layout(), setting_item, model)
 
     return module_widget
 
 
-def add_setting_to_layout(
+def _add_setting_to_layout(
     layout: QLayout,
     setting_item: QStandardItem,
     model: ModuleModel,
 ):
+    """
+    Dynamically adds settings to a given layout based on model.
+
+    For each setting, an appropiate widget is selected based on
+    the widget type map. Each widget is connected to the model
+    via a QDataWidgetMapper. The widget is responsible for
+    correctly setting this up.
+    """
     (
         widget_property_item,
         value_property_item,
         list_property_item,
-    ) = get_setting_properties(setting_item)
+        content_property_item,
+    ) = get_setting_property_items(setting_item)
 
     setting_name = setting_item.text()
-    possible_values = get_possible_values(list_property_item)
-    widget_type = WidgetTypes(int(widget_property_item.child(0).text()))
+    widget_type = WidgetTypes(widget_property_item.child(0).data())
 
     if widget_type is WidgetTypes.GROUPBOX:
-        widget_constructor = WIDGET_MAP[widget_type.value]
-        w = widget_constructor(setting_name)
-        layout.addWidget(w)
-
-        for i in range(value_property_item.rowCount()):
-            add_setting_to_layout(
-                w.layout(), value_property_item.child(i), model
-            )
+        _add_group_box_to_layout(
+            setting_name,
+            WIDGET_MAP[widget_type.value],
+            content_property_item,
+            layout,
+            model,
+        )
         return
 
-    widget_constructor = WIDGET_MAP[widget_type.value]
+    possible_values = []
+    if list_property_item is not None:
+        possible_values = _get_possible_values(list_property_item)
+
+    _add_widget_to_layout(
+        setting_name,
+        WIDGET_MAP[widget_type.value],
+        possible_values,
+        value_property_item,
+        layout,
+        model,
+    )
+
+
+def _add_widget_to_layout(
+    setting_name: str,
+    widget_constructor: widgets.SettingWidget,
+    possible_values: List,
+    value_property_item: QStandardItem,
+    layout: QLayout,
+    model: QStandardItemModel,
+):
     w = widget_constructor(
         setting_name, possible_values, value_property_item, model
     )
     layout.addWidget(w)
 
 
-def get_possible_values(list_property_item: QStandardItem) -> Tuple[Any, ...]:
-    if list_property_item is None:
-        return None
+def _add_group_box_to_layout(
+    setting_name: str,
+    widget_constructor: widgets.SettingWidget,
+    content_property_item: QStandardItem,
+    layout: QLayout,
+    model: QStandardItemModel,
+):
+    w = widget_constructor(setting_name)
+    layout.addWidget(w)
+
+    for i in range(content_property_item.rowCount()):
+        _add_setting_to_layout(
+            w.layout(), content_property_item.child(i), model
+        )
+    return
+
+
+def _get_possible_values(list_property_item: QStandardItem) -> List[Any]:
     return [
         list_property_item.child(i).text()
         for i in range(list_property_item.rowCount())
     ]
-
-
-def get_setting_properties(
-    setting_item: QStandardItem,
-) -> Tuple[QStandardItem, QStandardItem, QStandardItem]:
-    widget_item = None
-    value_item = None
-    list_item = None
-    for i in range(setting_item.rowCount()):
-        text = setting_item.child(i).text()
-        if text == "widget":
-            widget_item = setting_item.child(i)
-        elif text == "value":
-            value_item = setting_item.child(i)
-        elif text == "list":
-            list_item = setting_item.child(i)
-    return widget_item, value_item, list_item

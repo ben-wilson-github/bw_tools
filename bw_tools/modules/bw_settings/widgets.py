@@ -68,7 +68,6 @@ class BoolValueWidget(SettingWidget):
     ):
         super().__init__(label)
         w = QtWidgets.QCheckBox()
-        # w.stateChanged.connect(self.on_bool_value_changed)
         self.layout().addWidget(w)
         self.layout().setAlignment(w, QtCore.Qt.AlignRight)
 

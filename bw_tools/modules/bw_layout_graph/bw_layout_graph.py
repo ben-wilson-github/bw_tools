@@ -26,23 +26,26 @@ class LayoutSettings(ModuleSettings):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
         self.node_spacing: Union[int, float] = self.get("Node Spacing;value")
+
         self.mainline_additional_offset: Union[int, float] = self.get(
-            "Mainline Settings;value;Additional Offset;value"
+            "Mainline Settings;content;Additional Offset;value"
         )
         self.mainline_min_threshold: int = self.get(
-            "Mainline Settings;value;Minimum Threshold;value"
+            "Mainline Settings;content;Minimum Threshold;value"
         )
         self.mainline_enabled: bool = self.get(
-            "Mainline Settings;value;Enable;value"
+            "Mainline Settings;content;Enable;value"
         )
         self.alignment_behavior: int = self.get("Input Node Alignment;value")
         self.node_count_warning: int = self.get("Node Count Warning;value")
+
         self.run_straighten_connection: bool = self.get(
-            "Straighten Connection Settings;value;Enable;value"
+            "Straighten Connection Settings;content;Enable;value"
         )
         self.straighten_connection_behavior: bool = self.get(
-            "Straighten Connection Settings;value;Alignment;value"
+            "Straighten Connection Settings;content;Alignment;value"
         )
+        
         self.snap_to_grid: bool = self.get("Snap To Grid;value")
 
 

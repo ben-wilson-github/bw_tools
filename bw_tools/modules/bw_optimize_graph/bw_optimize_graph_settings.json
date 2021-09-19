@@ -17,7 +17,7 @@
     },
     "Uniform Color Node Settings": {
         "widget": 0,
-        "value": {
+        "content": {
             "Force Output Size (16x16)": {
                 "widget": 4,
                 "value": true

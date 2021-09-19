@@ -25,7 +25,7 @@ class OptimizeSettings(ModuleSettings):
         self.popup_on_complete: bool = self.get("Popup On Complete;value")
         self.run_layout_tools: bool = self.get("Run Layout Tools;value")
         self.uniform_force_output_size: bool = self.get(
-            "Uniform Color Node Settings;value;Force Output Size (16x16);value"
+            "Uniform Color Node Settings;content;Force Output Size (16x16);value"
         )
 
 
