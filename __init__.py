@@ -10,8 +10,8 @@ if not ROOT_DIR.resolve() in sys.path:
 
 from bw_tools.common import bw_api_tool, bw_logging
 
-# TODO: Make sure its clear you need PIL in install dir to run unittests
-# TODO: Test Threads for updating graph in real time?
+# TODO: Strip out logging
+# TODO: Clean up every file
 
 LOGGER = bw_logging.create_logger(ROOT_DIR / "bwtools.log")
 API_TOOL = bw_api_tool.APITool(LOGGER["logger"])

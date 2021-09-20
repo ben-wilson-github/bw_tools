@@ -132,6 +132,8 @@ dmypy.json
 .autosave/
 __test*.sbs
 __test*.png
+*.sdplugin
+pluginInfo.json
 
 
 # Photoshop
