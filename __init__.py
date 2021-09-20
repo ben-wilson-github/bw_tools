@@ -10,13 +10,12 @@ if not ROOT_DIR.resolve() in sys.path:
 
 from bw_tools.common import bw_api_tool, bw_logging
 
-# TODO: Is it possible to do frame plugin now?
 # TODO: Make sure its clear you need PIL in install dir to run unittests
 # TODO: default setting files
-# TODO: Add visual indents to settings frame
 # TODO: Add sub comments to settings (requires restart)
 # TODO: Test Threads for updating graph in real time?
 # TODO: Icon for graph shelf
+# TODO: Icon for framer
 
 LOGGER = bw_logging.create_logger(ROOT_DIR / "bwtools.log")
 API_TOOL = bw_api_tool.APITool(LOGGER["logger"])
