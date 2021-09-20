@@ -1,4 +1,10 @@
 from __future__ import annotations
+
+from functools import partial
+from pathlib import Path
+from typing import TYPE_CHECKING, Union
+
+import sd
 from bw_tools.common.bw_api_tool import (
     SDGraphObject,
     SDGraphObjectFrame,
@@ -6,32 +12,22 @@ from bw_tools.common.bw_api_tool import (
     SDSBSCompGraph,
     SDSBSFunctionGraph,
 )
-
-from functools import partial
-from typing import TYPE_CHECKING, Union
 from bw_tools.common.bw_node import Node
-from pathlib import Path
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
-
-import sd
+from PySide2 import QtGui
 from sd.api.sdhistoryutils import SDHistoryUtils
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import APITool
 
-SPACER = 32
-DEFAULT_COLOR = (0.0, 0.0, 0.0, 0.25)
-DEFAULT_TITLE = ""
 
 class FramerSettings(ModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
         self.margin: float = self.get("Margin;value")
-        self.default_color: list = self.get(
-            "Default Color;value"
-        )
-        self.dot_node_distance: str = self.get("Dot Node Distance;value")
+        self.default_color: list = self.get("Default Color;value")
+        self.default_title: str = self.get("Default Title;value")
 
 
 def get_frames(graph_objects: list[SDGraphObject]) -> list[SDGraphObjectFrame]:
@@ -53,6 +49,7 @@ def run_framer(
     nodes: list[SDNode],
     graph_objects: list[SDGraphObject],
     graph: Union[SDSBSCompGraph, SDSBSFunctionGraph],
+    settings: FramerSettings,
 ):
     x0 = min(nodes, key=lambda node: node.getPosition().x)
     x1 = max(nodes, key=lambda node: node.getPosition().x)
@@ -68,8 +65,8 @@ def run_framer(
     max_x = x1.pos.x - x1.width / 2
     min_y = y1.pos.y - y1.width / 2
     max_y = y0.pos.y - y0.width / 2
-    width = (max_x - min_x) + x1.width + SPACER * 2
-    height = (max_y - min_y) + y0.height + SPACER * 3
+    width = (max_x - min_x) + x1.width + settings.margin * 2
+    height = (max_y - min_y) + y0.height + settings.margin * 3
 
     frames = get_frames(graph_objects)
     if frames:
@@ -78,22 +75,37 @@ def run_framer(
         delete_frames(graph, frames[1:])
     else:
         frame = sd.api.sdgraphobjectframe.SDGraphObjectFrame.sNew(graph)
-        frame.setTitle(DEFAULT_TITLE)
-        frame.setColor(sd.api.sdbasetypes.ColorRGBA(0.0, 0.0, 0.0, 0.25))
+        frame.setTitle(settings.default_title)
+        frame.setColor(
+            sd.api.sdbasetypes.ColorRGBA(
+                settings.default_color[0],
+                settings.default_color[1],
+                settings.default_color[2],
+                settings.default_color[3],
+            )
+        )
 
     frame.setPosition(
-        sd.api.sdbasetypes.float2(min_x - SPACER, min_y - SPACER * 2)
+        sd.api.sdbasetypes.float2(
+            min_x - settings.margin, min_y - settings.margin * 2
+        )
     )
     frame.setSize(sd.api.sdbasetypes.float2(width, height))
 
 
 def on_clicked_run_framer(api: APITool):
     with SDHistoryUtils.UndoGroup("Framer"):
+        settings = FramerSettings(
+            Path(__file__).parent / "bw_framer_settings.json"
+        )
         nodes = api.current_node_selection
         if len(nodes) == 0:
             return
         run_framer(
-            nodes, api.current_graph_object_selection, api.current_graph
+            nodes,
+            api.current_graph_object_selection,
+            api.current_graph,
+            settings,
         )
 
 
@@ -102,19 +114,14 @@ def on_graph_view_created(graph_view_id, api: APITool):
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
 
-    # settings = StraightenSettings(
-    #     Path(__file__).parent / "bw_straighten_connection_settings.json"
-    # )
+    settings = FramerSettings(
+        Path(__file__).parent / "bw_framer_settings.json"
+    )
 
-    # icon = (
-    #     Path(__file__).parent
-    #     / "resources"
-    #     / "straighten_connection_source.png1"
-    # )
-    # action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
-    action = toolbar.addAction("Framer")
-    # action.setShortcut(QtGui.QKeySequence(settings.source_hotkey))
-    action.setToolTip("Reframes the selected nodes")
+    icon = Path(__file__).parent / "resources" / "bw_framer_icon.png"
+    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
+    action.setShortcut(QtGui.QKeySequence(settings.hotkey))
+    action.setToolTip("Frames the selected nodes")
     action.triggered.connect(lambda: on_clicked_run_framer(api))
 
 
@@ -122,3 +129,6 @@ def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
+
+
+DEFAULT_SETTINGS = {}

@@ -1,5 +1,6 @@
 import shutil
 import unittest
+from unittest.mock import Mock
 from pathlib import Path
 
 import sd
@@ -29,6 +30,11 @@ class TestFramer(unittest.TestCase):
 
         pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
 
+        cls.settings = Mock()
+        cls.settings.margin = 32
+        cls.settings.default_color = [0.0, 0.0, 0.0, 0.25]
+        cls.settings.default_title = ""
+
         cls.package = pkg_mgr.getUserPackageFromFilePath(
             str(tmp_package_file_path.resolve())
         )
@@ -47,7 +53,7 @@ class TestFramer(unittest.TestCase):
         nodes = graph.getNodes()
         graph_objects = graph.getGraphObjects()
 
-        bw_framer.run_framer(nodes, graph_objects, graph)
+        bw_framer.run_framer(nodes, graph_objects, graph, self.settings)
 
         graph_objects = graph.getGraphObjects()
         self.assertEqual(len(graph_objects), 1)
@@ -58,7 +64,7 @@ class TestFramer(unittest.TestCase):
         nodes = graph.getNodes()
         graph_objects = graph.getGraphObjects()
 
-        bw_framer.run_framer(nodes, graph_objects, graph)
+        bw_framer.run_framer(nodes, graph_objects, graph, self.settings)
 
         frame = graph.getGraphObjects()[0]
         self.assertEqual(frame.getDescription(), "with description")
@@ -72,7 +78,7 @@ class TestFramer(unittest.TestCase):
         nodes = graph.getNodes()
         graph_objects = graph.getGraphObjects()
 
-        bw_framer.run_framer(nodes, graph_objects, graph)
+        bw_framer.run_framer(nodes, graph_objects, graph, self.settings)
 
         frame = graph.getGraphObjects()[0]
         self.assertEqual(frame.getTitle(), "")
