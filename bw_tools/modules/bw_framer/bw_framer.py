@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Dict
 
 import sd
 from bw_tools.common.bw_api_tool import (
@@ -131,4 +131,10 @@ def on_initialize(api: APITool):
     )
 
 
-DEFAULT_SETTINGS = {}
+def get_default_settings() -> Dict:
+    return {
+        "Hotkey": {"widget": 1, "value": "Alt+D"},
+        "Margin": {"widget": 2, "value": 32},
+        "Default Color": {"widget": 6, "value": [0.0, 0.0, 0.0, 0.25]},
+        "Default Title": {"widget": 1, "value": ""},
+    }

@@ -1,6 +1,6 @@
 from functools import partial
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 import sd
 from bw_tools.common import bw_node_selection
@@ -45,7 +45,7 @@ class LayoutSettings(ModuleSettings):
         self.straighten_connection_behavior: bool = self.get(
             "Straighten Connection Settings;content;Alignment;value"
         )
-        
+
         self.snap_to_grid: bool = self.get("Snap To Grid;value")
 
 
@@ -153,3 +153,36 @@ def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
+
+
+def get_default_settings() -> Dict:
+    return {
+        "Hotkey": {"widget": 1, "value": "C"},
+        "Input Node Alignment": {
+            "widget": 5,
+            "list": ["Mainline", "Center", "Top"],
+            "value": "Mainline",
+        },
+        "Node Spacing": {"widget": 2, "value": 32},
+        "Node Count Warning": {"widget": 2, "value": 80},
+        "Snap To Grid": {"widget": 4, "value": False},
+        "Mainline Settings": {
+            "widget": 0,
+            "content": {
+                "Enable": {"widget": 4, "value": True},
+                "Additional Offset": {"widget": 2, "value": 96},
+                "Minimum Threshold": {"widget": 2, "value": 96},
+            },
+        },
+        "Straighten Connection Settings": {
+            "widget": 0,
+            "content": {
+                "Enable": {"widget": 4, "value": True},
+                "Alignment": {
+                    "widget": 5,
+                    "list": ["Break At Source", "Break At Target"],
+                    "value": "Break At Target",
+                },
+            },
+        },
+    }

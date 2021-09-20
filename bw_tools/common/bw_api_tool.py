@@ -1,12 +1,12 @@
-import importlib
+import json
 import logging
-from typing import List, TypeVar
 from enum import Enum
+from pathlib import Path
+from typing import List, TypeVar
 
 import sd
 from bw_tools.common import bw_toolbar
 from PySide2 import QtWidgets
-
 
 # Types for type hinting
 TYPE_MODULES = TypeVar("TYPE_MODULES")
@@ -72,7 +72,6 @@ class APITool:
         self.loaded_modules: List[TYPE_MODULES] = []
         self.menu = None
         self.callback_ids: List[int] = []
-        self.debug: bool = True
 
         self._graph_view_toolbar_list: dict[int, bw_toolbar.BWToolbar] = dict()
         self._menu_object_name = "bw_tools_menu_obj"
@@ -87,7 +86,7 @@ class APITool:
     @property
     def current_graph(self) -> SDSBSCompGraph:
         return self.ui_mgr.getCurrentGraph()
-    
+
     @property
     def current_graph_object_selection(self) -> List[SDGraphObject]:
         return self.ui_mgr.getCurrentGraphSelectedObjects()
@@ -109,10 +108,6 @@ class APITool:
     def initialize(self, module: TYPE_MODULES) -> bool:
         """Initialize a module by calling the modules .on_initialize()"""
         if module.__name__ not in self.loaded_modules:
-            if self.debug:
-                importlib.reload(module)
-                self.logger.debug(f"Reloaded module {module.__name__}.")
-
             try:
                 self.logger.info(f"Initializing module {module.__name__}...")
                 module.on_initialize(self)
@@ -122,13 +117,34 @@ class APITool:
                     f"on_initialize() has not been implemented correctly."
                 )
                 return False
+
+            name = module.__name__.split(".")[
+                -1
+            ]  # Strips module path and returns the name
+            self.loaded_modules.append(name)
+            self.logger.info(f"Initialized module {name}.")
+
+            try:
+                default_settings = module.get_default_settings()
+            except AttributeError:
+                pass
             else:
-                name = module.__name__.split(".")[
-                    -1
-                ]  # Strips module path and returns the name
-                self.loaded_modules.append(name)
-                self.logger.info(f"Initialized module {name}.")
-                return True
+                module_settings = Path(__file__).parent.joinpath(
+                    "..",
+                    "modules",
+                    name,
+                    f"{name}_settings.json",
+                )
+                if not module_settings.exists():
+                    self.logger.info(
+                        f"Missing settings file for {name}. " "Writing new one"
+                    )
+                    with open(
+                        str(module_settings.resolve()), "w"
+                    ) as settings_file:
+                        json.dump(default_settings, settings_file, indent=4)
+
+            return True
 
     def unload(self, module: TYPE_MODULES) -> bool:
         if module.__name__ not in self.loaded_modules:

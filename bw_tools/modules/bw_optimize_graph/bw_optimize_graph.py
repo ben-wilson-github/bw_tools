@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from bw_tools.common.bw_node_selection import NodeSelection
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
@@ -127,3 +127,18 @@ def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
+
+
+def get_default_settings() -> Dict:
+    return {
+        "Hotkey": {"widget": 1, "value": "Alt+B"},
+        "Recursive": {"widget": 4, "value": True},
+        "Run Layout Tools": {"widget": 4, "value": True},
+        "Popup On Complete": {"widget": 4, "value": True},
+        "Uniform Color Node Settings": {
+            "widget": 0,
+            "content": {
+                "Force Output Size (16x16)": {"widget": 4, "value": True}
+            },
+        },
+    }

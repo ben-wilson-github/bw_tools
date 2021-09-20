@@ -22,7 +22,7 @@
     },
     "Snap To Grid": {
         "widget": 4,
-        "value": true
+        "value": false
     },
     "Mainline Settings": {
         "widget": 0,
@@ -54,7 +54,7 @@
                     "Break At Source",
                     "Break At Target"
                 ],
-                "value": "Break At Source"
+                "value": "Break At Target"
             }
         }
     }

@@ -342,3 +342,12 @@ def on_initialize(api: APITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )
+
+
+def get_default_settings() -> Dict:
+    return {
+        "Break At Target Hotkey": {"widget": 1, "value": "Alt+C"},
+        "Break At Source Hotkey": {"widget": 1, "value": "Alt+V"},
+        "Remove Connected Dot Nodes Hotkey": {"widget": 1, "value": "Alt+X"},
+        "Dot Node Distance": {"widget": 2, "value": 128},
+    }
