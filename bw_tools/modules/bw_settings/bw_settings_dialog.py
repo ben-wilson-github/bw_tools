@@ -216,7 +216,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._ui_frame_modules_list(0)
         self._ui_frame_module_settings(1)
         self._ui_frame_buttons(1)
-        self._ui_frame_debug_model(2)
+        # self._ui_frame_debug_model(2)
 
     def _ui_frame_debug_model(self, col):
         tree_view = QtWidgets.QTreeView()

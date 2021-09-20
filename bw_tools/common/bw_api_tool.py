@@ -6,7 +6,7 @@ from typing import List, TypeVar
 
 import sd
 from bw_tools.common import bw_toolbar
-from PySide2 import QtWidgets
+from PySide2 import QtWidgets, QtGui
 
 # Types for type hinting
 TYPE_MODULES = TypeVar("TYPE_MODULES")
@@ -175,8 +175,12 @@ class APITool:
         self, graph_view_id: int
     ) -> bw_toolbar.BWToolbar:
         toolbar = bw_toolbar.BWToolbar(self.main_window)
+        icon = Path(__file__).parent / "resources/bw_tools_icon.png"
         self.ui_mgr.addToolbarToGraphView(
-            graph_view_id, toolbar, icon=None, tooltip="BW Toolbar"
+            graph_view_id,
+            toolbar,
+            icon=QtGui.QIcon(str(icon.resolve())),
+            tooltip="BW Toolbar",
         )
         self._graph_view_toolbar_list[graph_view_id] = toolbar
         return toolbar
