@@ -89,7 +89,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         node = ns.node(1421698610)
 
         self.assertEqual(node.output_node_count, 1)
@@ -100,7 +100,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         input_node = ns.node(1421698610)
         output_node_1 = ns.node(1421698928)
         output_node_2 = ns.node(1421699181)
@@ -114,7 +114,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         input_node = ns.node(1421698610)
         output_node_1 = ns.node(1421698928)
         output_node_2 = ns.node(1421699181)
@@ -132,13 +132,13 @@ class TestNode(unittest.TestCase):
         output_node_1 = graph.getNodeFromId("1421698928")
         output_node_2 = graph.getNodeFromId("1421699181")
 
-        ns1 = bw_node_selection.NodeSelection(
+        ns1 = bw_node_selection.BWNodeSelection(
             [input_node, output_node_1], graph
         )
         input_node = ns1.node(1421698610)
         output_node_1 = ns1.node(1421698928)
 
-        ns2 = bw_node_selection.NodeSelection([output_node_2], graph)
+        ns2 = bw_node_selection.BWNodeSelection([output_node_2], graph)
         output_node_2 = ns2.node(1421699181)
 
         self.assertEqual(input_node.output_node_count, 1)
@@ -159,7 +159,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         input_node = ns.node(1421698610)
         output_node = ns.node(1421698928)
 
@@ -171,7 +171,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         input_node_1 = ns.node(1421698610)
         input_node_2 = ns.node(1421699181)
         output_node = ns.node(1421698928)
@@ -185,7 +185,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         input_node_1 = ns.node(1421698610)
         input_node_2 = ns.node(1421699181)
         output_node = ns.node(1421698928)
@@ -203,12 +203,12 @@ class TestNode(unittest.TestCase):
         input_node_2 = graph.getNodeFromId("1421699181")
         output_node = graph.getNodeFromId("1421698928")
 
-        ns1 = bw_node_selection.NodeSelection(
+        ns1 = bw_node_selection.BWNodeSelection(
             [input_node_1, output_node], graph
         )
         input_node_1 = ns1.node(1421698610)
         output_node = ns1.node(1421698928)
-        ns2 = bw_node_selection.NodeSelection([input_node_2], graph)
+        ns2 = bw_node_selection.BWNodeSelection([input_node_2], graph)
         input_node_2 = ns2.node(1421699181)
 
         self.assertEqual(output_node.input_node_count, 1)
@@ -222,13 +222,13 @@ class TestNode(unittest.TestCase):
 
         api_input_node = graph.getNodeFromId("1421698610")
         api_output_node = graph.getNodeFromId("1421698928")
-        ns = bw_node_selection.NodeSelection(
+        ns = bw_node_selection.BWNodeSelection(
             [api_input_node, api_output_node], graph
         )
         output_node = ns.node(1421698928)
         self.assertTrue(output_node.has_input_nodes_connected)
 
-        ns = bw_node_selection.NodeSelection([api_output_node], graph)
+        ns = bw_node_selection.BWNodeSelection([api_output_node], graph)
         output_node = ns.node(1421698928)
         self.assertFalse(output_node.has_input_nodes_connected)
 
@@ -247,7 +247,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(
+        ns = bw_node_selection.BWNodeSelection(
             [
                 graph.getNodeFromId("1421710601"),
                 graph.getNodeFromId("1421710269"),
@@ -262,12 +262,12 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         self.assertTrue(ns.node(1421710269).has_branching_outputs)
 
         api_input_node = graph.getNodeFromId("1421710269")
         api_output_node = graph.getNodeFromId("1421710601")
-        ns = bw_node_selection.NodeSelection(
+        ns = bw_node_selection.BWNodeSelection(
             [api_input_node, api_output_node], graph
         )
         self.assertFalse(ns.node(1421710269).has_branching_outputs)
@@ -277,12 +277,12 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
         self.assertTrue(ns.node(1421710941).has_branching_inputs)
 
         api_input_node = graph.getNodeFromId("1421710601")
         api_output_node = graph.getNodeFromId("1421710941")
-        ns = bw_node_selection.NodeSelection(
+        ns = bw_node_selection.BWNodeSelection(
             [api_input_node, api_output_node], graph
         )
         self.assertFalse(ns.node(1421710941).has_branching_inputs)

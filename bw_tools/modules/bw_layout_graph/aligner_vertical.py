@@ -3,17 +3,22 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Tuple
 
-from bw_tools.common import bw_chain_dimension
-from bw_tools.common.bw_node import BWFloat2
+from common.bw_chain_dimension import (
+    BWBound,
+    BWChainDimension,
+    BWOutOfBoundsError,
+    calculate_chain_dimension,
+)
+from common.bw_node import BWFloat2
 
 if TYPE_CHECKING:
-    from .alignment_behavior import PostAlignmentBehavior
-    from .bw_layout_graph import LayoutSettings
-    from .layout_node import LayoutNode
+    from .alignment_behavior import BWPostAlignmentBehavior
+    from .bw_layout_graph import BWLayoutSettings
+    from .layout_node import BWLayoutNode
 
 
 @dataclass
-class VerticalAligner:
+class BWVerticalAligner:
     """
     Helper class to align node chains to their given outputs.
     This class only moves nodes in the y axis and expects
@@ -21,11 +26,11 @@ class VerticalAligner:
     alignment behaviors setup
     """
 
-    settings: LayoutSettings
-    alignment_behavior: PostAlignmentBehavior
+    settings: BWLayoutSettings
+    alignment_behavior: BWPostAlignmentBehavior
 
     def run_aligner(
-        self, node: LayoutNode, already_processed: List[LayoutNode]
+        self, node: BWLayoutNode, already_processed: List[BWLayoutNode]
     ):
         if not node.has_input_nodes_connected:
             return
@@ -40,17 +45,17 @@ class VerticalAligner:
             already_processed.append(node)
             self.process_node(node)
 
-    def process_node(self, node: LayoutNode):
+    def process_node(self, node: BWLayoutNode):
         self.stack_inputs(node)
         self.alignment_behavior.exec(node)
 
-    def stack_inputs(self, node: LayoutNode):
+    def stack_inputs(self, node: BWLayoutNode):
         """
         Stacks nodes in order of input in the given node.
         The first input is positioned in line with the output node,
         and subsequent nodes are positioned under the input above.
         """
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for i, input_node in enumerate(node.input_nodes):
             if i == 0:
                 self.align_in_line(input_node, node)
@@ -67,18 +72,18 @@ class VerticalAligner:
         return
 
     @staticmethod
-    def align_in_line(input_node: LayoutNode, target_node: LayoutNode):
+    def align_in_line(input_node: BWLayoutNode, target_node: BWLayoutNode):
         input_node.set_position(input_node.pos.x, target_node.pos.y)
 
     @staticmethod
     def align_below_bound(
-        node: LayoutNode, lower_bound: float, upper_bound: float
+        node: BWLayoutNode, lower_bound: float, upper_bound: float
     ):
         offset = lower_bound - upper_bound
         node.set_position(node.pos.x, node.pos.y + offset)
 
     def align_below_shortest_chain_dimension(
-        self, node_to_move: LayoutNode, output_node: LayoutNode, index: int
+        self, node_to_move: BWLayoutNode, output_node: BWLayoutNode, index: int
     ):
         node_above = self.calculate_node_above(
             node_to_move, output_node, index
@@ -108,24 +113,22 @@ class VerticalAligner:
 
     def calculate_smallest_chain_dimension(
         self,
-        node_to_move: LayoutNode,
-        node_above: LayoutNode,
-        node_to_move_chain: bw_chain_dimension.BWChainDimension,
-        node_above_chain: bw_chain_dimension.BWChainDimension,
-    ) -> bw_chain_dimension.BWChainDimension:
-        node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(
+        node_to_move: BWLayoutNode,
+        node_above: BWLayoutNode,
+        node_to_move_chain: BWChainDimension,
+        node_above_chain: BWChainDimension,
+    ) -> BWChainDimension:
+        node_to_move_cd = calculate_chain_dimension(
             node_to_move, node_to_move_chain
         )
-        nove_above_cd = bw_chain_dimension.calculate_chain_dimension(
-            node_above, node_above_chain
-        )
+        nove_above_cd = calculate_chain_dimension(node_above, node_above_chain)
         return self.get_smaller_chain(node_to_move_cd, nove_above_cd)
 
     @staticmethod
     def get_smaller_chain(
-        a_cd: bw_chain_dimension.BWChainDimension,
-        b_cd: bw_chain_dimension.BWChainDimension,
-    ) -> bw_chain_dimension.BWChainDimension:
+        a_cd: BWChainDimension,
+        b_cd: BWChainDimension,
+    ) -> BWChainDimension:
         smallest = a_cd
         if a_cd.bounds.left > b_cd.bounds.left:
             smallest = a_cd
@@ -140,20 +143,18 @@ class VerticalAligner:
 
     @staticmethod
     def calculate_upper_bounds(
-        node_to_move: LayoutNode,
-        node_to_move_chain: bw_chain_dimension.BWChainDimension,
-        smallest_cd: bw_chain_dimension.BWChainDimension,
+        node_to_move: BWLayoutNode,
+        node_to_move_chain: BWChainDimension,
+        smallest_cd: BWChainDimension,
     ) -> float:
         try:
-            limit_bounds = bw_chain_dimension.BWBound(
-                left=smallest_cd.bounds.left
-            )
-            upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(
+            limit_bounds = BWBound(left=smallest_cd.bounds.left)
+            upper_bound_cd = calculate_chain_dimension(
                 node_to_move,
                 selection=node_to_move_chain,
                 limit_bounds=limit_bounds,
             )
-        except bw_chain_dimension.BWOutOfBoundsError:
+        except BWOutOfBoundsError:
             # This occurs when the node to move is behind the chain above.
             # This happens because the node to move is a root
             return node_to_move.pos.y - node_to_move.height / 2
@@ -162,26 +163,26 @@ class VerticalAligner:
 
     @staticmethod
     def calculate_lower_bounds(
-        node_above: LayoutNode,
-        node_above_chain: bw_chain_dimension.BWChainDimension,
-        smallest_cd: bw_chain_dimension.BWChainDimension,
+        node_above: BWLayoutNode,
+        node_above_chain: BWChainDimension,
+        smallest_cd: BWChainDimension,
     ) -> float:
         try:
-            limit_bounds = bw_chain_dimension.BWBound(
-                left=smallest_cd.bounds.left
+            limit_bounds = BWBound(left=smallest_cd.bounds.left)
+            lower_bound_cd = calculate_chain_dimension(
+                node_above,
+                selection=node_above_chain,
+                limit_bounds=limit_bounds,
             )
-            lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(
-                node_above, selection=node_above_chain, limit_bounds=limit_bounds
-            )
-        except bw_chain_dimension.BWOutOfBoundsError:
+        except BWOutOfBoundsError:
             # This can also happen when the node above is a root
             return node_above.pos.y + node_above.height / 2
         else:
             return lower_bound_cd.bounds.lower
 
     def calculate_node_list(
-        self, node: LayoutNode, nodes_to_ignore=[]
-    ) -> Tuple[List[LayoutNode], List[LayoutNode]]:
+        self, node: BWLayoutNode, nodes_to_ignore=[]
+    ) -> Tuple[List[BWLayoutNode], List[BWLayoutNode]]:
         nodes = [node]
         roots = []
         if node.is_root or node.has_branching_outputs:
@@ -192,12 +193,12 @@ class VerticalAligner:
 
     def populate_node_list(
         self,
-        output_node: LayoutNode,
-        nodes: List[LayoutNode],
-        roots: List[LayoutNode],
-        nodes_to_ignore: List[LayoutNode],
+        output_node: BWLayoutNode,
+        nodes: List[BWLayoutNode],
+        roots: List[BWLayoutNode],
+        nodes_to_ignore: List[BWLayoutNode],
     ):
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for input_node in output_node.input_nodes:
             if (
                 input_node in nodes_to_ignore
@@ -220,8 +221,8 @@ class VerticalAligner:
 
     @staticmethod
     def calculate_node_above(
-        node_to_move: LayoutNode, output_node: LayoutNode, index: int
-    ) -> LayoutNode:
+        node_to_move: BWLayoutNode, output_node: BWLayoutNode, index: int
+    ) -> BWLayoutNode:
         node_above = output_node.input_nodes[index - 1]
 
         # If the node_to_move connects to the node above, the want to ignore

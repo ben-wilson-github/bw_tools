@@ -12,11 +12,11 @@ from bw_tools.common.bw_api_tool import (
     CompNodeID,
 )
 from bw_tools.common.bw_node import BWFloat2
-from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
+from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
 from PySide2 import QtGui
 from sd.api.sdhistoryutils import SDHistoryUtils
 
-from .straighten_behavior import BreakAtSource, BreakAtTarget
+from .straighten_behavior import BWBreakAtSource, BWBreakAtTarget
 from .straighten_node import StraightenNode
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 STRIDE = 21.33  # Magic number between each input slot
 
 
-class StraightenSettings(ModuleSettings):
+class StraightenSettings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.target_hotkey: str = self.get("Break At Target Hotkey;value")
@@ -306,7 +306,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     )
     action.triggered.connect(
         lambda: on_clicked_straighten_connection(
-            api, BreakAtTarget(api.current_graph)
+            api, BWBreakAtTarget(api.current_graph)
         )
     )
 
@@ -323,7 +323,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     )
     action.triggered.connect(
         lambda: on_clicked_straighten_connection(
-            api, BreakAtSource(api.current_graph)
+            api, BWBreakAtSource(api.current_graph)
         )
     )
 

@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
-from bw_tools.common.bw_api_tool import CompNodeID, FunctionNodeId
 from sd.api import sdbasetypes
 from sd.api.sdconnection import SDConnection
 from sd.api.sdgraphobjectcomment import SDGraphObjectComment
 from sd.api.sdnode import SDNode
 from sd.api.sdproperty import SDProperty, SDPropertyCategory
+
+from .bw_api_tool import CompNodeID, FunctionNodeId
 
 
 @dataclass

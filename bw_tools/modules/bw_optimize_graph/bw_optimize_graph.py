@@ -4,8 +4,8 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
 
-from bw_tools.common.bw_node_selection import NodeSelection
-from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
+from bw_tools.common.bw_node_selection import BWNodeSelection
+from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
 from bw_tools.modules.bw_layout_graph import bw_layout_graph
 
 from . import atomic_optimizer, comp_graph_optimizer, uniform_color_optimizer
@@ -17,7 +17,7 @@ from PySide2 import QtGui, QtWidgets
 from sd.api.sdhistoryutils import SDHistoryUtils
 
 
-class OptimizeSettings(ModuleSettings):
+class OptimizeSettings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
@@ -30,7 +30,7 @@ class OptimizeSettings(ModuleSettings):
 
 
 def run(
-    node_selection: NodeSelection, api: BWAPITool, settings: OptimizeSettings
+    node_selection: BWNodeSelection, api: BWAPITool, settings: OptimizeSettings
 ):
     if node_selection.node_count == 0:
         return
@@ -71,7 +71,7 @@ def run(
     if settings.run_layout_tools:
         api_nodes = [n.api_node for n in node_selection.nodes]
         bw_layout_graph.run_layout(
-            bw_layout_graph.LayoutNodeSelection(
+            bw_layout_graph.BWLayoutNodeSelection(
                 api_nodes, node_selection.api_graph
             ),
             api,
@@ -96,7 +96,7 @@ def run(
 def _on_clicked_run(api: BWAPITool):
     with SDHistoryUtils.UndoGroup("Optimize Nodes"):
         api.log.info("Running optimize graph...")
-        node_selection = NodeSelection(
+        node_selection = BWNodeSelection(
             api.current_node_selection, api.current_graph
         )
 

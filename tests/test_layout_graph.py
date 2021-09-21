@@ -11,8 +11,8 @@ from bw_tools.common import bw_node_selection
 from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.modules.bw_layout_graph import bw_layout_graph
 from bw_tools.modules.bw_layout_graph.layout_node import (
-    LayoutNode,
-    LayoutNodeSelection,
+    BWLayoutNode,
+    BWLayoutNodeSelection,
 )
 
 
@@ -246,7 +246,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
     def test_single_node(self):
         print("...test_single_node")
         graph = self.packages[0].findResourceFromUrl("test_single_node")
-        node_selection = LayoutNodeSelection(graph.getNodes(), graph)
+        node_selection = BWLayoutNodeSelection(graph.getNodes(), graph)
         bw_layout_graph.run_layout(node_selection, self.api, self.settings[0])
         self.assertTrue(True)
 
@@ -482,7 +482,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         )
 
     def run_layout_test_on_graph(self, graph, settings):
-        node_selection = LayoutNodeSelection(graph.getNodes(), graph)
+        node_selection = BWLayoutNodeSelection(graph.getNodes(), graph)
         original_positions = self._get_node_positions(node_selection)
 
         self._randomise_node_positions(node_selection)
@@ -497,7 +497,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         graph = package.findResourceFromUrl(
             "test_no_nodes_does_not_throw_error"
         )
-        node_selection = LayoutNodeSelection([], graph)
+        node_selection = BWLayoutNodeSelection([], graph)
         bw_layout_graph.run_layout(node_selection, self.api, settings)
         self.assertTrue(True)
 
@@ -505,7 +505,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         self,
         original_positions,
         new_positions,
-        node_selection: LayoutNodeSelection,
+        node_selection: BWLayoutNodeSelection,
     ):
         for node in node_selection.nodes:
             self.assertAlmostEqual(
@@ -519,16 +519,16 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
                 places=2,
             )
 
-    def _get_node_positions(self, node_selection: LayoutNodeSelection) -> Dict:
+    def _get_node_positions(self, node_selection: BWLayoutNodeSelection) -> Dict:
         result = {}
-        node: LayoutNode
+        node: BWLayoutNode
         for node in node_selection.nodes:
             if node.is_dot:
                 continue
             result[node.identifier] = copy.deepcopy(node.pos)
         return result
 
-    def _randomise_node_positions(self, node_selection: LayoutNodeSelection):
+    def _randomise_node_positions(self, node_selection: BWLayoutNodeSelection):
         x = 300
         for node in node_selection.nodes:
             if node.is_root:

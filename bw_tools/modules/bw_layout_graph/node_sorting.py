@@ -3,19 +3,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .alignment_behavior import StaticAlignment
-from .layout_node import LayoutNode
+from .alignment_behavior import BWStaticAlignment
+from .layout_node import BWLayoutNode
 
 if TYPE_CHECKING:
-    from .bw_layout_graph import LayoutSettings
+    from .bw_layout_graph import BWLayoutSettings
 
 
 @dataclass
-class NodeSorter:
-    settings: LayoutSettings
+class BWNodeSorter:
+    settings: BWLayoutSettings
 
-    def position_nodes(self, output_node: LayoutNode):
-        input_node: LayoutNode
+    def position_nodes(self, output_node: BWLayoutNode):
+        input_node: BWLayoutNode
         for input_node in output_node.input_nodes:
             input_node.set_position(
                 input_node.closest_output_node_in_x.pos.x
@@ -26,11 +26,11 @@ class NodeSorter:
             )
             self.position_nodes(input_node)
 
-    def build_alignment_behaviors(self, output_node: LayoutNode):
-        input_node: LayoutNode
+    def build_alignment_behaviors(self, output_node: BWLayoutNode):
+        input_node: BWLayoutNode
         for input_node in output_node.input_nodes:
             if input_node.alignment_behavior is None:
-                input_node.alignment_behavior = StaticAlignment(input_node)
+                input_node.alignment_behavior = BWStaticAlignment(input_node)
 
             if (
                 output_node.pos.x
@@ -41,7 +41,7 @@ class NodeSorter:
             self.build_alignment_behaviors(input_node)
 
     def get_offset_value(
-        self, node: LayoutNode, output_node: LayoutNode
+        self, node: BWLayoutNode, output_node: BWLayoutNode
     ) -> float:
         half_output = output_node.width / 2
         half_input = node.width / 2

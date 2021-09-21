@@ -1,29 +1,29 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-import sd
-from bw_tools.common.bw_node_selection import BWNode, NodeSelection
+from common.bw_node_selection import BWNode, BWNodeSelection
+from sd.api import sdbasetypes
 
-from .alignment_behavior import NodeAlignmentBehavior
+from .alignment_behavior import BWNodeAlignmentBehavior
 
 
 @dataclass
-class LayoutNode(BWNode):
-    _alignment_behavior: Optional[NodeAlignmentBehavior] = field(
+class BWLayoutNode(BWNode):
+    _alignment_behavior: Optional[BWNodeAlignmentBehavior] = field(
         init=False, repr=False, default=None
     )
 
     @property
-    def alignment_behavior(self) -> NodeAlignmentBehavior:
+    def alignment_behavior(self) -> BWNodeAlignmentBehavior:
         return self._alignment_behavior
 
     @alignment_behavior.setter
-    def alignment_behavior(self, behavior: NodeAlignmentBehavior):
+    def alignment_behavior(self, behavior: BWNodeAlignmentBehavior):
         self._alignment_behavior = behavior
         self._alignment_behavior._parent = self
 
     @property
-    def closest_output_node_in_x(self) -> Optional["LayoutNode"]:
+    def closest_output_node_in_x(self) -> Optional["BWLayoutNode"]:
         if self.is_root:
             return None
 
@@ -34,12 +34,12 @@ class LayoutNode(BWNode):
         return closest
 
     @property
-    def farthest_output_nodes_in_x(self) -> Optional[List["LayoutNode"]]:
+    def farthest_output_nodes_in_x(self) -> Optional[List["BWLayoutNode"]]:
         if self.is_root:
             return None
         farthest = [self.output_nodes[0]]
 
-        output_node: "LayoutNode"
+        output_node: "BWLayoutNode"
         for output_node in self.output_nodes[1:]:
             if output_node.pos.x > farthest[0].pos.x:
                 farthest = [output_node]
@@ -55,12 +55,10 @@ class LayoutNode(BWNode):
         self.pos.y = y
 
     def set_api_position(self):
-        self.api_node.setPosition(
-            sd.api.sdbasetypes.float2(self.pos.x, self.pos.y)
-        )
+        self.api_node.setPosition(sdbasetypes.float2(self.pos.x, self.pos.y))
 
     def update_all_chain_positions(self):
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for input_node in self.input_nodes:
             if input_node.alignment_behavior.offset_node is not self:
                 continue
@@ -70,17 +68,17 @@ class LayoutNode(BWNode):
 
 
 @dataclass
-class LayoutNodeSelection(NodeSelection):
-    dot_nodes: List[LayoutNode] = field(
+class BWLayoutNodeSelection(BWNodeSelection):
+    dot_nodes: List[BWLayoutNode] = field(
         init=False, default_factory=list, repr=False
     )
-    root_nodes: List[LayoutNode] = field(
+    root_nodes: List[BWLayoutNode] = field(
         init=False, default_factory=list, repr=False
     )
-    branching_output_nodes: List[LayoutNode] = field(
+    branching_output_nodes: List[BWLayoutNode] = field(
         init=False, default_factory=list, repr=False
     )
-    branching_input_nodes: List[LayoutNode] = field(
+    branching_input_nodes: List[BWLayoutNode] = field(
         init=False, default_factory=list, repr=False
     )
 
@@ -110,5 +108,5 @@ class LayoutNodeSelection(NodeSelection):
 
     def _create_nodes(self):
         for api_node in self.api_nodes:
-            node = LayoutNode(api_node)
+            node = BWLayoutNode(api_node)
             self.add_node(node)

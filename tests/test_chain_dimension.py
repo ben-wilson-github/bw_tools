@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from bw_tools.common.bw_node_selection import NodeSelection
+from bw_tools.common.bw_node_selection import BWNodeSelection
 from bw_tools.common import bw_chain_dimension
 
 import sd
@@ -27,7 +27,7 @@ class TestChainDimension(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = NodeSelection(graph.getNodes(), graph)
+        ns = BWNodeSelection(graph.getNodes(), graph)
         node = ns.nodes[0]
 
         self.assertRaises(
@@ -42,7 +42,7 @@ class TestChainDimension(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = NodeSelection(graph.getNodes(), graph)
+        ns = BWNodeSelection(graph.getNodes(), graph)
         node = ns.nodes[0]
 
         dimension = bw_chain_dimension.calculate_chain_dimension(
@@ -66,7 +66,7 @@ class TestChainDimension(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = NodeSelection(graph.getNodes(), graph)
+        ns = BWNodeSelection(graph.getNodes(), graph)
         root = ns.node(1421698284)
         end = ns.node(1421712604)
         top = ns.node(1421698279)
@@ -93,7 +93,7 @@ class TestChainDimension(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = NodeSelection(graph.getNodes(), graph)
+        ns = BWNodeSelection(graph.getNodes(), graph)
         root = ns.node(1421698284)
         top = ns.node(1421698279)
         bot = ns.node(1421698249)
@@ -119,7 +119,7 @@ class TestChainDimension(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        ns = NodeSelection(graph.getNodes(), graph)
+        ns = BWNodeSelection(graph.getNodes(), graph)
         root = ns.node(1421698284)
         top = ns.node(1421698279)
 

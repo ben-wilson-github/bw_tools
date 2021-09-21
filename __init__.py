@@ -15,6 +15,7 @@ from common import bw_api_tool
 # TODO: Fix imports and generating of path
 # TODO: Clean up every file
 # TODO: Fix imports to relative where possible
+# TODO: remove comment in node_selection._add_output_nodes after checking unit tests 
 
 API_TOOL = bw_api_tool.BWAPITool()
 

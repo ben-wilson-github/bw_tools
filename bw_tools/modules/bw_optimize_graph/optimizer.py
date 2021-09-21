@@ -11,13 +11,13 @@ from . import property_matcher
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import CompNodeID
     from bw_tools.common.bw_node import BWNode
-    from bw_tools.common.bw_node_selection import NodeSelection
+    from bw_tools.common.bw_node_selection import BWNodeSelection
     from .bw_optimize_graph import OptimizeSettings
 
 
 @dataclass
 class Optimizer:
-    node_selection: NodeSelection
+    node_selection: BWNodeSelection
     settings: OptimizeSettings
     deleted_count: int = 0
 

@@ -94,7 +94,7 @@ class AbstractStraightenBehavior(ABC):
         return target_node.pos.y - mid_point
 
 
-class BreakAtTarget(AbstractStraightenBehavior):
+class BWBreakAtTarget(AbstractStraightenBehavior):
     def should_create_base_dot_node(
         self,
         source_node: StraightenNode,
@@ -200,7 +200,7 @@ class BreakAtTarget(AbstractStraightenBehavior):
         return source_node.pos.y - mid_point
 
 
-class BreakAtSource(AbstractStraightenBehavior):
+class BWBreakAtSource(AbstractStraightenBehavior):
     def should_create_base_dot_node(
         self,
         source_node: StraightenNode,

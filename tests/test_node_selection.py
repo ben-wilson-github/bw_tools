@@ -26,7 +26,7 @@ class TestNodeSelection(unittest.TestCase):
         graph = self.package.findResourceFromUrl("test_can_get_node")
 
         n1 = graph.getNodeFromId("1408084024")
-        node_selection = bw_node_selection.NodeSelection([n1], graph)
+        node_selection = bw_node_selection.BWNodeSelection([n1], graph)
 
         node_in_selection = node_selection.node("1408084024")
         self.assertEqual(1408084024, node_in_selection.identifier)
@@ -35,7 +35,7 @@ class TestNodeSelection(unittest.TestCase):
     def test_node_not_in_selection_is_raised(self):
         print("...test_node_not_in_selection_is_raised")
         graph = self.package.findResourceFromUrl("test_can_get_node")
-        ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
+        ns = bw_node_selection.BWNodeSelection(graph.getNodes(), graph)
 
         self.assertRaises(
             bw_node_selection.BWNodeNotInSelectionError, ns.node, 1
@@ -44,7 +44,7 @@ class TestNodeSelection(unittest.TestCase):
     def test_can_get_all_nodes(self):
         print("...test_can_get_all_nodes")
         graph = self.package.findResourceFromUrl("test_can_get_all_nodes")
-        node_selection = bw_node_selection.NodeSelection(
+        node_selection = bw_node_selection.BWNodeSelection(
             graph.getNodes(), graph
         )
 
@@ -63,7 +63,7 @@ class TestNodeSelection(unittest.TestCase):
     def test_node_count(self):
         print("...test_node_count")
         graph = self.package.findResourceFromUrl("test_node_count")
-        node_selection = bw_node_selection.NodeSelection(
+        node_selection = bw_node_selection.BWNodeSelection(
             graph.getNodes(), graph
         )
         self.assertEqual(node_selection.node_count, 3)
@@ -71,7 +71,7 @@ class TestNodeSelection(unittest.TestCase):
     def test_contains(self):
         print("...test_contains")
         graph = self.package.findResourceFromUrl("test_contains")
-        node_selection = bw_node_selection.NodeSelection(
+        node_selection = bw_node_selection.BWNodeSelection(
             graph.getNodes(), graph
         )
         n = node_selection.node(1408284655)
@@ -79,8 +79,8 @@ class TestNodeSelection(unittest.TestCase):
 
         n1 = graph.getNodeFromId("1408284655")
         n2 = graph.getNodeFromId("1408284643")
-        ns1 = bw_node_selection.NodeSelection([n1], graph)
-        ns2 = bw_node_selection.NodeSelection([n2], graph)
+        ns1 = bw_node_selection.BWNodeSelection([n1], graph)
+        ns2 = bw_node_selection.BWNodeSelection([n2], graph)
         self.assertFalse(ns1.contains(ns2.node(1408284643)))
 
     def test_can_remove_dot_nodes(self):
@@ -94,7 +94,7 @@ class TestNodeSelection(unittest.TestCase):
         graph = package.findResourceFromUrl("can_remove_dot_nodes")
 
         bw_node_selection.remove_dot_nodes(graph.getNodes(), graph)
-        node_selection = bw_node_selection.NodeSelection(
+        node_selection = bw_node_selection.BWNodeSelection(
             graph.getNodes(), graph
         )
 

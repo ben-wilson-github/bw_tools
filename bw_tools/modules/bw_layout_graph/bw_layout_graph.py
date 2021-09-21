@@ -1,27 +1,32 @@
 from functools import partial
 from pathlib import Path
-from typing import Optional, Union, Dict
+from typing import Dict, Optional, Union
 
-import sd
-from bw_tools.common import bw_node_selection
-from bw_tools.common.bw_api_tool import BWAPITool
-from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
-from bw_tools.modules.bw_straighten_connection import (
-    bw_straighten_connection,
-    straighten_behavior,
+from common.bw_api_tool import BWAPITool
+from common.bw_node_selection import remove_dot_nodes
+from modules.bw_settings.bw_settings import BWModuleSettings
+from modules.bw_straighten_connection import bw_straighten_connection
+from modules.bw_straighten_connection.straighten_behavior import (
+    BWBreakAtSource,
+    BWBreakAtTarget,
 )
-from PySide2 import QtGui, QtWidgets
+from PySide2.QtGui import QIcon, QKeySequence
+from PySide2.QtWidgets import QAction, QMessageBox
+from sd.api.sdhistoryutils import SDHistoryUtils
+from sd.tools.graphlayout import snapSDNodes
 
-from . import aligner_mainline, aligner_vertical, node_sorting
+from .aligner_mainline import BWMainlineAligner
+from .aligner_vertical import BWVerticalAligner
 from .alignment_behavior import (
-    VerticalAlignFarthestInput,
-    VerticalAlignMidPoint,
-    VerticalAlignTopStack,
+    BWVerticalAlignFarthestInput,
+    BWVerticalAlignMidPoint,
+    BWVerticalAlignTopStack,
 )
-from .layout_node import LayoutNode, LayoutNodeSelection
+from .layout_node import BWLayoutNode, BWLayoutNodeSelection
+from .node_sorting import BWNodeSorter
 
 
-class LayoutSettings(ModuleSettings):
+class BWLayoutSettings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
@@ -50,25 +55,25 @@ class LayoutSettings(ModuleSettings):
 
 
 def run_layout(
-    node_selection: LayoutNodeSelection,
+    node_selection: BWLayoutNodeSelection,
     api: BWAPITool,
-    settings: Optional[LayoutSettings] = None,
+    settings: Optional[BWLayoutSettings] = None,
 ):
     api.log.info("Running layout Graph")
 
     if settings is None:
-        settings = LayoutSettings(
+        settings = BWLayoutSettings(
             Path(__file__).parent / "bw_layout_graph_settings.json"
         )
 
-    node_sorter = node_sorting.NodeSorter(settings)
+    node_sorter = BWNodeSorter(settings)
     for root_node in node_selection.root_nodes:
         node_sorter.position_nodes(root_node)
     for root_node in node_selection.root_nodes:
         node_sorter.build_alignment_behaviors(root_node)
 
     if settings.mainline_enabled:
-        mainline_aligner = aligner_mainline.MainlineAligner(settings)
+        mainline_aligner = BWMainlineAligner(settings)
         mainline_aligner.run_mainline(
             node_selection.branching_input_nodes,
             node_selection.branching_output_nodes,
@@ -77,27 +82,27 @@ def run_layout(
     already_processed = list()
     for root_node in node_selection.root_nodes:
         if settings.alignment_behavior == 0:
-            behavior = VerticalAlignFarthestInput(settings)
+            behavior = BWVerticalAlignFarthestInput(settings)
         elif settings.alignment_behavior == 1:
-            behavior = VerticalAlignMidPoint(settings)
+            behavior = BWVerticalAlignMidPoint(settings)
         else:
-            behavior = VerticalAlignTopStack(settings)
+            behavior = BWVerticalAlignTopStack(settings)
 
-        vertical_aligner = aligner_vertical.VerticalAligner(settings, behavior)
+        vertical_aligner = BWVerticalAligner(settings, behavior)
         vertical_aligner.run_aligner(root_node, already_processed)
 
-    node: LayoutNode
+    node: BWLayoutNode
     for node in node_selection.nodes:
         node.set_api_position()
 
     if settings.snap_to_grid:
-        sd.tools.graphlayout.snapSDNodes(api.current_node_selection)
+        snapSDNodes(api.current_node_selection)
 
     if settings.run_straighten_connection:
         if settings.straighten_connection_behavior == 0:
-            behavior = straighten_behavior.BreakAtSource(api.current_graph)
+            behavior = BWBreakAtSource(api.current_graph)
         else:
-            behavior = straighten_behavior.BreakAtTarget(api.current_graph)
+            behavior = BWBreakAtTarget(api.current_graph)
         bw_straighten_connection.on_clicked_straighten_connection(
             api, behavior
         )
@@ -106,13 +111,13 @@ def run_layout(
 
 
 def on_clicked_layout_graph(api: BWAPITool):
-    with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
-        api_nodes = bw_node_selection.remove_dot_nodes(
+    with SDHistoryUtils.UndoGroup("Undo Group"):
+        api_nodes = remove_dot_nodes(
             api.current_node_selection, api.current_graph
         )
-        node_selection = LayoutNodeSelection(api_nodes, api.current_graph)
+        node_selection = BWLayoutNodeSelection(api_nodes, api.current_graph)
 
-        settings = LayoutSettings(
+        settings = BWLayoutSettings(
             Path(__file__).parent / "bw_layout_graph_settings.json"
         )
         if node_selection.node_count >= settings.node_count_warning:
@@ -120,14 +125,14 @@ def on_clicked_layout_graph(api: BWAPITool):
                 "Running Layout Graph on a large selection could take a while,"
                 " are you sure you want to continue"
             )
-            ret = QtWidgets.QMessageBox.question(
+            ret = QMessageBox.question(
                 None,
                 "",
                 msg,
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QMessageBox.Yes | QMessageBox.No,
             )
 
-            if ret == QtWidgets.QMessageBox.No:
+            if ret == QMessageBox.No:
                 return
 
         run_layout(node_selection, api, settings)
@@ -139,12 +144,12 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
         toolbar = api.create_graph_view_toolbar(graph_view_id)
 
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
-    action = toolbar.addAction(QtGui.QIcon(str(icon_path.resolve())), "")
+    action: QAction = toolbar.addAction(QIcon(str(icon_path.resolve())), "")
 
-    settings = LayoutSettings(
+    settings = BWLayoutSettings(
         Path(__file__).parent / "bw_layout_graph_settings.json"
     )
-    action.setShortcut(QtGui.QKeySequence(settings.hotkey))
+    action.setShortcut(QKeySequence(settings.hotkey))
     action.setToolTip("Layout Graph")
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
 

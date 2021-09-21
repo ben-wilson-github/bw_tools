@@ -4,18 +4,18 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Tuple
 
-from bw_tools.common.bw_node import BWFloat2
+from common.bw_node import BWFloat2
 
 if TYPE_CHECKING:
-    from .layout_node import LayoutNode
-    from .bw_layout_graph import LayoutSettings
+    from .bw_layout_graph import BWLayoutSettings
+    from .layout_node import BWLayoutNode
 
 
 @dataclass
-class NodeAlignmentBehavior(ABC):
-    _parent: LayoutNode = field(repr=False)
+class BWNodeAlignmentBehavior(ABC):
+    _parent: BWLayoutNode = field(repr=False)
     offset: BWFloat2 = field(default_factory=BWFloat2)
-    offset_node: LayoutNode = field(init=False)
+    offset_node: BWLayoutNode = field(init=False)
 
     def __post_init__(self):
         self.offset_node = self._parent
@@ -30,7 +30,7 @@ class NodeAlignmentBehavior(ABC):
 
 
 @dataclass
-class StaticAlignment(NodeAlignmentBehavior):
+class BWStaticAlignment(BWNodeAlignmentBehavior):
     def exec(self):
         self._parent.set_position(
             self.offset_node.pos.x + self.offset.x,
@@ -43,16 +43,16 @@ class StaticAlignment(NodeAlignmentBehavior):
 
 
 @dataclass
-class PostAlignmentBehavior(ABC):
-    settings: LayoutSettings
+class BWPostAlignmentBehavior(ABC):
+    settings: BWLayoutSettings
 
     @abstractmethod
-    def exec(self, node: LayoutNode):
+    def exec(self, node: BWLayoutNode):
         pass
 
     @staticmethod
     def calculate_mid_point(
-        a: LayoutNode, b: LayoutNode
+        a: BWLayoutNode, b: BWLayoutNode
     ) -> Tuple[float, float]:
         x = (a.pos.x + b.pos.x) / 2
         y = (a.pos.y + b.pos.y) / 2
@@ -61,14 +61,14 @@ class PostAlignmentBehavior(ABC):
 
 
 @dataclass
-class VerticalAlignMidPoint(PostAlignmentBehavior):
-    def exec(self, node: LayoutNode):
+class BWVerticalAlignMidPoint(BWPostAlignmentBehavior):
+    def exec(self, node: BWLayoutNode):
         _, mid_point = self.calculate_mid_point(
             node.input_nodes[0], node.input_nodes[-1]
         )
         offset = node.pos.y - mid_point
 
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for input_node in node.input_nodes:
             if node is not input_node.alignment_behavior.offset_node:
                 # Same as resetting its position
@@ -87,10 +87,10 @@ class VerticalAlignMidPoint(PostAlignmentBehavior):
 
 
 @dataclass
-class VerticalAlignFarthestInput(PostAlignmentBehavior):
-    def exec(self, node: LayoutNode):
+class BWVerticalAlignFarthestInput(BWPostAlignmentBehavior):
+    def exec(self, node: BWLayoutNode):
         farthest = [node.input_nodes[0]]
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for input_node in node.input_nodes[1:]:
             if input_node.pos.x < farthest[0].pos.x:
                 farthest = [input_node]
@@ -98,14 +98,14 @@ class VerticalAlignFarthestInput(PostAlignmentBehavior):
                 farthest.append(input_node)
 
         if len(farthest) > 1:
-            mid_point_align = VerticalAlignMidPoint(self.settings)
+            mid_point_align = BWVerticalAlignMidPoint(self.settings)
             mid_point_align.exec(node)
             return
 
         farthest = farthest[0]
         offset = node.pos.y - farthest.pos.y
 
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for input_node in node.input_nodes:
             if node is not input_node.alignment_behavior.offset_node:
                 # Same as resetting its position
@@ -122,9 +122,9 @@ class VerticalAlignFarthestInput(PostAlignmentBehavior):
 
 
 @dataclass
-class VerticalAlignTopStack(PostAlignmentBehavior):
-    def exec(self, node: LayoutNode):
-        input_node: LayoutNode
+class BWVerticalAlignTopStack(BWPostAlignmentBehavior):
+    def exec(self, node: BWLayoutNode):
+        input_node: BWLayoutNode
         for input_node in node.input_nodes:
             if node is not input_node.alignment_behavior.offset_node:
                 input_node.alignment_behavior.exec()

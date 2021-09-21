@@ -10,7 +10,7 @@ from bw_tools.modules.bw_settings import bw_settings_dialog
 
 
 @dataclass
-class ModuleSettings:
+class BWModuleSettings:
     file_path: Path
 
     @staticmethod
@@ -44,7 +44,7 @@ class ModuleSettings:
             return ret
 
 
-class Settings(ModuleSettings):
+class Settings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.dev_mode: bool = self.get("Dev Mode;value")

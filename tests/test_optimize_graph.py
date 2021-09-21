@@ -1,5 +1,5 @@
 from bw_tools.common.bw_api_tool import BWAPITool
-from bw_tools.common.bw_node_selection import NodeSelection
+from bw_tools.common.bw_node_selection import BWNodeSelection
 import unittest
 from unittest.mock import Mock
 from pathlib import Path
@@ -57,7 +57,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 4)
@@ -73,7 +73,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 5)
@@ -89,7 +89,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 5)
@@ -113,7 +113,7 @@ class TestOptimizeGraph(unittest.TestCase):
         out1 = graph.getNodeFromId("1423425425")
         out2 = graph.getNodeFromId("1423425481")
 
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         inheritance = uniform_node.getInputPropertyInheritanceMethodFromId(
@@ -167,7 +167,7 @@ class TestOptimizeGraph(unittest.TestCase):
         out1 = graph.getNodeFromId("1423425425")
         out2 = graph.getNodeFromId("1423426484")
 
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         inheritance = uniform_node.getInputPropertyInheritanceMethodFromId(
@@ -213,7 +213,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 2)
@@ -229,7 +229,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 5)
@@ -245,7 +245,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 7)
@@ -261,7 +261,7 @@ class TestOptimizeGraph(unittest.TestCase):
         settings.run_layout_tools = False
 
         graph = self.package.findResourceFromUrl(graph_name)
-        node_selection = NodeSelection(graph.getNodes(), graph)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
         bw_optimize_graph.run(node_selection, self.api, settings)
 
         self.assertEqual(len(graph.getNodes()), 7)

@@ -2,26 +2,24 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Union, Dict
+from typing import TYPE_CHECKING, Dict
 
-import sd
-from bw_tools.common.bw_api_tool import (
-    SDGraphObject,
-    SDGraphObjectFrame,
-    SDNode,
-    SDSBSCompGraph,
-    SDSBSFunctionGraph,
-)
 from bw_tools.common.bw_node import BWNode
-from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
+from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
 from PySide2 import QtGui
+from PySide2.QtWidgets import QAction
+from sd.api import sdbasetypes
+from sd.api.sdgraph import SDGraph
+from sd.api.sdgraphobject import SDGraphObject
+from sd.api.sdgraphobjectframe import SDGraphObjectFrame
 from sd.api.sdhistoryutils import SDHistoryUtils
+from sd.api.sdnode import SDNode
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import BWAPITool
 
 
-class FramerSettings(ModuleSettings):
+class BWFramerSettings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
@@ -32,14 +30,12 @@ class FramerSettings(ModuleSettings):
 
 def get_frames(graph_objects: list[SDGraphObject]) -> list[SDGraphObjectFrame]:
     return [
-        obj
-        for obj in graph_objects
-        if isinstance(obj, sd.api.sdgraphobjectframe.SDGraphObjectFrame)
+        obj for obj in graph_objects if isinstance(obj, SDGraphObjectFrame)
     ]
 
 
 def delete_frames(
-    graph: Union[SDSBSCompGraph, SDSBSFunctionGraph],
+    graph: SDGraph,
     frames: list[SDGraphObjectFrame],
 ):
     [graph.deleteGraphObject(frame) for frame in frames]
@@ -48,8 +44,8 @@ def delete_frames(
 def run_framer(
     nodes: list[SDNode],
     graph_objects: list[SDGraphObject],
-    graph: Union[SDSBSCompGraph, SDSBSFunctionGraph],
-    settings: FramerSettings,
+    graph: SDGraph,
+    settings: BWFramerSettings,
 ):
     x0 = min(nodes, key=lambda node: node.getPosition().x)
     x1 = max(nodes, key=lambda node: node.getPosition().x)
@@ -74,10 +70,10 @@ def run_framer(
         frame = frames[0]
         delete_frames(graph, frames[1:])
     else:
-        frame = sd.api.sdgraphobjectframe.SDGraphObjectFrame.sNew(graph)
+        frame: SDGraphObjectFrame = SDGraphObjectFrame.sNew(graph)
         frame.setTitle(settings.default_title)
         frame.setColor(
-            sd.api.sdbasetypes.ColorRGBA(
+            sdbasetypes.ColorRGBA(
                 settings.default_color[0],
                 settings.default_color[1],
                 settings.default_color[2],
@@ -86,16 +82,16 @@ def run_framer(
         )
 
     frame.setPosition(
-        sd.api.sdbasetypes.float2(
+        sdbasetypes.float2(
             min_x - settings.margin, min_y - settings.margin * 2
         )
     )
-    frame.setSize(sd.api.sdbasetypes.float2(width, height))
+    frame.setSize(sdbasetypes.float2(width, height))
 
 
 def on_clicked_run_framer(api: BWAPITool):
     with SDHistoryUtils.UndoGroup("Framer"):
-        settings = FramerSettings(
+        settings = BWFramerSettings(
             Path(__file__).parent / "bw_framer_settings.json"
         )
         nodes = api.current_node_selection
@@ -114,12 +110,12 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
 
-    settings = FramerSettings(
+    settings = BWFramerSettings(
         Path(__file__).parent / "bw_framer_settings.json"
     )
 
     icon = Path(__file__).parent / "resources" / "bw_framer_icon.png"
-    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
+    action: QAction = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
     action.setShortcut(QtGui.QKeySequence(settings.hotkey))
     action.setToolTip("Frames the selected nodes")
     action.triggered.connect(lambda: on_clicked_run_framer(api))

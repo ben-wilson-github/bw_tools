@@ -1,13 +1,15 @@
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Union
+from sd.api.sdconnection import SDConnection
 
-import sd
-from bw_tools.common.bw_node import (
-    BWInputConnectionData,
-    BWNode,
-    BWOutputConnectionData,
-)
+from sd.api.sdproperty import SDProperty, SDPropertyCategory
+
+
+from .bw_node import BWInputConnectionData, BWNode, BWOutputConnectionData
+
+from sd.api.sdnode import SDNode
+from sd.api.sdgraph import SDGraph
 
 
 class BWNodeNotInSelectionError(KeyError):
@@ -56,7 +58,7 @@ class NodeGroupInterface(ABC):
 
 
 @dataclass()
-class NodeSelection(NodeGroupInterface):
+class BWNodeSelection(NodeGroupInterface):
     """
     This class provides more detailed information about the selected API nodes.
 
@@ -68,7 +70,7 @@ class NodeSelection(NodeGroupInterface):
     """
 
     api_nodes: List[SDNode] = field(repr=False)
-    api_graph: SDSBSCompGraph = field(repr=False)
+    api_graph: SDGraph = field(repr=False)
 
     def __post_init__(self):
         self._create_nodes()
@@ -98,7 +100,7 @@ class NodeSelection(NodeGroupInterface):
             # Because we are only looking at input properties. We can be sure
             # there will only be one connection or none at all. No need
             # to loop through all connections as there is only 1.
-            api_node = api_connections[0].getInputPropertyNode()
+            api_node: SDNode = api_connections[0].getInputPropertyNode()
             try:
                 input_node = self.node(api_node.getIdentifier())
             except BWNodeNotInSelectionError:
@@ -116,8 +118,9 @@ class NodeSelection(NodeGroupInterface):
             api_connections = node.api_node.getPropertyConnections(
                 api_property
             )
+            api_connection: SDConnection
             for api_connection in api_connections:
-                output_api_node = api_connection.getInputPropertyNode()
+                output_api_node: SDNode = api_connection.getInputPropertyNode()
                 api_identifier = output_api_node.getIdentifier()
                 try:
                     output_node = self.node(api_identifier)
@@ -127,12 +130,12 @@ class NodeSelection(NodeGroupInterface):
                     connection_data.add_node(output_node)
 
             if connection_data.nodes:
-                node.offset_node = connection_data.nodes[0]
+                # node.offset_node = connection_data.nodes[0]
                 node.add_output_connection_data(connection_data)
 
 
 def remove_dot_nodes(
-    api_nodes: List[SDNode], api_graph: SDSBSCompGraph
+    api_nodes: List[SDNode], api_graph: SDGraph
 ) -> List[SDNode]:
     """
     Removes all dot nodes in the selection
@@ -145,26 +148,29 @@ def remove_dot_nodes(
 
         # Get property the connection comes from
         dot_node_input_property = api_node.getPropertyFromId(
-            "input", sd.api.sdproperty.SDPropertyCategory.Input
+            "input", SDPropertyCategory.Input
         )
-        dot_node_input_connection = api_node.getPropertyConnections(
-            dot_node_input_property
-        )[0]
+        dot_node_input_connection: SDConnection = (
+            api_node.getPropertyConnections(dot_node_input_property)[0]
+        )
 
-        output_node_property = dot_node_input_connection.getInputProperty()
-        output_node = dot_node_input_connection.getInputPropertyNode()
+        output_node_property: SDProperty = (
+            dot_node_input_connection.getInputProperty()
+        )
+        output_node: SDNode = dot_node_input_connection.getInputPropertyNode()
 
         # Get property the connection goes too
         dot_node_output_property = api_node.getPropertyFromId(
-            "unique_filter_output", sd.api.sdproperty.SDPropertyCategory.Output
+            "unique_filter_output", SDPropertyCategory.Output
         )
 
-        dot_node_output_connections = api_node.getPropertyConnections(
-            dot_node_output_property
+        dot_node_output_connections: SDConnection = (
+            api_node.getPropertyConnections(dot_node_output_property)
         )
+        connection: SDConnection
         for connection in dot_node_output_connections:
-            input_node_property = connection.getInputProperty()
-            input_node = connection.getInputPropertyNode()
+            input_node_property: SDProperty = connection.getInputProperty()
+            input_node: SDNode = connection.getInputPropertyNode()
 
             output_node.newPropertyConnectionFromId(
                 output_node_property.getId(),

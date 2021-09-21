@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Union
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_node import BWNode
+    from .bw_node import BWNode
 
 
 class BWOutOfBoundsError(ValueError):

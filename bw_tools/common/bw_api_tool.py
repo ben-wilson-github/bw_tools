@@ -14,8 +14,7 @@ from sd.api.sdnode import SDNode
 from sd.api.sdpackagemgr import SDPackageMgr
 from sd.context import Context as SDContext
 
-from common.bw_toolbar import BWToolbar
-
+from .bw_toolbar import BWToolbar
 
 BW_MODULE = TypeVar("BW_MODULE")
 

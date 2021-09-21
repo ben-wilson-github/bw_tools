@@ -13,8 +13,8 @@ import sd
 from bw_tools.common.bw_api_tool import BWAPITool, FunctionNodeId
 from bw_tools.modules.bw_straighten_connection import bw_straighten_connection
 from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
-    BreakAtSource,
-    BreakAtTarget,
+    BWBreakAtSource,
+    BWBreakAtTarget,
 )
 from bw_tools.modules.bw_straighten_connection.straighten_node import (
     StraightenNode,
@@ -108,7 +108,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtSource(result_graph),
+            BWBreakAtSource(result_graph),
             self.settings,
         )
 
@@ -123,7 +123,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtTarget(result_graph),
+            BWBreakAtTarget(result_graph),
             self.settings,
         )
 
@@ -138,7 +138,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtSource(result_graph),
+            BWBreakAtSource(result_graph),
             self.settings,
         )
 
@@ -153,7 +153,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtTarget(result_graph),
+            BWBreakAtTarget(result_graph),
             self.settings,
         )
 
@@ -168,7 +168,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtSource(result_graph),
+            BWBreakAtSource(result_graph),
             self.settings,
         )
 
@@ -183,7 +183,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtTarget(result_graph),
+            BWBreakAtTarget(result_graph),
             self.settings,
         )
 
@@ -198,7 +198,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtSource(result_graph),
+            BWBreakAtSource(result_graph),
             self.settings,
         )
 
@@ -213,7 +213,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtTarget(result_graph),
+            BWBreakAtTarget(result_graph),
             self.settings,
         )
 
@@ -228,7 +228,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtSource(result_graph),
+            BWBreakAtSource(result_graph),
             self.settings,
         )
 
@@ -243,7 +243,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtTarget(result_graph),
+            BWBreakAtTarget(result_graph),
             self.settings,
         )
 
@@ -258,7 +258,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtSource(result_graph),
+            BWBreakAtSource(result_graph),
             self.settings,
         )
 
@@ -273,7 +273,7 @@ class TestStraightenConnection(unittest.TestCase):
         self._run_test_graph(
             result_graph,
             correct_graph,
-            BreakAtTarget(result_graph),
+            BWBreakAtTarget(result_graph),
             self.settings,
         )
 
@@ -302,7 +302,7 @@ class TestStraightenConnection(unittest.TestCase):
         test_px_graph = test_graph.getNodes()[0].getPropertyGraph(property)
 
         _run_straighten(
-            test_px_graph, BreakAtTarget(test_px_graph), self.settings
+            test_px_graph, BWBreakAtTarget(test_px_graph), self.settings
         )
 
         test_dot_node = [
@@ -406,13 +406,13 @@ def _run_render_textures(
     graph = package.findResourceFromUrl(
         "__test_straighten_connection_doesnt_affect_outputs_source"
     )
-    _run_straighten(graph, BreakAtSource(graph), settings)
+    _run_straighten(graph, BWBreakAtSource(graph), settings)
     exportSDGraphOutputs(graph, str(source_result_dir.resolve()))
 
     graph = package.findResourceFromUrl(
         "__test_straighten_connection_doesnt_affect_outputs_target"
     )
-    _run_straighten(graph, BreakAtTarget(graph), settings)
+    _run_straighten(graph, BWBreakAtTarget(graph), settings)
     exportSDGraphOutputs(graph, str(target_result_dir.resolve()))
 
 

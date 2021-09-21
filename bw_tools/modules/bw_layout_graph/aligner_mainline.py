@@ -1,35 +1,36 @@
 from __future__ import annotations
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 from operator import attrgetter
 from typing import TYPE_CHECKING, List, Optional
 
-from bw_tools.common import bw_chain_dimension
+from common.bw_chain_dimension import (
+    BWChainDimension,
+    BWNotInChainError,
+    calculate_chain_dimension,
+)
 
 if TYPE_CHECKING:
-    from .bw_layout_graph import LayoutSettings
-    from .layout_node import LayoutNode
-
-MIN_CHAIN_SIZE = 96
+    from .bw_layout_graph import BWLayoutSettings
+    from .layout_node import BWLayoutNode
 
 
 @dataclass
-class MainlineAligner:
-    settings: LayoutSettings
+class BWMainlineAligner:
+    settings: BWLayoutSettings
 
     def run_mainline(
         self,
-        branching_nodes: List[LayoutNode],
-        branching_output_nodes: List[LayoutNode],
+        branching_nodes: List[BWLayoutNode],
+        branching_output_nodes: List[BWLayoutNode],
     ):
         branching_nodes.sort(key=lambda node: node.pos.x)
-        branching_node: LayoutNode
+        branching_node: BWLayoutNode
         for branching_node in branching_nodes:
             self.push_back_mainline_ignoring_branching_output_nodes(
                 branching_node
             )
 
-        # TODO: make this an option too
         branching_output_nodes.sort(key=lambda node: node.pos.x)
         branching_output_nodes.reverse()
         for branching_output_node in branching_output_nodes:
@@ -39,7 +40,7 @@ class MainlineAligner:
 
     def push_back_branching_output_node_behind_largest_chain(
         self,
-        branching_output_node: LayoutNode,
+        branching_output_node: BWLayoutNode,
     ):
         """
         Pushes a branching output node behind the largest sibling chain
@@ -88,7 +89,7 @@ class MainlineAligner:
 
     def push_back_mainline_ignoring_branching_output_nodes(
         self,
-        branching_node: LayoutNode,
+        branching_node: BWLayoutNode,
     ):
         """
         Finds a mainline node from the given nodes inputs and
@@ -121,7 +122,7 @@ class MainlineAligner:
         self.reposition_node(mainline_node)
 
     def find_left_most_bound(
-        self, node_list: List[LayoutNode]
+        self, node_list: List[BWLayoutNode]
     ) -> Optional[float]:
         """
         Given a list of nodes, returns the left most bound from the
@@ -130,14 +131,12 @@ class MainlineAligner:
         cds = self.get_chain_dimensions_ignore_branches(node_list)
         if len(cds) == 0:
             return None
-        cd: bw_chain_dimension.BWChainDimension = min(
-            cds, key=attrgetter("bounds.left")
-        )
+        cd: BWChainDimension = min(cds, key=attrgetter("bounds.left"))
         return cd.bounds.left
 
     def find_potential_mainline_nodes(
-        self, node: LayoutNode
-    ) -> List[LayoutNode]:
+        self, node: BWLayoutNode
+    ) -> List[BWLayoutNode]:
         """
         Returns a list of potentional mainline nodes from the given
         nodes inputs. If any of the nodes have branching outputs
@@ -145,7 +144,7 @@ class MainlineAligner:
         all inputs. The potential mainline nodes will be the ones farthest
         back.
         """
-        potential_nodes: List[LayoutNode] = list()
+        potential_nodes: List[BWLayoutNode] = list()
 
         # Limit the list to branching nodes if possible
         potential_nodes = [
@@ -160,7 +159,7 @@ class MainlineAligner:
         ]
         return potential_nodes
 
-    def find_mainline_node(self, node: LayoutNode) -> LayoutNode:
+    def find_mainline_node(self, node: BWLayoutNode) -> BWLayoutNode:
         """
         Returns a mainline node from a given nodes potential mainline inputs.
         The node with the largest chain network will be considered mainline.
@@ -173,9 +172,9 @@ class MainlineAligner:
         if len(potential_mainline_nodes) == 1:
             return potential_mainline_nodes[0]
 
-        cds: List[
-            bw_chain_dimension.BWChainDimension
-        ] = self.get_chain_dimensions_for_inputs(node)
+        cds: List[BWChainDimension] = self.get_chain_dimensions_for_inputs(
+            node
+        )
 
         # For pleasing visual, do not consider chains
         # which are very small.
@@ -197,48 +196,44 @@ class MainlineAligner:
 
     def calculate_node_lists_for_inputs(
         self,
-        output_node: LayoutNode,
-    ) -> List[List[LayoutNode]]:
+        output_node: BWLayoutNode,
+    ) -> List[List[BWLayoutNode]]:
         """Returns a list of all the nodes in the given nodes input chain"""
         node_lists = list()
-        input_node: LayoutNode
+        input_node: BWLayoutNode
         for input_node in output_node.input_nodes:
             node_lists.append(self.get_input_nodes(input_node))
         return node_lists
 
     def get_chain_dimensions_ignore_branches(
         self,
-        nodes: List[LayoutNode],
-    ) -> List[bw_chain_dimension.BWChainDimension]:
+        nodes: List[BWLayoutNode],
+    ) -> List[BWChainDimension]:
         cds = list()
         for node in nodes:
             node_list = self.get_input_nodes_ignore_branches(node)
             try:
-                cd = bw_chain_dimension.calculate_chain_dimension(
-                    node, node_list
-                )
-            except bw_chain_dimension.BWNotInChainError:
+                cd = calculate_chain_dimension(node, node_list)
+            except BWNotInChainError:
                 continue
             cds.append(cd)
         return cds
 
     def get_chain_dimensions_for_inputs(
         self,
-        output_node: LayoutNode,
-    ) -> List[bw_chain_dimension.BWChainDimension]:
+        output_node: BWLayoutNode,
+    ) -> List[BWChainDimension]:
         node_lists = self.calculate_node_lists_for_inputs(output_node)
         if len(node_lists) < 2:
             return []
 
         cds = list()
         for i, input_node in enumerate(output_node.input_nodes):
-            cd = bw_chain_dimension.calculate_chain_dimension(
-                input_node, node_lists[i]
-            )
+            cd = calculate_chain_dimension(input_node, node_lists[i])
             cds.append(cd)
         return cds
 
-    def reposition_branching_output_node(self, node: LayoutNode):
+    def reposition_branching_output_node(self, node: BWLayoutNode):
         spacer = self.settings.node_spacing
         spacer += self.settings.mainline_additional_offset
         new_x = (
@@ -254,7 +249,7 @@ class MainlineAligner:
         node.alignment_behavior.update_offset(node.pos)
 
     def reposition_node(
-        self, node: LayoutNode, reposition_if_branching_output=True
+        self, node: BWLayoutNode, reposition_if_branching_output=True
     ):
         node.alignment_behavior.exec()
 
@@ -272,9 +267,9 @@ class MainlineAligner:
             self.reposition_node(input_node)
 
     @staticmethod
-    def get_input_nodes_ignore_branches(node: LayoutNode):
-        def _populate_chain(node: LayoutNode):
-            input_node: LayoutNode
+    def get_input_nodes_ignore_branches(node: BWLayoutNode):
+        def _populate_chain(node: BWLayoutNode):
+            input_node: BWLayoutNode
             for input_node in node.input_nodes:
                 if input_node.has_branching_outputs:
                     continue
@@ -289,9 +284,9 @@ class MainlineAligner:
         return chain
 
     @staticmethod
-    def get_input_nodes(node: LayoutNode):
-        def _populate_chain(node: LayoutNode):
-            input_node: LayoutNode
+    def get_input_nodes(node: BWLayoutNode):
+        def _populate_chain(node: BWLayoutNode):
+            input_node: BWLayoutNode
             for input_node in node.input_nodes:
                 if input_node not in chain:
                     chain.append(input_node)
