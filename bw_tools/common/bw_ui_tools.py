@@ -1,18 +1,18 @@
-from PySide2 import QtCore
-from PySide2 import QtGui
-from PySide2 import QtWidgets
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QFont
+from PySide2.QtWidgets import QLabel
 
 
 def label(
-    text, alignment=QtCore.Qt.AlignCenter, bold=True, dimmed=True, tabbed=False
-):
+    text, alignment=Qt.AlignCenter, bold=True, dimmed=True, tabbed=False
+) -> QLabel:
     if tabbed:
         text = f"\t{text}"
 
-    w = QtWidgets.QLabel(text)
+    w = QLabel(text)
 
     if bold:
-        font = QtGui.QFont()
+        font = QFont()
         font.setBold(True)
         w.setFont(font)
 
@@ -25,18 +25,8 @@ def label(
     return w
 
 
-def separator_frame(orientation="h"):
-    line = QtWidgets.QFrame()
-    if orientation == "h":
-        line.setFrameShape(QtWidgets.QFrame.HLine)
-    elif orientation == "v":
-        line.setFrameShape(QtWidgets.QFrame.VLine)
-    line.setFrameShadow(QtWidgets.QFrame.Sunken)
-    return line
-
-
-def separator(orientation="h"):
-    w = QtWidgets.QLabel()
+def separator(orientation="h") -> QLabel:
+    w = QLabel()
     if orientation == "h":
         w.setFixedHeight(1)
     elif orientation == "v":

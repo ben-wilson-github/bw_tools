@@ -1,4 +1,4 @@
-from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_api_tool import BWAPITool
 import json
 import operator
 from dataclasses import dataclass
@@ -50,12 +50,12 @@ class Settings(ModuleSettings):
         self.dev_mode: bool = self.get("Dev Mode;value")
 
 
-def on_initialize(api: APITool):
+def on_initialize(api: BWAPITool):
     settings_action = api.menu.addAction("Settings...")
     settings_action.setToolTip("BW Tools Settings")
     settings_action.triggered.connect(lambda: on_clicked_settings(api))
 
 
-def on_clicked_settings(api: APITool):
+def on_clicked_settings(api: BWAPITool):
     dialog = bw_settings_dialog.SettingsDialog(api)
     dialog.show()

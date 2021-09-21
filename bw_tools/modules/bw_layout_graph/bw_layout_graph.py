@@ -4,7 +4,7 @@ from typing import Optional, Union, Dict
 
 import sd
 from bw_tools.common import bw_node_selection
-from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from bw_tools.modules.bw_straighten_connection import (
     bw_straighten_connection,
@@ -51,7 +51,7 @@ class LayoutSettings(ModuleSettings):
 
 def run_layout(
     node_selection: LayoutNodeSelection,
-    api: APITool,
+    api: BWAPITool,
     settings: Optional[LayoutSettings] = None,
 ):
     api.log.info("Running layout Graph")
@@ -105,7 +105,7 @@ def run_layout(
     api.log.info("Finished running layout graph")
 
 
-def on_clicked_layout_graph(api: APITool):
+def on_clicked_layout_graph(api: BWAPITool):
     with sd.api.sdhistoryutils.SDHistoryUtils.UndoGroup("Undo Group"):
         api_nodes = bw_node_selection.remove_dot_nodes(
             api.current_node_selection, api.current_graph
@@ -133,7 +133,7 @@ def on_clicked_layout_graph(api: APITool):
         run_layout(node_selection, api, settings)
 
 
-def on_graph_view_created(graph_view_id, api: APITool):
+def on_graph_view_created(graph_view_id, api: BWAPITool):
     toolbar = api.get_graph_view_toolbar(graph_view_id)
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
@@ -149,7 +149,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
 
 
-def on_initialize(api: APITool):
+def on_initialize(api: BWAPITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )

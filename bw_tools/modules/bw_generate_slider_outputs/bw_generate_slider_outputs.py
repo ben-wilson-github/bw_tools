@@ -44,7 +44,7 @@ def set_int_value(node, id, value):
     )
 
 
-def generate_slider_outputs(api: bw_api_tool.APITool):
+def generate_slider_outputs(api: bw_api_tool.BWAPITool):
     increment = 0.02
 
     nodes = sort_nodes_by_y(api.current_node_selection)
@@ -57,6 +57,6 @@ def generate_slider_outputs(api: bw_api_tool.APITool):
     return
 
 
-def on_initialize(api: bw_api_tool.APITool):
+def on_initialize(api: bw_api_tool.BWAPITool):
     action = api.toolbar.addAction('Slider Output')
     action.triggered.connect(lambda: generate_slider_outputs(api))

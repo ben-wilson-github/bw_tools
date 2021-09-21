@@ -4,7 +4,7 @@ import sd
 from bw_tools.common import bw_api_tool
 
 
-def print_node_info(api: bw_api_tool.APITool):
+def print_node_info(api: bw_api_tool.BWAPITool):
     def _get_properties(category):
         ret = f"{category.name}:\n"
         for p in node.getProperties(category):
@@ -31,7 +31,7 @@ def print_node_info(api: bw_api_tool.APITool):
         print(ret)
 
 
-def on_graph_created(graph_view_id, api: bw_api_tool.APITool):
+def on_graph_created(graph_view_id, api: bw_api_tool.BWAPITool):
     toolbar = api.get_graph_view_toolbar(graph_view_id)
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
@@ -41,7 +41,7 @@ def on_graph_created(graph_view_id, api: bw_api_tool.APITool):
     action.triggered.connect(lambda: print_node_info(api))
 
 
-def on_initialize(api: bw_api_tool.APITool):
+def on_initialize(api: bw_api_tool.BWAPITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_created, api=api)
     )

@@ -12,13 +12,13 @@ from bw_tools.common.bw_api_tool import (
     SDSBSCompGraph,
     SDSBSFunctionGraph,
 )
-from bw_tools.common.bw_node import Node
+from bw_tools.common.bw_node import BWNode
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
 from sd.api.sdhistoryutils import SDHistoryUtils
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import APITool
+    from bw_tools.common.bw_api_tool import BWAPITool
 
 
 class FramerSettings(ModuleSettings):
@@ -56,10 +56,10 @@ def run_framer(
     y0 = max(nodes, key=lambda node: node.getPosition().y)
     y1 = min(nodes, key=lambda node: node.getPosition().y)
 
-    x0 = Node(x0)
-    x1 = Node(x1)
-    y0 = Node(y0)
-    y1 = Node(y1)
+    x0 = BWNode(x0)
+    x1 = BWNode(x1)
+    y0 = BWNode(y0)
+    y1 = BWNode(y1)
 
     min_x = x0.pos.x - x0.width / 2
     max_x = x1.pos.x - x1.width / 2
@@ -93,7 +93,7 @@ def run_framer(
     frame.setSize(sd.api.sdbasetypes.float2(width, height))
 
 
-def on_clicked_run_framer(api: APITool):
+def on_clicked_run_framer(api: BWAPITool):
     with SDHistoryUtils.UndoGroup("Framer"):
         settings = FramerSettings(
             Path(__file__).parent / "bw_framer_settings.json"
@@ -109,7 +109,7 @@ def on_clicked_run_framer(api: APITool):
         )
 
 
-def on_graph_view_created(graph_view_id, api: APITool):
+def on_graph_view_created(graph_view_id, api: BWAPITool):
     toolbar = api.get_graph_view_toolbar(graph_view_id)
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
@@ -125,7 +125,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
     action.triggered.connect(lambda: on_clicked_run_framer(api))
 
 
-def on_initialize(api: APITool):
+def on_initialize(api: BWAPITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )

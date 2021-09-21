@@ -10,13 +10,13 @@ from bw_tools.common.bw_api_tool import (
     SDSBSCompGraph,
     SDSBSFunctionGraph
 )
-from bw_tools.common.bw_node import Node
+from bw_tools.common.bw_node import BWNode
 
 STRIDE = 21.33  # Magic number between each input slot
 
 
 @dataclass
-class StraightenNode(Node):
+class StraightenNode(BWNode):
     graph: Union[SDSBSCompGraph, SDSBSFunctionGraph] = field(repr=False)
 
     def delete_output_dot_nodes(self):

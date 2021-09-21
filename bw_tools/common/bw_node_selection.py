@@ -1,20 +1,16 @@
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, TypeVar, Union
+from typing import Dict, List, Tuple, Union
 
 import sd
 from bw_tools.common.bw_node import (
-    InputConnectionData,
-    Node,
-    OutputConnectionData,
+    BWInputConnectionData,
+    BWNode,
+    BWOutputConnectionData,
 )
 
-SDNode = TypeVar("SDNode")
-SDArray = TypeVar("SDArray")
-SDSBSCompGraph = TypeVar("SDSBSCompGraph")
 
-
-class NodeNotInSelectionError(KeyError):
+class BWNodeNotInSelectionError(KeyError):
     def __init__(self):
         super().__init__("Node not in selection")
 
@@ -23,10 +19,10 @@ class NodeNotInSelectionError(KeyError):
 class NodeGroupInterface(ABC):
     # Node list is a dictionary of identifier keys with
     # a Node object as value
-    _node_list: Dict[int, Node] = field(init=False, default_factory=dict)
+    _node_list: Dict[int, BWNode] = field(init=False, default_factory=dict)
 
     @property
-    def nodes(self) -> Tuple[Node]:
+    def nodes(self) -> Tuple[BWNode]:
         """Returns a tuple of all nodes in the selection"""
         ret = []
         for node in self._node_list.values():
@@ -37,20 +33,20 @@ class NodeGroupInterface(ABC):
     def node_count(self) -> int:
         return len(self._node_list)
 
-    def node(self, identifier: Union[int, str]) -> Node:
+    def node(self, identifier: Union[int, str]) -> BWNode:
         try:
             node = self._node_list[int(identifier)]
         except KeyError:
-            raise NodeNotInSelectionError()
+            raise BWNodeNotInSelectionError()
         return node
 
-    def add_node(self, node: Node):
+    def add_node(self, node: BWNode):
         self._node_list[node.identifier] = node
 
-    def remove_node(self, node: Node):
+    def remove_node(self, node: BWNode):
         del self._node_list[node.identifier]
 
-    def contains(self, node: Node) -> bool:
+    def contains(self, node: BWNode) -> bool:
         try:
             node = self._node_list[node.identifier]
         except KeyError:
@@ -80,7 +76,7 @@ class NodeSelection(NodeGroupInterface):
 
     def _create_nodes(self):
         for api_node in self.api_nodes:
-            node = Node(api_node)
+            node = BWNode(api_node)
             self.add_node(node)
 
     def _build_node_tree(self):
@@ -89,7 +85,7 @@ class NodeSelection(NodeGroupInterface):
             self._add_input_nodes(node)
             self._add_output_nodes(node)
 
-    def _add_input_nodes(self, node: Node):
+    def _add_input_nodes(self, node: BWNode):
         for index_in_node, api_property in enumerate(
             node.input_connectable_properties
         ):
@@ -105,17 +101,17 @@ class NodeSelection(NodeGroupInterface):
             api_node = api_connections[0].getInputPropertyNode()
             try:
                 input_node = self.node(api_node.getIdentifier())
-            except NodeNotInSelectionError:
+            except BWNodeNotInSelectionError:
                 pass
             else:
-                connection = InputConnectionData(index_in_node, input_node)
+                connection = BWInputConnectionData(index_in_node, input_node)
                 node.add_input_connection_data(connection)
 
-    def _add_output_nodes(self, node: Node):
+    def _add_output_nodes(self, node: BWNode):
         for index_in_node, api_property in enumerate(
             node.output_connectable_properties
         ):
-            connection_data = OutputConnectionData(index_in_node)
+            connection_data = BWOutputConnectionData(index_in_node)
 
             api_connections = node.api_node.getPropertyConnections(
                 api_property
@@ -125,7 +121,7 @@ class NodeSelection(NodeGroupInterface):
                 api_identifier = output_api_node.getIdentifier()
                 try:
                     output_node = self.node(api_identifier)
-                except NodeNotInSelectionError:
+                except BWNodeNotInSelectionError:
                     pass
                 else:
                     connection_data.add_node(output_node)

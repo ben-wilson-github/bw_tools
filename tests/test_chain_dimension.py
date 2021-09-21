@@ -31,7 +31,7 @@ class TestChainDimension(unittest.TestCase):
         node = ns.nodes[0]
 
         self.assertRaises(
-            bw_chain_dimension.NotInChainError,
+            bw_chain_dimension.BWNotInChainError,
             bw_chain_dimension.calculate_chain_dimension,
             node,
             [],
@@ -123,7 +123,7 @@ class TestChainDimension(unittest.TestCase):
         root = ns.node(1421698284)
         top = ns.node(1421698279)
 
-        limit_bound = bw_chain_dimension.Bound(top.pos.x)
+        limit_bound = bw_chain_dimension.BWBound(top.pos.x)
         dimension = bw_chain_dimension.calculate_chain_dimension(
             root, ns.nodes, limit_bounds=limit_bound
         )

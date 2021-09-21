@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Tuple
 
-from bw_tools.common.bw_node import Float2
+from bw_tools.common.bw_node import BWFloat2
 
 if TYPE_CHECKING:
     from .layout_node import LayoutNode
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 @dataclass
 class NodeAlignmentBehavior(ABC):
     _parent: LayoutNode = field(repr=False)
-    offset: Float2 = field(default_factory=Float2)
+    offset: BWFloat2 = field(default_factory=BWFloat2)
     offset_node: LayoutNode = field(init=False)
 
     def __post_init__(self):
@@ -25,7 +25,7 @@ class NodeAlignmentBehavior(ABC):
         pass
 
     @abstractmethod
-    def update_offset(self, new_post: Float2):
+    def update_offset(self, new_post: BWFloat2):
         pass
 
 
@@ -37,7 +37,7 @@ class StaticAlignment(NodeAlignmentBehavior):
             self.offset_node.pos.y + self.offset.y,
         )
 
-    def update_offset(self, new_pos: Float2):
+    def update_offset(self, new_pos: BWFloat2):
         self.offset.x = new_pos.x - self.offset_node.pos.x
         self.offset.y = new_pos.y - self.offset_node.pos.y
 
@@ -79,7 +79,7 @@ class VerticalAlignMidPoint(PostAlignmentBehavior):
             else:
                 input_node.alignment_behavior.offset_node = node
                 input_node.alignment_behavior.update_offset(
-                    Float2(input_node.pos.x, input_node.pos.y + offset)
+                    BWFloat2(input_node.pos.x, input_node.pos.y + offset)
                 )
                 input_node.alignment_behavior.exec()
 
@@ -114,7 +114,7 @@ class VerticalAlignFarthestInput(PostAlignmentBehavior):
             else:
                 input_node.alignment_behavior.offset_node = node
                 input_node.alignment_behavior.update_offset(
-                    Float2(input_node.pos.x, input_node.pos.y + offset)
+                    BWFloat2(input_node.pos.x, input_node.pos.y + offset)
                 )
                 input_node.alignment_behavior.exec()
 

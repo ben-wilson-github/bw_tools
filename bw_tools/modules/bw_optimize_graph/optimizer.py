@@ -10,7 +10,7 @@ from . import property_matcher
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import CompNodeID
-    from bw_tools.common.bw_node import Node
+    from bw_tools.common.bw_node import BWNode
     from bw_tools.common.bw_node_selection import NodeSelection
     from .bw_optimize_graph import OptimizeSettings
 
@@ -21,7 +21,7 @@ class Optimizer:
     settings: OptimizeSettings
     deleted_count: int = 0
 
-    def delete_duplicate_nodes(self, node_dict: Dict[Node, List[Node]]):
+    def delete_duplicate_nodes(self, node_dict: Dict[BWNode, List[BWNode]]):
         self.deleted_count = 0
         for identifier, duplicate_nodes in node_dict.items():
             unique_node = self.node_selection.node(identifier)
@@ -33,21 +33,21 @@ class Optimizer:
                 self.deleted_count += 1
                 self.node_selection.remove_node(duplicate_node)
 
-    def get_nodes(self, node_id: CompNodeID) -> List[Node]:
+    def get_nodes(self, node_id: CompNodeID) -> List[BWNode]:
         return [
             node
             for node in self.node_selection.nodes
             if node.api_node.getDefinition().getId() == node_id.value
         ]
 
-    def find_duplicates(self, nodes: List[Node]) -> Dict[Node, List[Node]]:
+    def find_duplicates(self, nodes: List[BWNode]) -> Dict[BWNode, List[BWNode]]:
         """
         Returns a dictionary of unique nodes in the keys and a list of
         duplciate nodes which match the unique node.
         """
-        unique_nodes: Dict[Node, List[Node]] = dict()
+        unique_nodes: Dict[BWNode, List[BWNode]] = dict()
         for node in nodes:
-            duplicate_of: Node = self._is_duplicate_of_a_node(
+            duplicate_of: BWNode = self._is_duplicate_of_a_node(
                 node, unique_nodes
             )
 
@@ -59,8 +59,8 @@ class Optimizer:
         return unique_nodes
 
     def _is_duplicate_of_a_node(
-        self, node: Node, unique_nodes: Dict[Node, List[Node]]
-    ) -> Optional(Node):
+        self, node: BWNode, unique_nodes: Dict[BWNode, List[BWNode]]
+    ) -> Optional(BWNode):
         for identifier in unique_nodes.keys():
             unique_node = self.node_selection.node(identifier)
             if node.label != unique_node.label:
@@ -70,7 +70,7 @@ class Optimizer:
         return None
 
     @staticmethod
-    def _reconnect_output_connections(duplicate_node: Node, unique_node: Node):
+    def _reconnect_output_connections(duplicate_node: BWNode, unique_node: BWNode):
         for output_connection in duplicate_node.output_connections:
             source_property = property_matcher.get_matching_output_property(
                 unique_node, output_connection.getOutputProperty()
@@ -82,7 +82,7 @@ class Optimizer:
             )
 
     @staticmethod
-    def _set_output_size(node: Node, size: int):
+    def _set_output_size(node: BWNode, size: int):
         output_size_property = node.api_node.getPropertyFromId(
             "$outputsize", SDPropertyCategory.Input
         )
@@ -98,7 +98,7 @@ class Optimizer:
 
     @staticmethod
     def _set_connected_output_nodes_inheritance_method(
-        node: Node, inheritance_method: SDPropertyInheritanceMethod
+        node: BWNode, inheritance_method: SDPropertyInheritanceMethod
     ):
         for connection in node.output_connections:
             connected_node = connection.getInputPropertyNode()

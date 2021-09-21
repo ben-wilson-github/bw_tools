@@ -11,7 +11,7 @@ from bw_tools.modules.bw_layout_graph import bw_layout_graph
 from . import atomic_optimizer, comp_graph_optimizer, uniform_color_optimizer
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import APITool
+    from bw_tools.common.bw_api_tool import BWAPITool
 
 from PySide2 import QtGui, QtWidgets
 from sd.api.sdhistoryutils import SDHistoryUtils
@@ -30,7 +30,7 @@ class OptimizeSettings(ModuleSettings):
 
 
 def run(
-    node_selection: NodeSelection, api: APITool, settings: OptimizeSettings
+    node_selection: NodeSelection, api: BWAPITool, settings: OptimizeSettings
 ):
     if node_selection.node_count == 0:
         return
@@ -93,7 +93,7 @@ def run(
         )
 
 
-def _on_clicked_run(api: APITool):
+def _on_clicked_run(api: BWAPITool):
     with SDHistoryUtils.UndoGroup("Optimize Nodes"):
         api.log.info("Running optimize graph...")
         node_selection = NodeSelection(
@@ -107,7 +107,7 @@ def _on_clicked_run(api: APITool):
         run(node_selection, api, settings)
 
 
-def on_graph_view_created(graph_view_id, api: APITool):
+def on_graph_view_created(graph_view_id, api: BWAPITool):
     toolbar = api.get_graph_view_toolbar(graph_view_id)
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
@@ -123,7 +123,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
     action.triggered.connect(lambda: _on_clicked_run(api))
 
 
-def on_initialize(api: APITool):
+def on_initialize(api: BWAPITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )

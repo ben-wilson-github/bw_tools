@@ -2,13 +2,13 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 import sd
-from bw_tools.common.bw_node_selection import Node, NodeSelection
+from bw_tools.common.bw_node_selection import BWNode, NodeSelection
 
 from .alignment_behavior import NodeAlignmentBehavior
 
 
 @dataclass
-class LayoutNode(Node):
+class LayoutNode(BWNode):
     _alignment_behavior: Optional[NodeAlignmentBehavior] = field(
         init=False, repr=False, default=None
     )

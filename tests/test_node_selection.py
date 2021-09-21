@@ -38,7 +38,7 @@ class TestNodeSelection(unittest.TestCase):
         ns = bw_node_selection.NodeSelection(graph.getNodes(), graph)
 
         self.assertRaises(
-            bw_node_selection.NodeNotInSelectionError, ns.node, 1
+            bw_node_selection.BWNodeNotInSelectionError, ns.node, 1
         )
 
     def test_can_get_all_nodes(self):

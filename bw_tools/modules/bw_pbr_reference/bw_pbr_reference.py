@@ -7,7 +7,7 @@ from bw_tools.common import bw_ui_tools
 from PySide2 import QtCore, QtGui, QtWidgets
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import APITool
+    from bw_tools.common.bw_api_tool import BWAPITool
 
 
 class BWColorPicker(QtWidgets.QColorDialog):
@@ -217,13 +217,13 @@ class BWPBRReference(QtWidgets.QDialog):
         self.main_layout.addWidget(bw_ui_tools.separator())
 
 
-def open_pbr_chart(api: APITool):
+def open_pbr_chart(api: BWAPITool):
     api.log.info("Opening PBR reference window")
 
     pbr_reference_dialog = BWPBRReference(parent=None)
     pbr_reference_dialog.show()
 
 
-def on_initialize(api: APITool):
+def on_initialize(api: BWAPITool):
     action = api.menu.addAction("Open PBR Chart")
     action.triggered.connect(lambda: open_pbr_chart(api))

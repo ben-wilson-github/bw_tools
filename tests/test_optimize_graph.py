@@ -1,4 +1,4 @@
-from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.common.bw_node_selection import NodeSelection
 import unittest
 from unittest.mock import Mock
@@ -44,7 +44,7 @@ class TestOptimizeGraph(unittest.TestCase):
         cls.package = cls.pkg_mgr.loadUserPackage(
             str(cls.tmp_package_file_path.resolve())
         )
-        cls.api = APITool()
+        cls.api = BWAPITool()
 
     def test_deletes_uniform_color_node(self):
         graph_name = "test_deletes_uniform_color_node"

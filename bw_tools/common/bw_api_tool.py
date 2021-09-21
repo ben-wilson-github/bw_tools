@@ -2,24 +2,22 @@ import json
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List, TypeVar
+from typing import List, Optional, TypeVar
 
 import sd
-from bw_tools.common import bw_toolbar
-from PySide2 import QtWidgets, QtGui
+from PySide2 import QtGui, QtWidgets
+from sd.api.qtforpythonuimgrwrapper import QtForPythonUIMgrWrapper
+from sd.api.sdapplication import SDApplication
+from sd.api.sdgraph import SDGraph
+from sd.api.sdgraphobject import SDGraphObject
+from sd.api.sdnode import SDNode
+from sd.api.sdpackagemgr import SDPackageMgr
+from sd.context import Context as SDContext
 
-# Types for type hinting
-TYPE_MODULES = TypeVar("TYPE_MODULES")
-SDContext = TypeVar("SDContext")
-SDNode = TypeVar("SDNode")
-SDSBSCompGraph = TypeVar("SDSBSCompGraph")
-SDSBSCompNode = TypeVar("SDSBSCompNode")
-SDProperty = TypeVar("SDProperty")
-SDConnection = TypeVar("SDConnection")
-SDGraph = TypeVar("SDGraph")
-SDSBSFunctionGraph = TypeVar("SDSBSFunctionGraph")
-SDGraphObject = TypeVar("SDGraphObject")
-SDGraphObjectFrame = TypeVar("SDGraphObjectFrame")
+from common.bw_toolbar import BWToolbar
+
+
+BW_MODULE = TypeVar("BW_MODULE")
 
 
 class CompNodeID(Enum):
@@ -32,7 +30,7 @@ class FunctionNodeId(Enum):
     DOT = "sbs::function::passthrough"
 
 
-class APITool:
+class BWAPITool:
     """
     Helper class to interface and pass various API related objects around.
 
@@ -54,37 +52,31 @@ class APITool:
     The settings will automatically be added to the settings dialog.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self):
         self.context: SDContext = sd.getContext()
-        if logger is None:
-            logger = logging.getLogger("Root")
-        self.logger: logging.RootLogger = logger
-        self.application: sd.api.sdapplication.SDApplication = (
-            self.context.getSDApplication()
-        )
-        self.ui_mgr: sd.api.sduimgr.SDUIMgr = (
+
+        self.logger: Optional[logging.RootLogger] = None
+        self.log_handler: Optional[logging.Handler] = None
+        self.application: SDApplication = self.context.getSDApplication()
+        self.ui_mgr: QtForPythonUIMgrWrapper = (
             self.application.getQtForPythonUIMgr()
         )
-        self.pkg_mgr: sd.api.sdpackagemgr.SDPackageMgr = (
-            self.application.getPackageMgr()
-        )
+        self.pkg_mgr: SDPackageMgr = self.application.getPackageMgr()
         self.main_window: QtWidgets.QMainWindow = self.ui_mgr.getMainWindow()
-        self.loaded_modules: List[TYPE_MODULES] = []
+        self.loaded_modules: List[BW_MODULE] = []
         self.menu = None
         self.callback_ids: List[int] = []
 
-        self._graph_view_toolbar_list: dict[int, bw_toolbar.BWToolbar] = dict()
+        self._graph_view_toolbar_list: dict[int, BWToolbar] = dict()
         self._menu_object_name = "bw_tools_menu_obj"
         self._menu_label = " BW Tools"
-
-        self.logger.info(f"{self.__class__.__name__} initialized.")
 
     @property
     def current_node_selection(self) -> List[SDNode]:
         return self.ui_mgr.getCurrentGraphSelectedNodes()
 
     @property
-    def current_graph(self) -> SDSBSCompGraph:
+    def current_graph(self) -> SDGraph:
         return self.ui_mgr.getCurrentGraph()
 
     @property
@@ -95,9 +87,7 @@ class APITool:
     def log(self) -> logging.RootLogger:
         return self.logger
 
-    def get_graph_view_toolbar(
-        self, graph_view_id: int
-    ) -> bw_toolbar.BWToolbar:
+    def get_graph_view_toolbar(self, graph_view_id: int) -> BWToolbar:
         try:
             toolbar = self._graph_view_toolbar_list[graph_view_id]
         except KeyError:
@@ -105,16 +95,26 @@ class APITool:
         else:
             return toolbar
 
-    def initialize(self, module: TYPE_MODULES) -> bool:
+    def initialize_logger(self):
+        self.logger = logging.getLogger("bw_tools")
+        self.log_handler = sd.getContext().createRuntimeLogHandler()
+        self.logger.propagate = False
+        self.logger.addHandler(self.log_handler)
+        self.logger.setLevel(logging.DEBUG)
+
+    def uninitialize_logger(self):
+        self.logger.removeHandler(self.log_handler)
+        self.log_handler = None
+
+    def initialize(self, module: BW_MODULE) -> bool:
         """Initialize a module by calling the modules .on_initialize()"""
         if module.__name__ not in self.loaded_modules:
             try:
-                self.logger.info(f"Initializing module {module.__name__}...")
                 module.on_initialize(self)
             except AttributeError:
                 self.logger.warning(
                     f"Unable to initialize module {module.__name__}, "
-                    f"on_initialize() has not been implemented correctly."
+                    f"on_initialize() has not been implemented correctly"
                 )
                 return False
 
@@ -122,7 +122,7 @@ class APITool:
                 -1
             ]  # Strips module path and returns the name
             self.loaded_modules.append(name)
-            self.logger.info(f"Initialized module {name}.")
+            self.logger.info(f"Initialized module {name}")
 
             try:
                 default_settings = module.get_default_settings()
@@ -146,7 +146,7 @@ class APITool:
 
             return True
 
-    def unload(self, module: TYPE_MODULES) -> bool:
+    def unload(self, module: BW_MODULE) -> bool:
         if module.__name__ not in self.loaded_modules:
             return False
 
@@ -154,7 +154,7 @@ class APITool:
         self.loaded_modules.remove(module.__name__)
 
     def add_menu(self):
-        self.logger.debug("Creating menu")
+        self.logger.debug("Creating BW Tools menu...")
         self.menu = self.ui_mgr.newMenu(
             self._menu_label, self._menu_object_name
         )
@@ -171,10 +171,8 @@ class APITool:
         self.callback_ids.append(graph_view_id)
         return graph_view_id
 
-    def create_graph_view_toolbar(
-        self, graph_view_id: int
-    ) -> bw_toolbar.BWToolbar:
-        toolbar = bw_toolbar.BWToolbar(self.main_window)
+    def create_graph_view_toolbar(self, graph_view_id: int) -> BWToolbar:
+        toolbar = BWToolbar(self.main_window)
         icon = Path(__file__).parent / "resources/bw_tools_icon.png"
         self.ui_mgr.addToolbarToGraphView(
             graph_view_id,

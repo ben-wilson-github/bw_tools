@@ -130,7 +130,7 @@ class MainlineAligner:
         cds = self.get_chain_dimensions_ignore_branches(node_list)
         if len(cds) == 0:
             return None
-        cd: bw_chain_dimension.ChainDimension = min(
+        cd: bw_chain_dimension.BWChainDimension = min(
             cds, key=attrgetter("bounds.left")
         )
         return cd.bounds.left
@@ -174,7 +174,7 @@ class MainlineAligner:
             return potential_mainline_nodes[0]
 
         cds: List[
-            bw_chain_dimension.ChainDimension
+            bw_chain_dimension.BWChainDimension
         ] = self.get_chain_dimensions_for_inputs(node)
 
         # For pleasing visual, do not consider chains
@@ -209,7 +209,7 @@ class MainlineAligner:
     def get_chain_dimensions_ignore_branches(
         self,
         nodes: List[LayoutNode],
-    ) -> List[bw_chain_dimension.ChainDimension]:
+    ) -> List[bw_chain_dimension.BWChainDimension]:
         cds = list()
         for node in nodes:
             node_list = self.get_input_nodes_ignore_branches(node)
@@ -217,7 +217,7 @@ class MainlineAligner:
                 cd = bw_chain_dimension.calculate_chain_dimension(
                     node, node_list
                 )
-            except bw_chain_dimension.NotInChainError:
+            except bw_chain_dimension.BWNotInChainError:
                 continue
             cds.append(cd)
         return cds
@@ -225,7 +225,7 @@ class MainlineAligner:
     def get_chain_dimensions_for_inputs(
         self,
         output_node: LayoutNode,
-    ) -> List[bw_chain_dimension.ChainDimension]:
+    ) -> List[bw_chain_dimension.BWChainDimension]:
         node_lists = self.calculate_node_lists_for_inputs(output_node)
         if len(node_lists) < 2:
             return []

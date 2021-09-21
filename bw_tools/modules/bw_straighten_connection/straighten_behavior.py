@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Union
 
 from bw_tools.common.bw_api_tool import SDSBSCompGraph, SDSBSFunctionGraph
-from bw_tools.common.bw_node import Float2
+from bw_tools.common.bw_node import BWFloat2
 
 from .straighten_node import StraightenNode
 
@@ -53,7 +53,7 @@ class AbstractStraightenBehavior(ABC):
         data: StraightenNode,
         index: int,
         settings: StraightenSettings,
-    ) -> Float2:
+    ) -> BWFloat2:
         pass
 
     @abstractmethod
@@ -154,9 +154,9 @@ class BreakAtTarget(AbstractStraightenBehavior):
         data: StraightenConnectionData,
         i: int,
         settings: StraightenSettings,
-    ) -> Float2:
+    ) -> BWFloat2:
         if source_node.is_dot:
-            return Float2(
+            return BWFloat2(
                 target_node.pos.x - settings.dot_node_distance,
                 source_node.pos.y,
             )
@@ -171,7 +171,7 @@ class BreakAtTarget(AbstractStraightenBehavior):
 
         mid_point = (source_node.pos.y + lower_bound) / 2
         offset = source_node.pos.y - mid_point
-        return Float2(
+        return BWFloat2(
             target_node.pos.x - settings.dot_node_distance, pos[i] + offset
         )
 
@@ -289,8 +289,8 @@ class BreakAtSource(AbstractStraightenBehavior):
         data: StraightenConnectionData,
         i: int,
         settings: StraightenSettings,
-    ) -> Float2:
-        return Float2(
+    ) -> BWFloat2:
+        return BWFloat2(
             target_node.pos.x - settings.dot_node_distance, source_node.pos.y
         )
 

@@ -11,7 +11,7 @@ from bw_tools.common.bw_api_tool import (
     SDConnection,
     CompNodeID,
 )
-from bw_tools.common.bw_node import Float2
+from bw_tools.common.bw_node import BWFloat2
 from bw_tools.modules.bw_settings.bw_settings import ModuleSettings
 from PySide2 import QtGui
 from sd.api.sdhistoryutils import SDHistoryUtils
@@ -20,7 +20,7 @@ from .straighten_behavior import BreakAtSource, BreakAtTarget
 from .straighten_node import StraightenNode
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import APITool
+    from bw_tools.common.bw_api_tool import BWAPITool
     from .straighten_behavior import AbstractStraightenBehavior
 
 STRIDE = 21.33  # Magic number between each input slot
@@ -134,7 +134,7 @@ def _create_base_dot_nodes(
         )
         data.base_dot_node[i] = dot_node
 
-        pos = Float2(
+        pos = BWFloat2(
             source_node.pos.x + settings.dot_node_distance,
             source_node.pos.y + (STRIDE * stack_index),
         )
@@ -190,7 +190,7 @@ def _insert_target_dot_nodes(
                     ),
                     source_node.graph,
                 )
-                new_dot_node_pos: Float2 = behavior.get_position_target_dot(
+                new_dot_node_pos: BWFloat2 = behavior.get_position_target_dot(
                     dot_node,
                     output_node,
                     data,
@@ -253,7 +253,7 @@ def _get_source_property_from_connection(
 
 
 def on_clicked_straighten_connection(
-    api: APITool, behavior: AbstractStraightenBehavior
+    api: BWAPITool, behavior: AbstractStraightenBehavior
 ):
     with SDHistoryUtils.UndoGroup("Straighten Connection Undo Group"):
         api.logger.info("Running straighten connection")
@@ -271,7 +271,7 @@ def on_clicked_straighten_connection(
             run_straighten_connection(node, behavior, settings)
 
 
-def on_clicked_remove_dot_nodes_from_selection(api: APITool):
+def on_clicked_remove_dot_nodes_from_selection(api: BWAPITool):
     with SDHistoryUtils.UndoGroup("Remove Dot Nodes Undo Group"):
         api.logger.info("Running remove dot nodes from selection")
 
@@ -284,7 +284,7 @@ def on_clicked_remove_dot_nodes_from_selection(api: APITool):
             node.delete_output_dot_nodes()
 
 
-def on_graph_view_created(graph_view_id, api: APITool):
+def on_graph_view_created(graph_view_id, api: BWAPITool):
     toolbar = api.get_graph_view_toolbar(graph_view_id)
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
@@ -338,7 +338,7 @@ def on_graph_view_created(graph_view_id, api: APITool):
     )
 
 
-def on_initialize(api: APITool):
+def on_initialize(api: BWAPITool):
     api.register_on_graph_view_created_callback(
         partial(on_graph_view_created, api=api)
     )

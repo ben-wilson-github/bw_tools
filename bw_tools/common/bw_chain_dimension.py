@@ -4,21 +4,21 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Union
 
 if TYPE_CHECKING:
-    from bw_tools.common import bw_node
+    from bw_tools.common.bw_node import BWNode
 
 
-class OutOfBoundsError(ValueError):
+class BWOutOfBoundsError(ValueError):
     def __init__(self):
         super().__init__("Node not in bounds.")
 
 
-class NotInChainError(AttributeError):
+class BWNotInChainError(AttributeError):
     def __init__(self):
         super().__init__("Node is not in chain.")
 
 
 @dataclass()
-class Bound:
+class BWBound:
     left: Union[float, None] = None
     right: Union[float, None] = None
     upper: Union[float, None] = None
@@ -26,12 +26,12 @@ class Bound:
 
 
 @dataclass()
-class ChainDimension:
-    bounds: Bound = field(init=False, default_factory=Bound, repr=False)
-    left_node: bw_node.Node = field(init=False, default=None)
-    right_node: bw_node.Node = field(init=False, default=None)
-    upper_node: bw_node.Node = field(init=False, default=None, repr=False)
-    lower_node: bw_node.Node = field(init=False, default=None, repr=False)
+class BWChainDimension:
+    bounds: BWBound = field(init=False, default_factory=BWBound, repr=False)
+    left_node: BWNode = field(init=False, default=None)
+    right_node: BWNode = field(init=False, default=None)
+    upper_node: BWNode = field(init=False, default=None, repr=False)
+    lower_node: BWNode = field(init=False, default=None, repr=False)
     node_count: int = 0
 
     @property
@@ -39,9 +39,9 @@ class ChainDimension:
         return self.bounds.right - self.bounds.left
 
 
-def node_in_bounds(node: bw_node.Node, bounds: Bound):
+def node_in_bounds(node: BWNode, bounds: BWBound):
     # Setup testing bounds
-    testing_bounds = Bound(
+    testing_bounds = BWBound(
         left=bounds.left,
         right=bounds.right,
         upper=bounds.upper,
@@ -71,10 +71,10 @@ def node_in_bounds(node: bw_node.Node, bounds: Bound):
 
 
 def calculate_chain_dimension(
-    node: bw_node.Node,
-    selection: List[bw_node.Node],
-    limit_bounds: Bound = Bound,
-) -> ChainDimension:
+    node: BWNode,
+    selection: List[BWNode],
+    limit_bounds: BWBound = BWBound,
+) -> BWChainDimension:
     """
     Caluclates the bounds of the input chain of a node, given a list of nodes
     in a selection.
@@ -93,12 +93,12 @@ def calculate_chain_dimension(
     """
 
     if node not in selection:
-        raise NotInChainError()
+        raise BWNotInChainError()
     if not node_in_bounds(node, limit_bounds):
-        raise OutOfBoundsError()
+        raise BWOutOfBoundsError()
 
-    cd = ChainDimension()
-    cd.bounds = Bound(
+    cd = BWChainDimension()
+    cd.bounds = BWBound(
         right=node.pos.x + (node.width / 2),
         left=node.pos.x - (node.width / 2),
         lower=node.pos.y + (node.height / 2),

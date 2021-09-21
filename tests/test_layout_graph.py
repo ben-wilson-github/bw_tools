@@ -8,7 +8,7 @@ from unittest.mock import Mock
 
 import sd
 from bw_tools.common import bw_node_selection
-from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.modules.bw_layout_graph import bw_layout_graph
 from bw_tools.modules.bw_layout_graph.layout_node import (
     LayoutNode,
@@ -188,7 +188,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         cls.settings = [s1, s2, s3, s4, s5, s6, s7, s8, s9]
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
-        cls.api = APITool()
+        cls.api = BWAPITool()
 
         for i, tmp_file in enumerate(tmp_file_paths):
             if not tmp_file.parent.is_dir():

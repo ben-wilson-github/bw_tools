@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import sd
-from bw_tools.common.bw_api_tool import APITool, FunctionNodeId
+from bw_tools.common.bw_api_tool import BWAPITool, FunctionNodeId
 from bw_tools.modules.bw_straighten_connection import bw_straighten_connection
 from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
     BreakAtSource,
@@ -43,7 +43,7 @@ class TestStraightenConnection(unittest.TestCase):
         cls.settings.dot_node_distance = 128
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
-        cls.api = APITool()
+        cls.api = BWAPITool()
 
         if not tmp_file_path.parent.is_dir():
             tmp_file_path.parent.mkdir()

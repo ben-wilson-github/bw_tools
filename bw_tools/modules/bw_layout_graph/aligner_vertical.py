@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Tuple
 
 from bw_tools.common import bw_chain_dimension
-from bw_tools.common.bw_node import Float2
+from bw_tools.common.bw_node import BWFloat2
 
 if TYPE_CHECKING:
     from .alignment_behavior import PostAlignmentBehavior
@@ -59,7 +59,7 @@ class VerticalAligner:
             else:
                 self.align_below_shortest_chain_dimension(input_node, node, i)
                 if input_node.alignment_behavior.offset_node is node:
-                    new_pos = Float2(input_node.pos.x, input_node.pos.y)
+                    new_pos = BWFloat2(input_node.pos.x, input_node.pos.y)
                     input_node.alignment_behavior.update_offset(new_pos)
                 input_node.update_all_chain_positions()
                 if node.identifier == 1:
@@ -110,9 +110,9 @@ class VerticalAligner:
         self,
         node_to_move: LayoutNode,
         node_above: LayoutNode,
-        node_to_move_chain: bw_chain_dimension.ChainDimension,
-        node_above_chain: bw_chain_dimension.ChainDimension,
-    ) -> bw_chain_dimension.ChainDimension:
+        node_to_move_chain: bw_chain_dimension.BWChainDimension,
+        node_above_chain: bw_chain_dimension.BWChainDimension,
+    ) -> bw_chain_dimension.BWChainDimension:
         node_to_move_cd = bw_chain_dimension.calculate_chain_dimension(
             node_to_move, node_to_move_chain
         )
@@ -123,9 +123,9 @@ class VerticalAligner:
 
     @staticmethod
     def get_smaller_chain(
-        a_cd: bw_chain_dimension.ChainDimension,
-        b_cd: bw_chain_dimension.ChainDimension,
-    ) -> bw_chain_dimension.ChainDimension:
+        a_cd: bw_chain_dimension.BWChainDimension,
+        b_cd: bw_chain_dimension.BWChainDimension,
+    ) -> bw_chain_dimension.BWChainDimension:
         smallest = a_cd
         if a_cd.bounds.left > b_cd.bounds.left:
             smallest = a_cd
@@ -141,11 +141,11 @@ class VerticalAligner:
     @staticmethod
     def calculate_upper_bounds(
         node_to_move: LayoutNode,
-        node_to_move_chain: bw_chain_dimension.ChainDimension,
-        smallest_cd: bw_chain_dimension.ChainDimension,
+        node_to_move_chain: bw_chain_dimension.BWChainDimension,
+        smallest_cd: bw_chain_dimension.BWChainDimension,
     ) -> float:
         try:
-            limit_bounds = bw_chain_dimension.Bound(
+            limit_bounds = bw_chain_dimension.BWBound(
                 left=smallest_cd.bounds.left
             )
             upper_bound_cd = bw_chain_dimension.calculate_chain_dimension(
@@ -153,7 +153,7 @@ class VerticalAligner:
                 selection=node_to_move_chain,
                 limit_bounds=limit_bounds,
             )
-        except bw_chain_dimension.OutOfBoundsError:
+        except bw_chain_dimension.BWOutOfBoundsError:
             # This occurs when the node to move is behind the chain above.
             # This happens because the node to move is a root
             return node_to_move.pos.y - node_to_move.height / 2
@@ -163,17 +163,17 @@ class VerticalAligner:
     @staticmethod
     def calculate_lower_bounds(
         node_above: LayoutNode,
-        node_above_chain: bw_chain_dimension.ChainDimension,
-        smallest_cd: bw_chain_dimension.ChainDimension,
+        node_above_chain: bw_chain_dimension.BWChainDimension,
+        smallest_cd: bw_chain_dimension.BWChainDimension,
     ) -> float:
         try:
-            limit_bounds = bw_chain_dimension.Bound(
+            limit_bounds = bw_chain_dimension.BWBound(
                 left=smallest_cd.bounds.left
             )
             lower_bound_cd = bw_chain_dimension.calculate_chain_dimension(
                 node_above, selection=node_above_chain, limit_bounds=limit_bounds
             )
-        except bw_chain_dimension.OutOfBoundsError:
+        except bw_chain_dimension.BWOutOfBoundsError:
             # This can also happen when the node above is a root
             return node_above.pos.y + node_above.height / 2
         else:

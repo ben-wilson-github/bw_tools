@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from pathlib import Path
 
 import sd
-from bw_tools.common.bw_api_tool import APITool
+from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.modules.bw_framer import bw_framer
 
 
@@ -43,7 +43,7 @@ class TestFramer(unittest.TestCase):
         cls.package = pkg_mgr.loadUserPackage(
             str(tmp_package_file_path.resolve())
         )
-        cls.api = APITool()
+        cls.api = BWAPITool()
 
     def test_deletes_multiple_frames(self):
         print("...test_deletes_multiple_frames")

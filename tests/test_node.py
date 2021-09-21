@@ -8,7 +8,7 @@ from bw_tools.common import bw_node, bw_node_selection
 class TestNodePosition(unittest.TestCase):
     def test_x_y(self):
         print("...test_x_y")
-        pos = bw_node.Float2(0.0, 5.5)
+        pos = bw_node.BWFloat2(0.0, 5.5)
         self.assertEqual(0.0, pos.x)
         self.assertEqual(5.5, pos.y)
 
@@ -37,7 +37,7 @@ class TestNode(unittest.TestCase):
         node_without_label = graph.getNodeFromId("1421672096")
 
         for api_node in [node_with_label, node_without_label]:
-            n = bw_node.Node(api_node)
+            n = bw_node.BWNode(api_node)
             self.assertEqual(n.label, api_node.getDefinition().getLabel())
 
     def test_identifier_is_int(self):
@@ -46,7 +46,7 @@ class TestNode(unittest.TestCase):
         graph = self.package.findResourceFromUrl(graph_name)
 
         api_node = graph.getNodeFromId("1421672046")
-        n = bw_node.Node(api_node)
+        n = bw_node.BWNode(api_node)
         self.assertEqual(n.identifier, 1421672046)
         self.assertIsInstance(n.identifier, int)
 
@@ -55,12 +55,12 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        n1 = bw_node.Node(graph.getNodeFromId("1421683595"))
-        n2 = bw_node.Node(graph.getNodeFromId("1421683597"))
-        n3 = bw_node.Node(graph.getNodeFromId("1421683600"))
-        n4 = bw_node.Node(graph.getNodeFromId("1421683604"))
-        n5 = bw_node.Node(graph.getNodeFromId("1421683609"))
-        n6 = bw_node.Node(graph.getNodeFromId("1421683615"))
+        n1 = bw_node.BWNode(graph.getNodeFromId("1421683595"))
+        n2 = bw_node.BWNode(graph.getNodeFromId("1421683597"))
+        n3 = bw_node.BWNode(graph.getNodeFromId("1421683600"))
+        n4 = bw_node.BWNode(graph.getNodeFromId("1421683604"))
+        n5 = bw_node.BWNode(graph.getNodeFromId("1421683609"))
+        n6 = bw_node.BWNode(graph.getNodeFromId("1421683615"))
         nodes = [n1, n2, n3, n4, n5, n6]
         expected = [96.0, 96.0, 96.0, 117.4, 138.8, 160.2]
 
@@ -72,7 +72,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        node = bw_node.Node(graph.getNodes()[0])
+        node = bw_node.BWNode(graph.getNodes()[0])
         self.assertEqual(node.width, 96.0)
 
     def test_output_nodes_no_output(self):
@@ -80,7 +80,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        node = bw_node.Node(graph.getNodes()[0])
+        node = bw_node.BWNode(graph.getNodes()[0])
         self.assertEqual(node.output_node_count, 0)
         self.assertEqual(len(node.output_nodes), 0)
 
@@ -150,7 +150,7 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        node = bw_node.Node(graph.getNodes()[0])
+        node = bw_node.BWNode(graph.getNodes()[0])
         self.assertEqual(node.input_node_count, 0)
         self.assertEqual(len(node.input_nodes), 0)
 
@@ -237,8 +237,8 @@ class TestNode(unittest.TestCase):
         print(f"...{graph_name}")
         graph = self.package.findResourceFromUrl(graph_name)
 
-        node = bw_node.Node(graph.getNodeFromId("1421710269"))
-        dot = bw_node.Node(graph.getNodeFromId("1421710175"))
+        node = bw_node.BWNode(graph.getNodeFromId("1421710269"))
+        dot = bw_node.BWNode(graph.getNodeFromId("1421710175"))
         self.assertFalse(node.is_dot)
         self.assertTrue(dot.is_dot)
 
@@ -295,7 +295,7 @@ class TestNode(unittest.TestCase):
         api_node = graph.getNodes()[0]
         api_node.setPosition(sd.api.sdbasetypes.float2(100, 100))
 
-        node = bw_node.Node(api_node)
+        node = bw_node.BWNode(api_node)
         node.set_position(0, 0)
 
         self.assertEqual(api_node.getPosition().x, node.pos.x)

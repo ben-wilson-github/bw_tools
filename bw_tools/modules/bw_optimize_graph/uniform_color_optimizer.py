@@ -9,7 +9,7 @@ from sd.api.sdproperty import SDPropertyInheritanceMethod
 from . import optimizer
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_node import Node
+    from bw_tools.common.bw_node import BWNode
 
 
 @dataclass
@@ -24,7 +24,7 @@ class UniformOptimizer(optimizer.Optimizer):
             self._optimize_output_size(node)
         self.optimized_count = len(uniform_color_nodes)
 
-    def _optimize_output_size(self, node: Node):
+    def _optimize_output_size(self, node: BWNode):
         self._set_output_size(node, 4)
         self._set_connected_output_nodes_inheritance_method(
             node, SDPropertyInheritanceMethod.RelativeToParent

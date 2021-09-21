@@ -11,10 +11,10 @@ from bw_tools.common.bw_api_tool import (
 from sd.api.sdproperty import SDPropertyCategory
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_node import Node
+    from bw_tools.common.bw_node import BWNode
 
 
-def input_properties_match(node: Node, other: Node) -> bool:
+def input_properties_match(node: BWNode, other: BWNode) -> bool:
     for other_property in other.api_node.getProperties(
         SDPropertyCategory.Input
     ):
@@ -42,8 +42,8 @@ def input_properties_match(node: Node, other: Node) -> bool:
 
 
 def _has_same_inputs(
-    node: Node,
-    other: Node,
+    node: BWNode,
+    other: BWNode,
     node_property: SDProperty,
     other_property: SDProperty,
 ) -> bool:
@@ -64,19 +64,19 @@ def _has_same_inputs(
 
 
 def get_matching_input_property(
-    node: Node, property: SDProperty
+    node: BWNode, property: SDProperty
 ) -> Optional[SDProperty]:
     return _get_matching_property(node, property, SDPropertyCategory.Input)
 
 
 def get_matching_output_property(
-    node: Node, property: SDProperty
+    node: BWNode, property: SDProperty
 ) -> Optional[SDProperty]:
     return _get_matching_property(node, property, SDPropertyCategory.Output)
 
 
 def _get_matching_property(
-    node: Node, property: SDProperty, category: SDPropertyCategory
+    node: BWNode, property: SDProperty, category: SDPropertyCategory
 ) -> Optional[SDProperty]:
     node_property = node.api_node.getPropertyFromId(property.getId(), category)
     if node_property:
@@ -84,7 +84,7 @@ def _get_matching_property(
     return None
 
 
-def _get_exposed_graph(node: Node, property: SDProperty) -> Optional[SDGraph]:
+def _get_exposed_graph(node: BWNode, property: SDProperty) -> Optional[SDGraph]:
     return node.api_node.getPropertyGraph(property)
 
 
@@ -108,7 +108,7 @@ def _get_connected_nodes_from_connections(
     return tuple(connected_nodes), tuple(other_connected_nodes)
 
 
-def _values_match(node: Node, other_node: Node, property: SDProperty) -> bool:
+def _values_match(node: BWNode, other_node: BWNode, property: SDProperty) -> bool:
     value = node.api_node.getInputPropertyValueFromId(property.getId())
     if value is not None:
         value = value.get()
