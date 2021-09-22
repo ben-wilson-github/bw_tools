@@ -1,28 +1,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import List, Type
 
-import sd
-from bw_tools.common.bw_api_tool import (
-    SDConnection,
-    SDProperty,
-    SDSBSCompGraph,
-    SDSBSFunctionGraph
-)
-from bw_tools.common.bw_node import BWNode
+from common.bw_node import BWNode
+from sd.api.sdconnection import SDConnection
+from sd.api.sdgraph import SDGraph
+from sd.api.sdproperty import SDProperty, SDPropertyCategory
 
 STRIDE = 21.33  # Magic number between each input slot
 
 
 @dataclass
-class StraightenNode(BWNode):
-    graph: Union[SDSBSCompGraph, SDSBSFunctionGraph] = field(repr=False)
+class BWStraightenNode(BWNode):
+    graph: Type[SDGraph] = field(repr=False)
 
     def delete_output_dot_nodes(self):
         for prop in self.output_connectable_properties:
+            con: SDConnection
             for con in self.api_node.getPropertyConnections(prop):
-                dot_node = StraightenNode(
+                dot_node = BWStraightenNode(
                     con.getInputPropertyNode(), self.graph
                 )
                 if not dot_node.is_dot:
@@ -35,7 +32,7 @@ class StraightenNode(BWNode):
                 self.graph.deleteNode(dot_node.api_node)
 
     def _rebuild_deleted_dot_connection(
-        self, dot_node: StraightenNode, input_node_property: SDProperty
+        self, dot_node: BWStraightenNode, input_node_property: SDProperty
     ):
         output_node_connections = (
             dot_node._get_connected_output_connections_for_property_id(
@@ -60,7 +57,7 @@ class StraightenNode(BWNode):
         self, api_property_id: str
     ) -> List[SDConnection]:
         p = self.api_node.getPropertyFromId(
-            api_property_id, sd.api.sdproperty.SDPropertyCategory.Output
+            api_property_id, SDPropertyCategory.Output
         )
         return [con for con in self.api_node.getPropertyConnections(p)]
 
@@ -71,7 +68,9 @@ class StraightenNode(BWNode):
             con for con in self.api_node.getPropertyConnections(api_property)
         ]
 
-    def indices_in_target_node(self, target_node: StraightenNode) -> List[int]:
+    def indices_in_target_node(
+        self, target_node: BWStraightenNode
+    ) -> List[int]:
         return [
             i
             for i, p in enumerate(target_node.input_connectable_properties)

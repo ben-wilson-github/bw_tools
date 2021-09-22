@@ -19,7 +19,7 @@ from PySide2 import QtGui, QtWidgets
 from sd.api.sdhistoryutils import SDHistoryUtils
 
 
-class OptimizeSettings(BWModuleSettings):
+class BWOptimizeSettings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
@@ -33,7 +33,7 @@ class OptimizeSettings(BWModuleSettings):
 
 
 def run(
-    node_selection: BWNodeSelection, api: BWAPITool, settings: OptimizeSettings
+    node_selection: BWNodeSelection, api: BWAPITool, settings: BWOptimizeSettings
 ):
     if node_selection.node_count == 0:
         return
@@ -99,7 +99,7 @@ def _on_clicked_run(api: BWAPITool):
             api.current_node_selection, api.current_graph
         )
 
-        settings = OptimizeSettings(
+        settings = BWOptimizeSettings(
             Path(__file__).parent / "bw_optimize_graph_settings.json"
         )
 
@@ -111,7 +111,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
 
-    settings = OptimizeSettings(
+    settings = BWOptimizeSettings(
         Path(__file__).parent / "bw_optimize_graph_settings.json"
     )
 

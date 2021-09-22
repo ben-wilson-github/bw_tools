@@ -13,13 +13,13 @@ if TYPE_CHECKING:
     from bw_tools.common.bw_node import BWNode
     from bw_tools.common.bw_node_selection import BWNodeSelection
 
-    from .bw_optimize_graph import OptimizeSettings
+    from .bw_optimize_graph import BWOptimizeSettings
 
 
 @dataclass
 class Optimizer:
     node_selection: BWNodeSelection
-    settings: OptimizeSettings
+    settings: BWOptimizeSettings
     deleted_count: int = 0
 
     def delete_duplicate_nodes(self, node_dict: Dict[BWNode, List[BWNode]]):

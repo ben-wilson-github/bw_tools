@@ -3,71 +3,71 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List, Type
 
-from bw_tools.common.bw_api_tool import SDSBSCompGraph, SDSBSFunctionGraph
-from bw_tools.common.bw_node import BWFloat2
+from common.bw_node import BWFloat2
+from sd.api.sdgraph import SDGraph
 
-from .straighten_node import StraightenNode
+from .straighten_node import BWStraightenNode
 
 if TYPE_CHECKING:
     from .bw_straighten_connection import (
-        StraightenConnectionData,
-        StraightenSettings,
+        BWStraightenConnectionData,
+        BWStraightenSettings,
     )
 
 STRIDE = 21.33  # Magic number between each input slot
 
 
 @dataclass
-class AbstractStraightenBehavior(ABC):
-    graph: Union[SDSBSCompGraph, SDSBSFunctionGraph]
+class BWAbstractStraightenBehavior(ABC):
+    graph: Type[SDGraph]
 
     @abstractmethod
     def should_create_base_dot_node(
         self,
-        source_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> bool:
         pass
 
     @abstractmethod
     def should_create_target_dot_node(
         self,
-        source_node: StraightenNode,
-        dot_node: StraightenNode,
-        target_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        dot_node: BWStraightenNode,
+        target_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> bool:
         pass
 
     @abstractmethod
     def get_position_target_dot(
         self,
-        source_node: StraightenNode,
-        target_node: StraightenNode,
-        data: StraightenNode,
+        source_node: BWStraightenNode,
+        target_node: BWStraightenNode,
+        data: BWStraightenNode,
         index: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> BWFloat2:
         pass
 
     @abstractmethod
     def align_base_dot_node(
         self,
-        source_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ):
         pass
 
     def _get_position_of_top_index_in_target(
-        self, source_node: StraightenNode, target_node: StraightenNode
+        self, source_node: BWStraightenNode, target_node: BWStraightenNode
     ) -> float:
         offset = (
             self._calculate_mid_point_for_input_connections_in_target_node(
@@ -82,7 +82,7 @@ class AbstractStraightenBehavior(ABC):
         return target_node.pos.y + offset + (STRIDE * top_index_in_target)
 
     def _calculate_mid_point_for_input_connections_in_target_node(
-        self, target_node: StraightenNode
+        self, target_node: BWStraightenNode
     ) -> float:
         lower_bound = target_node.pos.y
         # Stack positions
@@ -94,13 +94,13 @@ class AbstractStraightenBehavior(ABC):
         return target_node.pos.y - mid_point
 
 
-class BWBreakAtTarget(AbstractStraightenBehavior):
+class BWBreakAtTarget(BWAbstractStraightenBehavior):
     def should_create_base_dot_node(
         self,
-        source_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> bool:
         potential_pos = source_node.pos.x + settings.dot_node_distance
         output_node = data.output_nodes[i][0]
@@ -125,12 +125,12 @@ class BWBreakAtTarget(AbstractStraightenBehavior):
 
     def should_create_target_dot_node(
         self,
-        source_node: StraightenNode,
-        dot_node: StraightenNode,
-        target_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        dot_node: BWStraightenNode,
+        target_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> bool:
         potential_pos = dot_node.pos.x + settings.dot_node_distance
         limit = target_node.pos.x - settings.dot_node_distance
@@ -149,11 +149,11 @@ class BWBreakAtTarget(AbstractStraightenBehavior):
 
     def get_position_target_dot(
         self,
-        source_node: StraightenNode,
-        target_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        target_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> BWFloat2:
         if source_node.is_dot:
             return BWFloat2(
@@ -177,10 +177,10 @@ class BWBreakAtTarget(AbstractStraightenBehavior):
 
     def align_base_dot_node(
         self,
-        source_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ):
         data.base_dot_node[i].set_position(
             data.base_dot_node[i].pos.x,
@@ -189,7 +189,7 @@ class BWBreakAtTarget(AbstractStraightenBehavior):
         )
 
     def _calculate_offset(
-        self, source_node: StraightenNode, data: StraightenConnectionData
+        self, source_node: BWStraightenNode, data: BWStraightenConnectionData
     ) -> float:
         base_root_nodes = [
             data.base_dot_node[j]
@@ -200,13 +200,13 @@ class BWBreakAtTarget(AbstractStraightenBehavior):
         return source_node.pos.y - mid_point
 
 
-class BWBreakAtSource(AbstractStraightenBehavior):
+class BWBreakAtSource(BWAbstractStraightenBehavior):
     def should_create_base_dot_node(
         self,
-        source_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> bool:
         potential_pos = source_node.pos.x + settings.dot_node_distance
         # Should only create if some of the output nodes are far
@@ -247,12 +247,12 @@ class BWBreakAtSource(AbstractStraightenBehavior):
 
     def should_create_target_dot_node(
         self,
-        source_node: StraightenNode,
-        dot_node: StraightenNode,
-        target_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        dot_node: BWStraightenNode,
+        target_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> bool:
         potential_pos = dot_node.pos.x + settings.dot_node_distance
         limit = target_node.pos.x - settings.dot_node_distance
@@ -284,11 +284,11 @@ class BWBreakAtSource(AbstractStraightenBehavior):
 
     def get_position_target_dot(
         self,
-        source_node: StraightenNode,
-        target_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        target_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> BWFloat2:
         return BWFloat2(
             target_node.pos.x - settings.dot_node_distance, source_node.pos.y
@@ -296,10 +296,10 @@ class BWBreakAtSource(AbstractStraightenBehavior):
 
     def align_base_dot_node(
         self,
-        source_node: StraightenNode,
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> None:
 
         output_nodes_in_front = [
@@ -329,11 +329,11 @@ class BWBreakAtSource(AbstractStraightenBehavior):
 
     def _calculate_mid_point_from_output_nodes(
         self,
-        source_node: StraightenNode,
-        output_nodes: List[StraightenNode],
-        data: StraightenConnectionData,
+        source_node: BWStraightenNode,
+        output_nodes: List[BWStraightenNode],
+        data: BWStraightenConnectionData,
         i: int,
-        settings: StraightenSettings,
+        settings: BWStraightenSettings,
     ) -> float:
         if len(output_nodes) == 1:
             return output_nodes[0].pos.y

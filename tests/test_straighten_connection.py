@@ -17,7 +17,7 @@ from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
     BWBreakAtTarget,
 )
 from bw_tools.modules.bw_straighten_connection.straighten_node import (
-    StraightenNode,
+    BWStraightenNode,
 )
 from PIL import Image, ImageChops
 from sd.tools.export import exportSDGraphOutputs
@@ -346,7 +346,7 @@ class TestStraightenConnection(unittest.TestCase):
         _run_straighten(result_graph, behavior, settings)
 
         results_nodes = [
-            StraightenNode(n, result_graph) for n in result_graph.getNodes()
+            BWStraightenNode(n, result_graph) for n in result_graph.getNodes()
         ]
         for result_node in results_nodes:
             self.assertTrue(
@@ -419,7 +419,7 @@ def _run_render_textures(
 def _run_straighten(graph, behavior, settings):
     for node in graph.getNodes():
         try:
-            node = StraightenNode(node, graph)
+            node = BWStraightenNode(node, graph)
         except AttributeError:
             # Occurs if the dot node was previously removed
             continue

@@ -3,30 +3,32 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Type
 
-import sd
-from bw_tools.common.bw_api_tool import (
-    FunctionNodeId,
-    SDConnection,
-    CompNodeID,
-)
-from bw_tools.common.bw_node import BWFloat2
-from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
-from PySide2 import QtGui
+from common.bw_api_tool import CompNodeID, FunctionNodeId
+from common.bw_node import BWFloat2
+from modules.bw_settings.bw_settings import BWModuleSettings
+from PySide2.QtGui import QIcon, QKeySequence
+from PySide2.QtWidgets import QAction
+from sd.api.sbs.sdsbsfunctiongraph import SDSBSFunctionGraph
+from sd.api.sdconnection import SDConnection
+from sd.api.sdgraph import SDGraph
 from sd.api.sdhistoryutils import SDHistoryUtils
+from sd.api.sdproperty import SDProperty, SDPropertyCategory
 
 from .straighten_behavior import BWBreakAtSource, BWBreakAtTarget
-from .straighten_node import StraightenNode
+from .straighten_node import BWStraightenNode
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import BWAPITool
-    from .straighten_behavior import AbstractStraightenBehavior
+    from common.bw_api_tool import BWAPITool
+
+    from .straighten_behavior import BWAbstractStraightenBehavior
+
 
 STRIDE = 21.33  # Magic number between each input slot
 
 
-class StraightenSettings(BWModuleSettings):
+class BWStraightenSettings(BWModuleSettings):
     def __init__(self, file_path: Path):
         super().__init__(file_path)
         self.target_hotkey: str = self.get("Break At Target Hotkey;value")
@@ -38,17 +40,19 @@ class StraightenSettings(BWModuleSettings):
 
 
 @dataclass
-class StraightenConnectionData:
+class BWStraightenConnectionData:
     connection: Dict[int, List[SDConnection]] = field(default_factory=dict)
-    base_dot_node: Dict[int, StraightenNode] = field(default_factory=dict)
+    base_dot_node: Dict[int, BWStraightenNode] = field(default_factory=dict)
     properties_with_outputs_count: int = 0
-    output_nodes: Dict[int, List[StraightenNode]] = field(default_factory=dict)
+    output_nodes: Dict[int, List[BWStraightenNode]] = field(
+        default_factory=dict
+    )
 
 
 def run_straighten_connection(
-    node: StraightenNode,
-    behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings,
+    node: BWStraightenNode,
+    behavior: BWAbstractStraightenBehavior,
+    settings: BWStraightenSettings,
 ):
     """
     Create and position a series of dot nodes from source node to each
@@ -63,10 +67,10 @@ def run_straighten_connection(
 
 
 def _align_base_dot_nodes(
-    source_node: StraightenNode,
-    data: StraightenConnectionData,
-    behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings,
+    source_node: BWStraightenNode,
+    data: BWStraightenConnectionData,
+    behavior: Type[BWAbstractStraightenBehavior],
+    settings: BWStraightenSettings,
 ):
     for i, _ in enumerate(source_node.output_connectable_properties):
         if data.base_dot_node[i] is None:
@@ -75,13 +79,13 @@ def _align_base_dot_nodes(
 
 
 def _create_connection_data_for_all_inputs(
-    source_node: StraightenNode,
-) -> StraightenConnectionData:
+    source_node: BWStraightenNode,
+) -> BWStraightenConnectionData:
     """
     Create and return generic data about the output connections.
     StraightenConnectionData.output_nodes will be ordered by position x
     """
-    data = StraightenConnectionData()
+    data = BWStraightenConnectionData()
     for i, api_property in enumerate(
         source_node.output_connectable_properties
     ):
@@ -90,7 +94,7 @@ def _create_connection_data_for_all_inputs(
         )
         cons.sort(key=lambda c: c.getInputPropertyNode().getPosition().x)
         data.output_nodes[i] = [
-            StraightenNode(con.getInputPropertyNode(), source_node.graph)
+            BWStraightenNode(con.getInputPropertyNode(), source_node.graph)
             for con in cons
         ]
         data.connection[i] = cons
@@ -100,10 +104,10 @@ def _create_connection_data_for_all_inputs(
 
 
 def _create_base_dot_nodes(
-    source_node: StraightenNode,
-    data: StraightenConnectionData,
-    behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings,
+    source_node: BWStraightenNode,
+    data: BWStraightenConnectionData,
+    behavior: Type[BWAbstractStraightenBehavior],
+    settings: BWStraightenSettings,
 ):
     """
     Creates dot nodes near the initial source node for every output
@@ -126,7 +130,7 @@ def _create_base_dot_nodes(
         ):
             continue
 
-        dot_node = StraightenNode(
+        dot_node = BWStraightenNode(
             source_node.graph.newNode(
                 _get_dot_node_id_for_graph(source_node.graph)
             ),
@@ -144,18 +148,18 @@ def _create_base_dot_nodes(
         stack_index += 1
 
 
-def _get_dot_node_id_for_graph(graph) -> str:
-    if isinstance(graph, sd.api.sbs.sdsbsfunctiongraph.SDSBSFunctionGraph):
+def _get_dot_node_id_for_graph(graph: Type[SDGraph]) -> str:
+    if isinstance(graph, SDSBSFunctionGraph):
         return FunctionNodeId.DOT.value
     else:
         return CompNodeID.DOT.value
 
 
 def _insert_target_dot_nodes(
-    source_node: StraightenNode,
-    data: StraightenConnectionData,
-    behavior: AbstractStraightenBehavior,
-    settings: StraightenSettings,
+    source_node: BWStraightenNode,
+    data: BWStraightenConnectionData,
+    behavior: Type[BWAbstractStraightenBehavior],
+    settings: BWStraightenSettings,
 ):
     """
     Create and position dot nodes starting from the intial base dot node
@@ -184,7 +188,7 @@ def _insert_target_dot_nodes(
             if behavior.should_create_target_dot_node(
                 source_node, dot_node, output_node, data, i, settings
             ):
-                new_dot_node = StraightenNode(
+                new_dot_node = BWStraightenNode(
                     source_node.graph.newNode(
                         _get_dot_node_id_for_graph(source_node.graph)
                     ),
@@ -212,8 +216,8 @@ def _insert_target_dot_nodes(
 
 
 def _connect_node(
-    source_node: StraightenNode,
-    target_node: StraightenNode,
+    source_node: BWStraightenNode,
+    target_node: BWStraightenNode,
     connection: SDConnection,
 ):
     """
@@ -232,39 +236,39 @@ def _connect_node(
 
 
 def _get_target_property_from_connection(
-    target_node: StraightenNode, connection: SDConnection
-):
+    target_node: BWStraightenNode, connection: SDConnection
+) -> SDProperty:
     if target_node.is_dot:
         return target_node.api_node.getPropertyFromId(
-            "input", sd.api.sdproperty.SDPropertyCategory.Input
+            "input", SDPropertyCategory.Input
         )
     return connection.getInputProperty()
 
 
 def _get_source_property_from_connection(
-    source_node: StraightenNode, connection: SDConnection
-):
+    source_node: BWStraightenNode, connection: SDConnection
+) -> SDProperty:
     if source_node.is_dot:
         return source_node.api_node.getPropertyFromId(
             "unique_filter_output",
-            sd.api.sdproperty.SDPropertyCategory.Output,
+            SDPropertyCategory.Output,
         )
     return connection.getOutputProperty()
 
 
 def on_clicked_straighten_connection(
-    api: BWAPITool, behavior: AbstractStraightenBehavior
+    api: BWAPITool, behavior: Type[BWAbstractStraightenBehavior]
 ):
     with SDHistoryUtils.UndoGroup("Straighten Connection Undo Group"):
         api.logger.info("Running straighten connection")
 
-        settings = StraightenSettings(
+        settings = BWStraightenSettings(
             Path(__file__).parent / "bw_straighten_connection_settings.json"
         )
 
         for node in api.current_node_selection:
             try:
-                node = StraightenNode(node, api.current_graph)
+                node = BWStraightenNode(node, api.current_graph)
             except AttributeError:
                 # Occurs if the dot node was previously removed
                 continue
@@ -277,7 +281,7 @@ def on_clicked_remove_dot_nodes_from_selection(api: BWAPITool):
 
         for node in api.current_node_selection:
             try:
-                node = StraightenNode(node, api.current_graph)
+                node = BWStraightenNode(node, api.current_graph)
             except AttributeError:
                 continue
 
@@ -289,7 +293,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     if toolbar is None:
         toolbar = api.create_graph_view_toolbar(graph_view_id)
 
-    settings = StraightenSettings(
+    settings = BWStraightenSettings(
         Path(__file__).parent / "bw_straighten_connection_settings.json"
     )
 
@@ -298,8 +302,8 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
         / "resources"
         / "straighten_connection_target.png"
     )
-    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
-    action.setShortcut(QtGui.QKeySequence(settings.target_hotkey))
+    action: QAction = toolbar.addAction(QIcon(str(icon.resolve())), "")
+    action.setShortcut(QKeySequence(settings.target_hotkey))
     action.setToolTip(
         "Straighten connections on selected nodes. "
         "Connections insert dot nodes near the output nodes."
@@ -315,8 +319,8 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
         / "resources"
         / "straighten_connection_source.png"
     )
-    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
-    action.setShortcut(QtGui.QKeySequence(settings.source_hotkey))
+    action = toolbar.addAction(QIcon(str(icon.resolve())), "")
+    action.setShortcut(QKeySequence(settings.source_hotkey))
     action.setToolTip(
         "Straighten connections on selected nodes. "
         "Connections insert dot nodes near the input node."
@@ -328,8 +332,8 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     )
 
     icon = Path(__file__).parent / "resources" / "remove_dot_node_selected.png"
-    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
-    action.setShortcut(QtGui.QKeySequence(settings.remove_dot_nodes_hotkey))
+    action = toolbar.addAction(QIcon(str(icon.resolve())), "")
+    action.setShortcut(QKeySequence(settings.remove_dot_nodes_hotkey))
     action.setToolTip(
         "Remove all dot nodes connected to the outputs of the selected nodes."
     )
