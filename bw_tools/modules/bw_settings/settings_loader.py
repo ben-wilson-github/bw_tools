@@ -1,27 +1,20 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, List, Tuple
+from typing import TYPE_CHECKING, Any, List, Tuple, Type
 
-from bw_tools.modules.bw_settings import widgets
-from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
-from bw_tools.modules.bw_settings.widgets import (
-    BoolValueWidget,
+from modules.bw_settings.bw_settings_model import BWModuleModel
+from modules.bw_settings.widgets import (
+    BWBoolValueWidget,
+    BWDropDownWidget,
+    BWFloatValueWidget,
     BWGroupBox,
-    DropDownWidget,
-    FloatValueWidget,
-    IntValueWidget,
-    RGBAValueWidget,
-    StringValueWidget,
+    BWIntValueWidget,
+    BWRGBAValueWidget,
+    BWSettingWidget,
+    BWStringValueWidget,
 )
-from PySide2.QtWidgets import (
-    QGridLayout,
-    QHBoxLayout,
-    QLabel,
-    QLayout,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide2.QtWidgets import QLabel, QLayout, QVBoxLayout, QWidget
 
 if TYPE_CHECKING:
     from PySide2.QtGui import QStandardItem, QStandardItemModel
@@ -39,12 +32,12 @@ class WidgetTypes(Enum):
 
 WIDGET_MAP = {
     WidgetTypes.GROUPBOX.value: BWGroupBox,
-    WidgetTypes.LINEEDIT.value: StringValueWidget,
-    WidgetTypes.SPINBOXFLOAT.value: FloatValueWidget,
-    WidgetTypes.SPINBOXINT.value: IntValueWidget,
-    WidgetTypes.CHECKBOX.value: BoolValueWidget,
-    WidgetTypes.COMBOBOX.value: DropDownWidget,
-    WidgetTypes.RGBA.value: RGBAValueWidget,
+    WidgetTypes.LINEEDIT.value: BWStringValueWidget,
+    WidgetTypes.SPINBOXFLOAT.value: BWFloatValueWidget,
+    WidgetTypes.SPINBOXINT.value: BWIntValueWidget,
+    WidgetTypes.CHECKBOX.value: BWBoolValueWidget,
+    WidgetTypes.COMBOBOX.value: BWDropDownWidget,
+    WidgetTypes.RGBA.value: BWRGBAValueWidget,
 }
 
 
@@ -88,7 +81,7 @@ def get_module_widget(
 def _add_setting_to_layout(
     layout: QLayout,
     setting_item: QStandardItem,
-    model: ModuleModel,
+    model: BWModuleModel,
 ):
     """
     Dynamically adds settings to a given layout based on model.
@@ -134,7 +127,7 @@ def _add_setting_to_layout(
 
 def _add_widget_to_layout(
     setting_name: str,
-    widget_constructor: widgets.SettingWidget,
+    widget_constructor: Type[BWSettingWidget],
     possible_values: List,
     value_property_item: QStandardItem,
     layout: QLayout,
@@ -148,7 +141,7 @@ def _add_widget_to_layout(
 
 def _add_group_box_to_layout(
     setting_name: str,
-    widget_constructor: widgets.SettingWidget,
+    widget_constructor: Type[BWSettingWidget],
     content_property_item: QStandardItem,
     layout: QLayout,
     model: QStandardItemModel,

@@ -1,30 +1,40 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
-from bw_tools.common import bw_ui_tools
-from PySide2 import QtCore, QtGui, QtWidgets
+from common import bw_ui_tools
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QCursor, QMouseEvent, QPixmap
+from PySide2.QtWidgets import (
+    QApplication,
+    QColorDialog,
+    QDialog,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QLayout,
+    QVBoxLayout,
+    QWidget,
+)
 
 if TYPE_CHECKING:
-    from bw_tools.common.bw_api_tool import BWAPITool
+    from common.bw_api_tool import BWAPITool
 
 
-class BWColorPicker(QtWidgets.QColorDialog):
+class BWColorPicker(QColorDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
 
-class BWPBRReference(QtWidgets.QDialog):
+class BWPBRReference(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setModal(False)
-        self.setWindowFlags(
-            QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint
-        )
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.widget_show_style = """
             background : #252525;
          """
@@ -81,29 +91,29 @@ class BWPBRReference(QtWidgets.QDialog):
         super().mousePressEvent(event)
         self.click_x = event.x()
         self.click_y = event.y()
-        if event.button() == QtCore.Qt.LeftButton:
+        if event.button() == Qt.LeftButton:
             self.leftClick = True
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QMouseEvent):
         super().mouseMoveEvent(event)
         if self.leftClick:
             self.move(
                 event.globalX() - self.click_x, event.globalY() - self.click_y
             )
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QMouseEvent):
         super().mouseReleaseEvent(event)
         self.leftClick = False
 
     def _close_window(self, _):
         self.close()
 
-    def _on_mouse_pressed_swatch(self, event):
-        pos = QtGui.QCursor.pos()
-        if event.button() == QtCore.Qt.LeftButton:
+    def _on_mouse_pressed_swatch(self, event: QMouseEvent):
+        pos = QCursor.pos()
+        if event.button() == Qt.LeftButton:
             self.main_frame.setStyleSheet(self.widget_hide_style)
-            for widget in self.main_frame.findChildren(QtWidgets.QWidget):
-                if widget == QtWidgets.QApplication.widgetAt(pos):
+            for widget in self.main_frame.findChildren(QWidget):
+                if widget == QApplication.widgetAt(pos):
                     continue
                 size_policy = widget.sizePolicy()
                 size_policy.setRetainSizeWhenHidden(True)
@@ -111,11 +121,11 @@ class BWPBRReference(QtWidgets.QDialog):
                 widget.hide()
             self.mousePressEvent(event)
 
-    def _on_mouse_release_swatch(self, event):
+    def _on_mouse_release_swatch(self, event: QMouseEvent):
         self.main_frame.setStyleSheet(self.widget_show_style)
-        pos = QtGui.QCursor.pos()
-        for widget in self.main_frame.findChildren(QtWidgets.QWidget):
-            if widget == QtWidgets.QApplication.widgetAt(pos):
+        pos = QCursor.pos()
+        for widget in self.main_frame.findChildren(QWidget):
+            if widget == QApplication.widgetAt(pos):
                 continue
             size_policy = widget.sizePolicy()
             size_policy.setRetainSizeWhenHidden(True)
@@ -123,9 +133,9 @@ class BWPBRReference(QtWidgets.QDialog):
             widget.show()
         self.mouseReleaseEvent(event)
 
-    def _ui_create_swatches(self, color_swatches, layout):
+    def _ui_create_swatches(self, color_swatches: Dict, layout: QLayout):
         for i, (name, color) in enumerate(color_swatches.items()):
-            color_widget = QtWidgets.QLabel()
+            color_widget = QLabel()
             # color_widget.setFixedSize(self.swatch_size, self.swatch_size / 2)
             color_widget.setFixedHeight(self.swatch_size / 1.5)
             color_widget.setStyleSheet(f"background-color : {color};")
@@ -134,42 +144,42 @@ class BWPBRReference(QtWidgets.QDialog):
             layout.addWidget(color_widget, 0, i)
 
             pretty_name = name.replace("_", " ")
-            name_widget = QtWidgets.QLabel(pretty_name.title())
+            name_widget = QLabel(pretty_name.title())
             name_widget.setFixedWidth(self.swatch_size)
             name_widget.setWordWrap(True)
-            name_widget.setAlignment(QtCore.Qt.AlignCenter)
+            name_widget.setAlignment(Qt.AlignCenter)
             name_widget.setStyleSheet("color : gray;")
             layout.addWidget(name_widget, 1, i)
 
     def _ui_nonmetal_base_colors(self):
-        layout = QtWidgets.QGridLayout()
+        layout = QGridLayout()
         self._ui_create_swatches(self.nonmetal_base_color, layout)
         return layout
 
     def _ui_metal_base_colors(self):
-        layout = QtWidgets.QGridLayout()
+        layout = QGridLayout()
         self._ui_create_swatches(self.metal_base_color, layout)
         return layout
 
     def _ui(self):
-        layout = QtWidgets.QVBoxLayout()
+        layout = QVBoxLayout()
         self.setLayout(layout)
-        self.main_frame = QtWidgets.QWidget()
+        self.main_frame = QWidget()
 
         layout.addWidget(self.main_frame)
 
-        self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout = QVBoxLayout()
         self.main_frame.setLayout(self.main_layout)
 
-        layout = QtWidgets.QHBoxLayout()
+        layout = QHBoxLayout()
         self.main_layout.addLayout(layout)
 
         layout.addStretch()
-        pixmap = QtGui.QPixmap(str(self.close_button_image_path.resolve()))
+        pixmap = QPixmap(str(self.close_button_image_path.resolve()))
         pixmap = pixmap.scaled(
-            15, 15, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+            15, 15, Qt.KeepAspectRatio, Qt.SmoothTransformation
         )
-        self.close_button = QtWidgets.QLabel()
+        self.close_button = QLabel()
         self.close_button.setPixmap(pixmap)
         self.close_button.mouseReleaseEvent = self._close_window
         layout.addWidget(self.close_button)
@@ -184,33 +194,31 @@ class BWPBRReference(QtWidgets.QDialog):
 
         self.main_layout.addWidget(bw_ui_tools.label("Roughness"))
         pixmap_scale = (self.swatch_size * 10) + (9 * 5)
-        pixmap = QtGui.QPixmap(
-            str(self.nonmetal_roughness_image_path.resolve())
-        )
+        pixmap = QPixmap(str(self.nonmetal_roughness_image_path.resolve()))
         pixmap = pixmap.scaled(
             pixmap_scale,
             pixmap_scale,
-            QtCore.Qt.KeepAspectRatio,
-            QtCore.Qt.SmoothTransformation,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation,
         )
-        nonmetal_roughness = QtWidgets.QLabel()
+        nonmetal_roughness = QLabel()
         nonmetal_roughness.setPixmap(pixmap)
         self.main_layout.addWidget(nonmetal_roughness)
-        gradient_widget = QtWidgets.QLabel()
+        gradient_widget = QLabel()
         gradient_style = """
             background : qlineargradient(x1:0 y1:0, x2:1 y2:0, stop:0 black, stop:1 white);
         """
         gradient_widget.setStyleSheet(gradient_style)
         gradient_widget.setFixedHeight(self.swatch_size / 1.5)
         self.main_layout.addWidget(gradient_widget)
-        pixmap = QtGui.QPixmap(str(self.metal_roughness_image_path.resolve()))
+        pixmap = QPixmap(str(self.metal_roughness_image_path.resolve()))
         pixmap = pixmap.scaled(
             pixmap_scale,
             pixmap_scale,
-            QtCore.Qt.KeepAspectRatio,
-            QtCore.Qt.SmoothTransformation,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation,
         )
-        metal_roughness = QtWidgets.QLabel()
+        metal_roughness = QLabel()
         metal_roughness.setPixmap(pixmap)
         self.main_layout.addWidget(metal_roughness)
 

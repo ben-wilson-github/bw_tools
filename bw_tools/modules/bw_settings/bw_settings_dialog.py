@@ -1,18 +1,29 @@
-import importlib
 import json
-import os
 from pathlib import Path
-from enum import Enum
-from typing import Any, Dict, Optional, Tuple
+from typing import Dict, Optional, Type, Union
 
-from bw_tools.common import bw_ui_tools
-from bw_tools.modules.bw_settings import bw_settings_model
-from bw_tools.modules.bw_settings import settings_loader, setting_writer
+from common import bw_ui_tools
+from common.bw_api_tool import BWAPITool
+from modules.bw_settings.bw_settings_model import BWModuleModel
+from PySide2.QtCore import QItemSelectionModel
+from PySide2.QtGui import QStandardItem
+from PySide2.QtWidgets import (
+    QAbstractItemView,
+    QDialog,
+    QGridLayout,
+    QHBoxLayout,
+    QListView,
+    QPushButton,
+    QScrollArea,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+)
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from . import setting_writer, settings_loader
 
 
-class SettingsDialog(QtWidgets.QDialog):
+class SettingsDialog(QDialog):
     """
     Popup dialog containing settings for all modules present.
 
@@ -20,25 +31,26 @@ class SettingsDialog(QtWidgets.QDialog):
     file. See settings_loader.py for documentation on the format for a
     settings file.
 
-    The dialog uses a model which directly correllates to the settings file, 
+    The dialog uses a model which directly correllates to the settings file,
     where each QStandardItem.text() contains the str representation of every
     value and the actual value in QStandardItem.data().
     """
-    def __init__(self, api):
+
+    def __init__(self, api: BWAPITool):
         super(SettingsDialog, self).__init__(parent=api.main_window)
         self._value_background = "#151515"
 
         self.setModal(False)
         self.api = api
-        self.main_layout = QtWidgets.QGridLayout()
+        self.main_layout = QGridLayout()
         self.setLayout(self.main_layout)
-        self.module_model = bw_settings_model.ModuleModel()
-        self.module_view_widget = QtWidgets.QListView()
+        self.module_model = BWModuleModel()
+        self.module_view_widget = QListView()
         self.module_view_widget.setModel(self.module_model)
-        self.module_settings_layout = QtWidgets.QVBoxLayout()
+        self.module_settings_layout = QVBoxLayout()
         self.settings_file_dir = Path(__file__).parent / ".."
 
-        self._module_setting_widgets: dict[str, QtWidgets.QWidget] = {}
+        self._module_setting_widgets: dict[str, Type[QWidget]] = {}
 
         self._add_modules_to_model()
         self._create_module_setting_widgets()
@@ -47,12 +59,12 @@ class SettingsDialog(QtWidgets.QDialog):
         # Select first item in list
         index = self.module_model.index(0, 0)
         self.module_view_widget.selectionModel().setCurrentIndex(
-            index, QtCore.QItemSelectionModel.SelectCurrent
+            index, QItemSelectionModel.SelectCurrent
         )
 
     def get_selected_module_item_from_model(
         self,
-    ) -> Optional[QtGui.QStandardItem]:
+    ) -> Optional[QStandardItem]:
         try:
             index = self.module_view_widget.selectedIndexes()[0]
         except IndexError:
@@ -61,7 +73,9 @@ class SettingsDialog(QtWidgets.QDialog):
         item = self.module_model.itemFromIndex(index)
         return item
 
-    def get_settings_for_module(self, file_path: Path) -> Dict:
+    def get_settings_for_module(
+        self, file_path: Path
+    ) -> Union[Dict, FileNotFoundError]:
         """
         Returns the setting read from given file path.
         Returns FileNotFoundError is there was an issue reading the .json
@@ -80,17 +94,6 @@ class SettingsDialog(QtWidgets.QDialog):
             )
         else:
             return data
-
-    def get_child_item_with_key(self, item, key):
-        for i in range(item.rowCount()):
-            if item.child(i).text() == key:
-                return item.child(i)
-
-    def get_widget_type(self, item):
-        return WidgetTypes(self.get_child_item_with_key(item, "widget").data())
-
-    def get_combobox_list(self, item):
-        return self.get_child_item_with_key(item, "list").data()
 
     def on_clicked_module(self):
         module = self.get_selected_module_item_from_model()
@@ -127,7 +130,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.module_model.clear()
 
         for row, module in enumerate(self.api.loaded_modules):
-            module_item = QtGui.QStandardItem(module)
+            module_item = QStandardItem(module)
             self.module_model.setItem(row, 0, module_item)
 
             try:
@@ -142,10 +145,10 @@ class SettingsDialog(QtWidgets.QDialog):
                 )  # Must take in settings, as setting data will reorder
 
     def _add_module_settings_to_model(
-        self, parent_item: QtGui.QStandardItem, settings: Dict
+        self, parent_item: QStandardItem, settings: Dict
     ):
         for setting_name, setting_params in settings.items():
-            setting_item = QtGui.QStandardItem(setting_name)
+            setting_item = QStandardItem(setting_name)
             parent_item.appendRow(setting_item)
 
             try:
@@ -153,10 +156,10 @@ class SettingsDialog(QtWidgets.QDialog):
             except KeyError:
                 widget_type = None
             else:
-                widget_param_item = QtGui.QStandardItem("widget")
+                widget_param_item = QStandardItem("widget")
                 setting_item.appendRow(widget_param_item)
 
-                widget_type_item = QtGui.QStandardItem(str(widget_type))
+                widget_type_item = QStandardItem(str(widget_type))
                 widget_type_item.setData(widget_type)
                 widget_param_item.appendRow(widget_type_item)
 
@@ -165,11 +168,11 @@ class SettingsDialog(QtWidgets.QDialog):
             except KeyError:
                 possible_values = None
             else:
-                list_param_item = QtGui.QStandardItem("list")
+                list_param_item = QStandardItem("list")
                 setting_item.appendRow(list_param_item)
 
                 for v in possible_values:
-                    item = QtGui.QStandardItem(str(v))
+                    item = QStandardItem(str(v))
                     item.setData(v)
                     list_param_item.appendRow(item)
 
@@ -178,16 +181,16 @@ class SettingsDialog(QtWidgets.QDialog):
             except KeyError:
                 value = None
             else:
-                value_param_item = QtGui.QStandardItem("value")
+                value_param_item = QStandardItem("value")
                 setting_item.appendRow(value_param_item)
 
                 if isinstance(value, (list, tuple)):
                     for v in value:
-                        item = QtGui.QStandardItem(str(v))
+                        item = QStandardItem(str(v))
                         item.setData(v)
                         value_param_item.appendRow(item)
                 else:
-                    item = QtGui.QStandardItem(str(value))
+                    item = QStandardItem(str(value))
                     item.setData(value)
                     value_param_item.appendRow(item)
 
@@ -196,7 +199,7 @@ class SettingsDialog(QtWidgets.QDialog):
             except KeyError:
                 continue
             else:
-                content_param_item = QtGui.QStandardItem("content")
+                content_param_item = QStandardItem("content")
                 setting_item.appendRow(content_param_item)
                 self._add_module_settings_to_model(content_param_item, content)
 
@@ -218,52 +221,52 @@ class SettingsDialog(QtWidgets.QDialog):
         self._ui_frame_buttons(1)
         # self._ui_frame_debug_model(2)
 
-    def _ui_frame_debug_model(self, col):
-        tree_view = QtWidgets.QTreeView()
+    def _ui_frame_debug_model(self, col: int):
+        tree_view = QTreeView()
         tree_view.setModel(self.module_model)
         self.main_layout.addWidget(tree_view, 1, col)
 
-    def _ui_frame_modules_list(self, col):
+    def _ui_frame_modules_list(self, col: int):
         self.main_layout.addWidget(bw_ui_tools.label("Loaded Modules"), 0, col)
         self._ui_add_module_view_widget(col)
 
-    def _ui_frame_module_settings(self, col):
+    def _ui_frame_module_settings(self, col: int):
         self.main_layout.addWidget(
             bw_ui_tools.label("Module Settings"), 0, col
         )
         scroll_area = self._ui_add_scroll_area_widget(col)
         self._ui_add_settings_widget(scroll_area)
 
-    def _ui_frame_buttons(self, col):
-        layout = QtWidgets.QHBoxLayout()
+    def _ui_frame_buttons(self, col: int):
+        layout = QHBoxLayout()
         self.main_layout.addLayout(layout, 2, col)
 
         layout.addStretch()
 
-        w = QtWidgets.QPushButton("Ok")
+        w = QPushButton("Ok")
         layout.addWidget(w)
         w.clicked.connect(self.on_clicked_ok)
 
-        w = QtWidgets.QPushButton("Cancel")
+        w = QPushButton("Cancel")
         w.clicked.connect(self.close)
         layout.addWidget(w)
 
-        w = QtWidgets.QPushButton("Apply")
+        w = QPushButton("Apply")
         w.clicked.connect(self.on_clicked_apply)
         layout.addWidget(w)
 
-    def _ui_add_module_view_widget(self, col):
+    def _ui_add_module_view_widget(self, col: int):
         self.module_view_widget.setFixedWidth(130)
         self.module_view_widget.setEditTriggers(
-            QtWidgets.QAbstractItemView.NoEditTriggers
+            QAbstractItemView.NoEditTriggers
         )
         self.main_layout.addWidget(self.module_view_widget, 1, col)
         self.module_view_widget.selectionModel().selectionChanged.connect(
             self.on_clicked_module
         )
 
-    def _ui_add_settings_widget(self, scroll_area):
-        settings_widget = QtWidgets.QWidget(scroll_area)
+    def _ui_add_settings_widget(self, scroll_area: QScrollArea):
+        settings_widget = QWidget(scroll_area)
         settings_widget.setStyleSheet(
             """
             background : #252525;
@@ -272,12 +275,12 @@ class SettingsDialog(QtWidgets.QDialog):
         )
         scroll_area.setWidget(settings_widget)
 
-        settings_widget_layout = QtWidgets.QVBoxLayout(settings_widget)
+        settings_widget_layout = QVBoxLayout(settings_widget)
         settings_widget_layout.addLayout(self.module_settings_layout)
         settings_widget_layout.addStretch()
 
-    def _ui_add_scroll_area_widget(self, col):
-        scroll_area = QtWidgets.QScrollArea(self)
+    def _ui_add_scroll_area_widget(self, col: int):
+        scroll_area = QScrollArea(self)
         scroll_area.setWidgetResizable(True)
         scroll_area.setMinimumSize(300, 300)
         self.main_layout.addWidget(scroll_area, 1, col)

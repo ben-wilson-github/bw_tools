@@ -1,4 +1,3 @@
-from bw_tools.common.bw_api_tool import BWAPITool
 import json
 import operator
 from dataclasses import dataclass
@@ -6,7 +5,9 @@ from functools import reduce
 from pathlib import Path
 from typing import Any, Dict, List
 
-from bw_tools.modules.bw_settings import bw_settings_dialog
+from common.bw_api_tool import BWAPITool
+from modules.bw_settings.bw_settings_dialog import SettingsDialog
+from PySide2.QtWidgets import QAction
 
 
 @dataclass
@@ -51,11 +52,11 @@ class Settings(BWModuleSettings):
 
 
 def on_initialize(api: BWAPITool):
-    settings_action = api.menu.addAction("Settings...")
+    settings_action: QAction = api.menu.addAction("Settings...")
     settings_action.setToolTip("BW Tools Settings")
     settings_action.triggered.connect(lambda: on_clicked_settings(api))
 
 
 def on_clicked_settings(api: BWAPITool):
-    dialog = bw_settings_dialog.SettingsDialog(api)
+    dialog = SettingsDialog(api)
     dialog.show()

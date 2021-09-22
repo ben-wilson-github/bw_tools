@@ -1,6 +1,6 @@
-from PySide2 import QtGui
+from PySide2.QtGui import QStandardItemModel
 
 
-class ModuleModel(QtGui.QStandardItemModel):
+class BWModuleModel(QStandardItemModel):
     def __init__(self, parent=None):
-        super(ModuleModel, self).__init__(parent)
+        super(BWModuleModel, self).__init__(parent)

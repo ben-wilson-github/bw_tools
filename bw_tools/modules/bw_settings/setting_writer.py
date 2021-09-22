@@ -1,14 +1,12 @@
-from PySide2 import QtGui
-
 import json
 from pathlib import Path
+from typing import Any, Dict
 
-from typing import Dict, Any
+from modules.bw_settings import settings_loader
+from PySide2.QtGui import QStandardItem
 
-from bw_tools.modules.bw_settings import settings_loader
 
-
-def write_module_settings(module_item: QtGui.QStandardItem, file_path: Path):
+def write_module_settings(module_item: QStandardItem, file_path: Path):
     data = _build_dict(module_item, {})
 
     with open(file_path, "w") as settings_file:
@@ -16,7 +14,7 @@ def write_module_settings(module_item: QtGui.QStandardItem, file_path: Path):
 
 
 def _build_dict(
-    parent_item: QtGui.QStandardItem, data: Dict[Any, Any]
+    parent_item: QStandardItem, data: Dict[Any, Any]
 ) -> Dict[Any, Any]:
     for row in range(parent_item.rowCount()):
         setting_item = parent_item.child(row)
@@ -50,7 +48,7 @@ def _build_dict(
     return data
 
 
-def _get_value_from_item(value_property_item: QtGui.QStandardItem) -> Any:
+def _get_value_from_item(value_property_item: QStandardItem) -> Any:
     # Value propertie are updated in the QStandardItem.text()
     # function, due to them being controlled by QDataWidgetMappers.
     # Therefore, must cast str to appropriate data type

@@ -1,90 +1,102 @@
-from abc import ABC, abstractmethod
-from PySide2 import QtWidgets, QtCore, QtGui
-from typing import Tuple, Optional, List, Any
-from bw_tools.common import bw_ui_tools
-from bw_tools.modules.bw_settings.bw_settings_model import ModuleModel
-from dataclasses import dataclass
+from typing import Any, Optional, Tuple
+
+from bw_tools.modules.bw_settings.bw_settings_model import BWModuleModel
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QStandardItem
+from PySide2.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDataWidgetMapper,
+    QDoubleSpinBox,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 BACKGROUND = "#151515"
 MIN_LABEL_WIDTH = 200
 
 
-class SettingWidget(QtWidgets.QWidget):
-    def __init__(self, label: str, value_item: QtGui.QStandardItem = None):
+class BWSettingWidget(QWidget):
+    def __init__(self, label: str, value_item: QStandardItem = None):
         super().__init__(parent=None)
         self.value_item = value_item
 
-        self.setLayout(QtWidgets.QHBoxLayout())
+        self.setLayout(QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setStyleSheet("border-radius: 0px; padding: 3px")
 
-        label_widget = QtWidgets.QLabel(label)
+        label_widget = QLabel(label)
         label_widget.setMinimumWidth(MIN_LABEL_WIDTH)
         self.layout().addWidget(label_widget)
 
     def set_up_mapper(
         self,
-        model: ModuleModel,
-        widget: QtWidgets.QWidget,
+        model: BWModuleModel,
+        widget: QWidget,
         column: int,
-        parent_item: QtGui.QStandardItem,
+        parent_item: QStandardItem,
     ):
-        self.mapper = QtWidgets.QDataWidgetMapper()
+        self.mapper = QDataWidgetMapper()
         self.mapper.setModel(model)
         self.mapper.addMapping(widget, column)
         self.mapper.setRootIndex(model.indexFromItem(parent_item))
         self.mapper.toFirst()
 
 
-class StringValueWidget(SettingWidget):
+class BWStringValueWidget(BWSettingWidget):
     def __init__(
         self,
         label: str,
         possible_values: Tuple[Any],
-        value_property_item: QtGui.QStandardItem,
-        model: ModuleModel,
+        value_property_item: QStandardItem,
+        model: BWModuleModel,
     ):
         super().__init__(label)
 
-        line_edit = QtWidgets.QLineEdit(self)
+        line_edit = QLineEdit(self)
         # line_edit.setText(values[0])
         # line_edit.textChanged.connect(self.on_str_value_changed)
         line_edit.setStyleSheet(
             f"background : {BACKGROUND}; border-radius: 3px"
         )
-        line_edit.setAlignment(QtCore.Qt.AlignRight)
+        line_edit.setAlignment(Qt.AlignRight)
         self.layout().addWidget(line_edit)
 
         self.set_up_mapper(model, line_edit, 0, value_property_item)
 
 
-class BoolValueWidget(SettingWidget):
+class BWBoolValueWidget(BWSettingWidget):
     def __init__(
         self,
         label: str,
         possible_values: Tuple[bool],
-        value_property_item: QtGui.QStandardItem,
-        model: ModuleModel,
+        value_property_item: QStandardItem,
+        model: BWModuleModel,
     ):
         super().__init__(label)
-        w = QtWidgets.QCheckBox()
+        w = QCheckBox()
         self.layout().addWidget(w)
-        self.layout().setAlignment(w, QtCore.Qt.AlignRight)
+        self.layout().setAlignment(w, Qt.AlignRight)
 
         self.set_up_mapper(model, w, 0, value_property_item)
 
 
-class FloatValueWidget(SettingWidget):
+class BWFloatValueWidget(BWSettingWidget):
     def __init__(
         self,
         label: str,
         possible_values: Tuple[bool],
-        value_property_item: QtGui.QStandardItem,
-        model: ModuleModel,
+        value_property_item: QStandardItem,
+        model: BWModuleModel,
     ):
         super().__init__(label)
 
-        w = QtWidgets.QDoubleSpinBox(self)
+        w = QDoubleSpinBox(self)
         w.setMaximum(999)
         # w.valueChanged.connect(self.on_int_float_value_changed)
         w.setStyleSheet(
@@ -96,23 +108,23 @@ class FloatValueWidget(SettingWidget):
             "}"
         )
         w.setMaximumWidth(50)
-        w.setAlignment(QtCore.Qt.AlignRight)
+        w.setAlignment(Qt.AlignRight)
         self.layout().addWidget(w)
 
         self.set_up_mapper(model, w, 0, value_property_item)
 
 
-class IntValueWidget(SettingWidget):
+class BWIntValueWidget(BWSettingWidget):
     def __init__(
         self,
         label: str,
         possible_values: Tuple[bool],
-        value_property_item: QtGui.QStandardItem,
-        model: ModuleModel,
+        value_property_item: QStandardItem,
+        model: BWModuleModel,
     ):
         super().__init__(label, value_property_item)
 
-        self.widget = QtWidgets.QSpinBox(self)
+        self.widget = QSpinBox(self)
         self.widget.setMaximum(999)
         self.widget.setStyleSheet(
             "QSpinBox"
@@ -123,23 +135,23 @@ class IntValueWidget(SettingWidget):
             "}"
         )
         self.widget.setMaximumWidth(50)
-        self.widget.setAlignment(QtCore.Qt.AlignRight)
+        self.widget.setAlignment(Qt.AlignRight)
         self.layout().addWidget(self.widget)
 
         self.set_up_mapper(model, self.widget, 0, value_property_item)
 
 
-class DropDownWidget(SettingWidget):
+class BWDropDownWidget(BWSettingWidget):
     def __init__(
         self,
         label: str,
         possible_values: Tuple[bool],
-        value_property_item: QtGui.QStandardItem,
-        model: ModuleModel,
+        value_property_item: QStandardItem,
+        model: BWModuleModel,
     ):
         super().__init__(label)
 
-        combo = QtWidgets.QComboBox()
+        combo = QComboBox()
         combo.addItems(possible_values)
         combo.setStyleSheet(
             "QComboBox"
@@ -155,13 +167,13 @@ class DropDownWidget(SettingWidget):
         self.set_up_mapper(model, combo, 0, value_property_item)
 
 
-class RGBAValueWidget(SettingWidget):
+class BWRGBAValueWidget(BWSettingWidget):
     def __init__(
         self,
         label: str,
         possible_values: Tuple[bool],
-        value_property_item: QtGui.QStandardItem,
-        model: ModuleModel,
+        value_property_item: QStandardItem,
+        model: BWModuleModel,
     ):
         super().__init__(label)
 
@@ -179,41 +191,39 @@ class RGBAValueWidget(SettingWidget):
 
         self.set_up_mapper(model, value_property_item)
 
-    def set_up_mapper(
-        self, model: ModuleModel, parent_item: QtGui.QStandardItem
-    ):
-        self.mapper_r = QtWidgets.QDataWidgetMapper()
+    def set_up_mapper(self, model: BWModuleModel, parent_item: QStandardItem):
+        self.mapper_r = QDataWidgetMapper()
         self.mapper_r.setModel(model)
         self.mapper_r.addMapping(self.r, 0)
         self.mapper_r.setRootIndex(model.indexFromItem(parent_item))
         self.mapper_r.setCurrentIndex(0)
 
-        self.mapper_g = QtWidgets.QDataWidgetMapper()
+        self.mapper_g = QDataWidgetMapper()
         self.mapper_g.setModel(model)
         self.mapper_g.addMapping(self.g, 0)
         self.mapper_g.setRootIndex(model.indexFromItem(parent_item))
         self.mapper_g.setCurrentIndex(1)
 
-        self.mapper_b = QtWidgets.QDataWidgetMapper()
+        self.mapper_b = QDataWidgetMapper()
         self.mapper_b.setModel(model)
         self.mapper_b.addMapping(self.b, 0)
         self.mapper_b.setRootIndex(model.indexFromItem(parent_item))
         self.mapper_b.setCurrentIndex(2)
 
-        self.mapper_a = QtWidgets.QDataWidgetMapper()
+        self.mapper_a = QDataWidgetMapper()
         self.mapper_a.setModel(model)
         self.mapper_a.addMapping(self.a, 0)
         self.mapper_a.setRootIndex(model.indexFromItem(parent_item))
         self.mapper_a.setCurrentIndex(3)
 
 
-class BWGroupBox(QtWidgets.QGroupBox):
+class BWGroupBox(QGroupBox):
     def __init__(self, label: str) -> None:
         super().__init__(parent=None)
         self.setTitle(label)
         self.setFlat(False)
 
-        self.setLayout(QtWidgets.QVBoxLayout())
+        self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setStyleSheet(
             "QGroupBox {"
@@ -232,7 +242,7 @@ class BWGroupBox(QtWidgets.QGroupBox):
         )
 
 
-class BWColorComponentSpinBox(QtWidgets.QDoubleSpinBox):
+class BWColorComponentSpinBox(QDoubleSpinBox):
     def __init__(self, color=Optional[str]):
         super().__init__(parent=None)
         self.setMinimumWidth(50)
@@ -248,4 +258,4 @@ class BWColorComponentSpinBox(QtWidgets.QDoubleSpinBox):
             f"border-left: 1px solid {color};"
             "}"
         )
-        self.setAlignment(QtCore.Qt.AlignCenter)
+        self.setAlignment(Qt.AlignCenter)

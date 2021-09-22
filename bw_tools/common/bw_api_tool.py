@@ -63,7 +63,7 @@ class BWAPITool:
         self.pkg_mgr: SDPackageMgr = self.application.getPackageMgr()
         self.main_window: QtWidgets.QMainWindow = self.ui_mgr.getMainWindow()
         self.loaded_modules: List[BW_MODULE] = []
-        self.menu = None
+        self.menu: Optional[QtWidgets.QMenu] = None
         self.callback_ids: List[int] = []
 
         self._graph_view_toolbar_list: dict[int, BWToolbar] = dict()
