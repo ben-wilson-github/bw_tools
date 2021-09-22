@@ -23,7 +23,6 @@ def main():
         "bw_print_node_info",
     ]
     ignore_extention = [".psd"]
-    ignore_files = {"bw_tools": "__init__.py"}
 
     with ZipFile(f"{plugin_name_version}.sdplugin", "w") as zip_obj:
         for root, folders, files in os.walk(Path.cwd().joinpath(plugin_name)):
@@ -32,7 +31,7 @@ def main():
             if abs_path.name in ignore_folders:
                 continue
 
-            rel_path = abs_path.relative_to(Path.cwd() / plugin_name)
+            rel_path = abs_path.relative_to(Path.cwd())
             zip_path = (
                 Path(plugin_name_version) / plugin_name_version / rel_path
             )
@@ -40,15 +39,6 @@ def main():
             for file_name in files:
                 if os.path.splitext(file_name)[1] in ignore_extention:
                     continue
-
-                try:
-                    ignore_file_name = ignore_files[abs_path.name]
-                except KeyError:
-                    pass
-                else:
-                    if ignore_file_name == file_name:
-                        continue
-
                 zip_obj.write(abs_path / file_name, zip_path / file_name)
 
         main_init = Path.cwd() / "__init__.py"
