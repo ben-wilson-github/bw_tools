@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Type
 
-from common.bw_node import BWNode
+from bw_tools.common.bw_node import BWNode
 from sd.api.sdconnection import SDConnection
 from sd.api.sdgraph import SDGraph
 from sd.api.sdproperty import SDProperty, SDPropertyCategory

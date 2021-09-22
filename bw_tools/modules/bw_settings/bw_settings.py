@@ -5,8 +5,8 @@ from functools import reduce
 from pathlib import Path
 from typing import Any, Dict, List
 
-from common.bw_api_tool import BWAPITool
-from modules.bw_settings.bw_settings_dialog import SettingsDialog
+from bw_tools.common.bw_api_tool import BWAPITool
+from bw_tools.modules.bw_settings.bw_settings_dialog import SettingsDialog
 from PySide2.QtWidgets import QAction
 
 

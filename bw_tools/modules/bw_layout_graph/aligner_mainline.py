@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from operator import attrgetter
 from typing import TYPE_CHECKING, List, Optional
 
-from common.bw_chain_dimension import (
+from bw_tools.common.bw_chain_dimension import (
     BWChainDimension,
     BWNotInChainError,
     calculate_chain_dimension,

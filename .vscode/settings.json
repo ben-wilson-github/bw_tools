@@ -4,7 +4,6 @@
     "python.linting.pylintEnabled": false,
     "python.formatting.provider": "black",
     "python.analysis.extraPaths": [
-        "./bw_tools",
         "C:/Program Files/Adobe/Adobe Substance 3D Designer/plugins/pythonsdk/Lib/site-packages/",
         "C:/Program Files/Adobe/Adobe Substance 3D Designer/resources/python"
     ]

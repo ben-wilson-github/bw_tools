@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Tuple
 
-from common.bw_chain_dimension import (
+from bw_tools.common.bw_chain_dimension import (
     BWBound,
     BWChainDimension,
     BWOutOfBoundsError,
     calculate_chain_dimension,
 )
-from common.bw_node import BWFloat2
+from bw_tools.common.bw_node import BWFloat2
 
 if TYPE_CHECKING:
     from .alignment_behavior import BWPostAlignmentBehavior

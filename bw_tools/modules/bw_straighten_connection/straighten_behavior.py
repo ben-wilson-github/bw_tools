@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Type
 
-from common.bw_node import BWFloat2
+from bw_tools.common.bw_node import BWFloat2
 from sd.api.sdgraph import SDGraph
 
 from .straighten_node import BWStraightenNode

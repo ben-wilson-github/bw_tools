@@ -5,9 +5,9 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Type
 
-from common.bw_api_tool import CompNodeID, FunctionNodeId
-from common.bw_node import BWFloat2
-from modules.bw_settings.bw_settings import BWModuleSettings
+from bw_tools.common.bw_api_tool import CompNodeID, FunctionNodeId
+from bw_tools.common.bw_node import BWFloat2
+from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
 from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtWidgets import QAction
 from sd.api.sbs.sdsbsfunctiongraph import SDSBSFunctionGraph
@@ -20,7 +20,7 @@ from .straighten_behavior import BWBreakAtSource, BWBreakAtTarget
 from .straighten_node import BWStraightenNode
 
 if TYPE_CHECKING:
-    from common.bw_api_tool import BWAPITool
+    from bw_tools.common.bw_api_tool import BWAPITool
 
     from .straighten_behavior import BWAbstractStraightenBehavior
 

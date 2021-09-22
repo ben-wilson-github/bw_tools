@@ -2,11 +2,11 @@ from functools import partial
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-from common.bw_api_tool import BWAPITool
-from common.bw_node_selection import remove_dot_nodes
-from modules.bw_settings.bw_settings import BWModuleSettings
-from modules.bw_straighten_connection import bw_straighten_connection
-from modules.bw_straighten_connection.straighten_behavior import (
+from bw_tools.common.bw_api_tool import BWAPITool
+from bw_tools.common.bw_node_selection import remove_dot_nodes
+from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
+from bw_tools.modules.bw_straighten_connection import bw_straighten_connection
+from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
     BWBreakAtSource,
     BWBreakAtTarget,
 )

@@ -3,7 +3,7 @@ from __future__ import annotations, unicode_literals
 from dataclasses import dataclass
 from typing import List
 
-from common.bw_node import BWNode
+from bw_tools.common.bw_node import BWNode
 from sd.api.sdproperty import SDPropertyCategory
 
 from .optimizer import Optimizer

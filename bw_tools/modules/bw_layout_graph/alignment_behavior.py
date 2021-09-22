@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Tuple
 
-from common.bw_node import BWFloat2
+from bw_tools.common.bw_node import BWFloat2
 
 if TYPE_CHECKING:
     from .bw_layout_graph import BWLayoutSettings

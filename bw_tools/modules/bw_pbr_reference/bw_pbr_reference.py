@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
 
-from common import bw_ui_tools
+from bw_tools.common import bw_ui_tools
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QCursor, QMouseEvent, QPixmap
 from PySide2.QtWidgets import (
@@ -19,7 +19,7 @@ from PySide2.QtWidgets import (
 )
 
 if TYPE_CHECKING:
-    from common.bw_api_tool import BWAPITool
+    from bw_tools.common.bw_api_tool import BWAPITool
 
 
 class BWColorPicker(QColorDialog):

@@ -1,15 +1,13 @@
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Union
-from sd.api.sdconnection import SDConnection
 
+from sd.api.sdconnection import SDConnection
+from sd.api.sdgraph import SDGraph
+from sd.api.sdnode import SDNode
 from sd.api.sdproperty import SDProperty, SDPropertyCategory
 
-
 from .bw_node import BWInputConnectionData, BWNode, BWOutputConnectionData
-
-from sd.api.sdnode import SDNode
-from sd.api.sdgraph import SDGraph
 
 
 class BWNodeNotInSelectionError(KeyError):

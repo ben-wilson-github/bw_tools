@@ -4,9 +4,11 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
 
-from common.bw_node_selection import BWNodeSelection
-from modules.bw_layout_graph import bw_layout_graph
-from modules.bw_settings.bw_settings import BWModuleSettings
+from bw_tools.common.bw_node_selection import BWNodeSelection
+from bw_tools.modules.bw_layout_graph import bw_layout_graph
+from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
+from PySide2 import QtGui, QtWidgets
+from sd.api.sdhistoryutils import SDHistoryUtils
 
 from .atomic_optimizer import AtomicOptimizer
 from .comp_graph_optimizer import CompGraphOptimizer
@@ -14,9 +16,6 @@ from .uniform_color_optimizer import UniformOptimizer
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import BWAPITool
-
-from PySide2 import QtGui, QtWidgets
-from sd.api.sdhistoryutils import SDHistoryUtils
 
 
 class BWOptimizeSettings(BWModuleSettings):
@@ -33,7 +32,9 @@ class BWOptimizeSettings(BWModuleSettings):
 
 
 def run(
-    node_selection: BWNodeSelection, api: BWAPITool, settings: BWOptimizeSettings
+    node_selection: BWNodeSelection,
+    api: BWAPITool,
+    settings: BWOptimizeSettings,
 ):
     if node_selection.node_count == 0:
         return

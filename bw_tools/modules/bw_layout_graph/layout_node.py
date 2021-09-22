@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from common.bw_node_selection import BWNode, BWNodeSelection
+from bw_tools.common.bw_node_selection import BWNode, BWNodeSelection
 from sd.api import sdbasetypes
 
 from .alignment_behavior import BWNodeAlignmentBehavior

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-from modules.bw_settings import settings_loader
+from bw_tools.modules.bw_settings import settings_loader
 from PySide2.QtGui import QStandardItem
 
 

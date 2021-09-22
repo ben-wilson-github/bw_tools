@@ -3,8 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Any, List, Tuple, Type
 
-from modules.bw_settings.bw_settings_model import BWModuleModel
-from modules.bw_settings.widgets import (
+from bw_tools.modules.bw_settings.bw_settings_model import BWModuleModel
+from bw_tools.modules.bw_settings.widgets import (
     BWBoolValueWidget,
     BWDropDownWidget,
     BWFloatValueWidget,
