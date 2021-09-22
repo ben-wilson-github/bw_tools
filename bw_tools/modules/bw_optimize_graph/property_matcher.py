@@ -2,13 +2,10 @@ from __future__ import annotations, unicode_literals
 
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from bw_tools.common.bw_api_tool import (
-    SDConnection,
-    SDGraph,
-    SDNode,
-    SDProperty,
-)
-from sd.api.sdproperty import SDPropertyCategory
+from sd.api.sdconnection import SDConnection
+from sd.api.sdgraph import SDGraph
+from sd.api.sdnode import SDNode
+from sd.api.sdproperty import SDProperty, SDPropertyCategory
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_node import BWNode
@@ -84,7 +81,9 @@ def _get_matching_property(
     return None
 
 
-def _get_exposed_graph(node: BWNode, property: SDProperty) -> Optional[SDGraph]:
+def _get_exposed_graph(
+    node: BWNode, property: SDProperty
+) -> Optional[SDGraph]:
     return node.api_node.getPropertyGraph(property)
 
 
@@ -108,7 +107,9 @@ def _get_connected_nodes_from_connections(
     return tuple(connected_nodes), tuple(other_connected_nodes)
 
 
-def _values_match(node: BWNode, other_node: BWNode, property: SDProperty) -> bool:
+def _values_match(
+    node: BWNode, other_node: BWNode, property: SDProperty
+) -> bool:
     value = node.api_node.getInputPropertyValueFromId(property.getId())
     if value is not None:
         value = value.get()

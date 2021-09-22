@@ -3,16 +3,14 @@ from __future__ import annotations, unicode_literals
 from dataclasses import dataclass
 from typing import List
 
+from common.bw_node import BWNode
 from sd.api.sdproperty import SDPropertyCategory
 
-from . import optimizer
-
-# if TYPE_CHECKING:
-from bw_tools.common.bw_node import BWNode
+from .optimizer import Optimizer
 
 
 @dataclass
-class AtomicOptimizer(optimizer.Optimizer):
+class AtomicOptimizer(Optimizer):
     def run(self):
         atmoic_nodes = self.get_nodes()
         atmoic_nodes.sort(key=lambda n: n.pos.x)

@@ -4,11 +4,13 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
 
-from bw_tools.common.bw_node_selection import BWNodeSelection
-from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
-from bw_tools.modules.bw_layout_graph import bw_layout_graph
+from common.bw_node_selection import BWNodeSelection
+from modules.bw_layout_graph import bw_layout_graph
+from modules.bw_settings.bw_settings import BWModuleSettings
 
-from . import atomic_optimizer, comp_graph_optimizer, uniform_color_optimizer
+from .atomic_optimizer import AtomicOptimizer
+from .comp_graph_optimizer import CompGraphOptimizer
+from .uniform_color_optimizer import UniformOptimizer
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import BWAPITool
@@ -25,7 +27,8 @@ class OptimizeSettings(BWModuleSettings):
         self.popup_on_complete: bool = self.get("Popup On Complete;value")
         self.run_layout_tools: bool = self.get("Run Layout Tools;value")
         self.uniform_force_output_size: bool = self.get(
-            "Uniform Color Node Settings;content;Force Output Size (16x16);value"
+            "Uniform Color Node Settings;content;"
+            "Force Output Size (16x16);value"
         )
 
 
@@ -41,7 +44,7 @@ def run(
     while deleted:
         deleted = False
 
-        optimizer = atomic_optimizer.AtomicOptimizer(node_selection, settings)
+        optimizer = AtomicOptimizer(node_selection, settings)
         optimizer.run()
         if settings.recursive:
             while optimizer.deleted_count >= 1:
@@ -49,9 +52,7 @@ def run(
                 atomic_count += optimizer.deleted_count
                 optimizer.run()
 
-        optimizer = comp_graph_optimizer.CompGraphOptimizer(
-            node_selection, settings
-        )
+        optimizer = CompGraphOptimizer(node_selection, settings)
         optimizer.run()
         if settings.recursive:
             while optimizer.deleted_count >= 1:
@@ -62,9 +63,7 @@ def run(
     # Handle uniform colors
     uniform_color_count = 0
     if settings.uniform_force_output_size:
-        optimizer = uniform_color_optimizer.UniformOptimizer(
-            node_selection, settings
-        )
+        optimizer = UniformOptimizer(node_selection, settings)
         optimizer.run()
         uniform_color_count = optimizer.optimized_count
 

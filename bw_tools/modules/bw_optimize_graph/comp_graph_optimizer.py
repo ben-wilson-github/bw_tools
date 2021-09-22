@@ -1,14 +1,12 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from bw_tools.common.bw_api_tool import CompNodeID
 
-from . import optimizer
+from .optimizer import Optimizer
 
 
 @dataclass
-class CompGraphOptimizer(optimizer.Optimizer):
+class CompGraphOptimizer(Optimizer):
     def run(self):
         comp_nodes = self.get_nodes(CompNodeID.COMP_GRAPH)
         comp_nodes.sort(key=lambda n: n.pos.x)

@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import CompNodeID
     from bw_tools.common.bw_node import BWNode
     from bw_tools.common.bw_node_selection import BWNodeSelection
+
     from .bw_optimize_graph import OptimizeSettings
 
 
@@ -40,7 +41,9 @@ class Optimizer:
             if node.api_node.getDefinition().getId() == node_id.value
         ]
 
-    def find_duplicates(self, nodes: List[BWNode]) -> Dict[BWNode, List[BWNode]]:
+    def find_duplicates(
+        self, nodes: List[BWNode]
+    ) -> Dict[BWNode, List[BWNode]]:
         """
         Returns a dictionary of unique nodes in the keys and a list of
         duplciate nodes which match the unique node.
@@ -70,7 +73,9 @@ class Optimizer:
         return None
 
     @staticmethod
-    def _reconnect_output_connections(duplicate_node: BWNode, unique_node: BWNode):
+    def _reconnect_output_connections(
+        duplicate_node: BWNode, unique_node: BWNode
+    ):
         for output_connection in duplicate_node.output_connections:
             source_property = property_matcher.get_matching_output_property(
                 unique_node, output_connection.getOutputProperty()
