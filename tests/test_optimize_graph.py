@@ -45,6 +45,7 @@ class TestOptimizeGraph(unittest.TestCase):
             str(cls.tmp_package_file_path.resolve())
         )
         cls.api = BWAPITool()
+        cls.api.initialize_logger()
 
     def test_deletes_uniform_color_node(self):
         graph_name = "test_deletes_uniform_color_node"

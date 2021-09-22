@@ -189,6 +189,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
 
         cls.pkg_mgr = sd.getContext().getSDApplication().getPackageMgr()
         cls.api = BWAPITool()
+        cls.api.initialize_logger()
 
         for i, tmp_file in enumerate(tmp_file_paths):
             if not tmp_file.parent.is_dir():
