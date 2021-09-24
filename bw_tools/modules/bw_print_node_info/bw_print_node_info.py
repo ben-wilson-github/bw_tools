@@ -4,16 +4,17 @@ import sd
 from bw_tools.common import bw_api_tool
 
 
-def print_node_info(api: bw_api_tool.BWAPITool):
-    def _get_properties(category):
-        ret = f"{category.name}:\n"
-        for p in node.getProperties(category):
-            value = node.getPropertyValueFromId(p.getId(), category)
-            if value:
-                value = value.get()
-            ret += f"\t{p.getId()} : {value}\n"
-        return ret
+def _get_properties(node, category):
+    ret = f"{category.name}:\n"
+    for p in node.getProperties(category):
+        value = node.getPropertyValueFromId(p.getId(), category)
+        if value:
+            value = value.get()
+        ret += f"\t{p.getId()} : {value}\n"
+    return ret
 
+
+def print_node_info(api: bw_api_tool.BWAPITool):
     for node in api.ui_mgr.getCurrentGraphSelection():
         ret = (
             f'{"=" * 20}\n'

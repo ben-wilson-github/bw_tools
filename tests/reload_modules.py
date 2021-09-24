@@ -37,6 +37,7 @@ from bw_tools.modules.bw_optimize_graph import (
 )
 from bw_tools.modules.bw_pbr_reference import bw_pbr_reference
 from bw_tools.modules.bw_framer import bw_framer
+from bw_tools.modules.bw_print_node_info import bw_print_node_info
 
 from tests import (
     test_chain_dimension,
@@ -76,6 +77,7 @@ modules = [
     straighten_behavior,
     bw_pbr_reference,
     bw_framer,
+		 bw_print_node_info,
     test_straighten_connection,
     test_layout_graph,
     test_node_selection,

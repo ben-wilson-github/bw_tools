@@ -7,6 +7,8 @@ from typing import List, Optional, TypeVar
 import sd
 from PySide2 import QtGui, QtWidgets
 from sd.api.qtforpythonuimgrwrapper import QtForPythonUIMgrWrapper
+from sd.api.sbs.sdsbscompgraph import SDSBSCompGraph
+from sd.api.sbs.sdsbsfunctiongraph import SDSBSFunctionGraph
 from sd.api.sdapplication import SDApplication
 from sd.api.sdgraph import SDGraph
 from sd.api.sdgraphobject import SDGraphObject
@@ -86,6 +88,24 @@ class BWAPITool:
     @property
     def current_graph_object_selection(self) -> List[SDGraphObject]:
         return self.ui_mgr.getCurrentGraphSelectedObjects()
+
+    @property
+    def current_graph_is_supported(self) -> bool:
+        """
+        Returns whether the graph is a support type for bw_tools.
+
+        Some graph types in the designer API are not fully supported.
+        We only support those which are fully functional.
+
+        This property should be removed when the API is updated.
+        """
+        # Some graphs do not even return with the designer API
+        if self.current_graph is None:
+            return False
+
+        return isinstance(
+            self.current_graph, (SDSBSCompGraph, SDSBSFunctionGraph)
+        )
 
     @property
     def log(self) -> logging.RootLogger:

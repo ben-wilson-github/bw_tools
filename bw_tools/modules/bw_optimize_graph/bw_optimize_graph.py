@@ -95,9 +95,14 @@ def run(
 
 
 def _on_clicked_run(api: BWAPITool):
+    if not api.current_graph_is_supported:
+        api.log.error("Graph type is unsupported")
+        return
+
     pkg = api.current_package
     file_path = Path(pkg.getFilePath())
     if not os.access(file_path, os.W_OK):
+        api.log.error("Permission denied to write to package")
         return
 
     with SDHistoryUtils.UndoGroup("Optimize Nodes"):
