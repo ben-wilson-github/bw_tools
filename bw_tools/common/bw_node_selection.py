@@ -128,7 +128,6 @@ class BWNodeSelection(NodeGroupInterface):
                     connection_data.add_node(output_node)
 
             if connection_data.nodes:
-                # node.offset_node = connection_data.nodes[0]
                 node.add_output_connection_data(connection_data)
 
 

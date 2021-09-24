@@ -19,5 +19,9 @@
     "Default Title": {
         "widget": 1,
         "value": ""
+    },
+    "Default Description": {
+        "widget": 1,
+        "value": ""
     }
 }

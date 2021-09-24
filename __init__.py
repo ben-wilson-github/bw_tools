@@ -6,24 +6,21 @@ from pathlib import Path
 # To resolve imports for the packaged plugin
 # we must insert the root directory
 ROOT_DIR = Path(__file__).parent
-if not ROOT_DIR in sys.path:
+if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 # Add windows specific because designer does not
 # resolve / correctly
-if not os.path.normpath(ROOT_DIR) in sys.path:
+if os.path.normpath(ROOT_DIR) not in sys.path:
     sys.path.insert(0, os.path.normpath(ROOT_DIR))
-
-for path in sys.path:
-    print(path)
 
 
 from bw_tools.common.bw_api_tool import BWAPITool
 
-# TODO: Fix imports and generating of path
-# TODO: Clean up every file
-# TODO: Fix imports to relative where possible
-# TODO: remove comment in node_selection._add_output_nodes after checking unit tests 
+# TODO: Add default description to framer
+# TODO: reset to default settings
+# TODO: Check for read only before making edits
+
 
 API_TOOL = BWAPITool()
 

@@ -26,6 +26,7 @@ class BWFramerSettings(BWModuleSettings):
         self.margin: float = self.get("Margin;value")
         self.default_color: list = self.get("Default Color;value")
         self.default_title: str = self.get("Default Title;value")
+        self.default_description: str = self.get("Default Description;value")
 
 
 def get_frames(graph_objects: list[SDGraphObject]) -> list[SDGraphObjectFrame]:
@@ -80,6 +81,7 @@ def run_framer(
                 settings.default_color[3],
             )
         )
+        frame.setDescription(settings.default_description)
 
     frame.setPosition(
         sdbasetypes.float2(
@@ -133,4 +135,5 @@ def get_default_settings() -> Dict:
         "Margin": {"widget": 2, "value": 32},
         "Default Color": {"widget": 6, "value": [0.0, 0.0, 0.0, 0.25]},
         "Default Title": {"widget": 1, "value": ""},
+        "Default Description": {"widget": 1, "value": ""}
     }
