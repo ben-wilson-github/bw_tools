@@ -1,1 +1,1 @@
-# bw_tools
+bwTools is a series of plugins for Substance Designer, aimed at speeding up graph organisation tasks. The plugins come as a package which neatly slots directly into Designers toolbar, where the user can set hotkeys for the various tools along with their associated settings. This package also comes with my previous optimisation plugin for free
