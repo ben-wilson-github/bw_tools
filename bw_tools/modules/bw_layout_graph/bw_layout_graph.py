@@ -1,3 +1,4 @@
+import os
 from functools import partial
 from pathlib import Path
 from typing import Dict, Optional, Union
@@ -111,6 +112,11 @@ def run_layout(
 
 
 def on_clicked_layout_graph(api: BWAPITool):
+    pkg = api.current_package
+    file_path = Path(pkg.getFilePath())
+    if not os.access(file_path, os.W_OK):
+        return
+
     with SDHistoryUtils.UndoGroup("Undo Group"):
         api_nodes = remove_dot_nodes(
             api.current_node_selection, api.current_graph

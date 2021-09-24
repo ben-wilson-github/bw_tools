@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
@@ -94,6 +95,11 @@ def run(
 
 
 def _on_clicked_run(api: BWAPITool):
+    pkg = api.current_package
+    file_path = Path(pkg.getFilePath())
+    if not os.access(file_path, os.W_OK):
+        return
+
     with SDHistoryUtils.UndoGroup("Optimize Nodes"):
         api.log.info("Running optimize graph...")
         node_selection = BWNodeSelection(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
@@ -92,6 +93,11 @@ def run_framer(
 
 
 def on_clicked_run_framer(api: BWAPITool):
+    pkg = api.current_package
+    file_path = Path(pkg.getFilePath())
+    if not os.access(file_path, os.W_OK):
+        return
+
     with SDHistoryUtils.UndoGroup("Framer"):
         settings = BWFramerSettings(
             Path(__file__).parent / "bw_framer_settings.json"

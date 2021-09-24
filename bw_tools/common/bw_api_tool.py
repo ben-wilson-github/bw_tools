@@ -11,6 +11,7 @@ from sd.api.sdapplication import SDApplication
 from sd.api.sdgraph import SDGraph
 from sd.api.sdgraphobject import SDGraphObject
 from sd.api.sdnode import SDNode
+from sd.api.sdpackage import SDPackage
 from sd.api.sdpackagemgr import SDPackageMgr
 from sd.context import Context as SDContext
 
@@ -77,6 +78,10 @@ class BWAPITool:
     @property
     def current_graph(self) -> SDGraph:
         return self.ui_mgr.getCurrentGraph()
+
+    @property
+    def current_package(self) -> SDPackage:
+        return self.current_graph.getPackage()
 
     @property
     def current_graph_object_selection(self) -> List[SDGraphObject]:

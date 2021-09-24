@@ -17,7 +17,6 @@ if os.path.normpath(ROOT_DIR) not in sys.path:
 
 from bw_tools.common.bw_api_tool import BWAPITool
 
-# TODO: Add default description to framer
 # TODO: reset to default settings
 # TODO: Check for read only before making edits
 

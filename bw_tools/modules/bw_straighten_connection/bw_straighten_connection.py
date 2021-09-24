@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
@@ -259,6 +260,11 @@ def _get_source_property_from_connection(
 def on_clicked_straighten_connection(
     api: BWAPITool, behavior: Type[BWAbstractStraightenBehavior]
 ):
+    pkg = api.current_package
+    file_path = Path(pkg.getFilePath())
+    if not os.access(file_path, os.W_OK):
+        return
+
     with SDHistoryUtils.UndoGroup("Straighten Connection Undo Group"):
         api.logger.info("Running straighten connection")
 
@@ -276,6 +282,11 @@ def on_clicked_straighten_connection(
 
 
 def on_clicked_remove_dot_nodes_from_selection(api: BWAPITool):
+    pkg = api.current_package
+    file_path = Path(pkg.getFilePath())
+    if not os.access(file_path, os.W_OK):
+        return
+
     with SDHistoryUtils.UndoGroup("Remove Dot Nodes Undo Group"):
         api.logger.info("Running remove dot nodes from selection")
 
