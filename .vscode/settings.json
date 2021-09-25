@@ -6,5 +6,6 @@
     "python.analysis.extraPaths": [
         "C:/Program Files/Adobe/Adobe Substance 3D Designer/plugins/pythonsdk/Lib/site-packages/",
         "C:/Program Files/Adobe/Adobe Substance 3D Designer/resources/python"
-    ]
+    ],
+    "restructuredtext.confPath": "${workspaceFolder}\\docs"
 }
