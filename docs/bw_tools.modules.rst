@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    bw_tools.modules.bw_framer
-   bw_tools.modules.bw_generate_slider_outputs
    bw_tools.modules.bw_layout_graph
    bw_tools.modules.bw_optimize_graph
    bw_tools.modules.bw_pbr_reference

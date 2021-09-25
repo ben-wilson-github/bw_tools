@@ -44,7 +44,7 @@ class BWAPITool:
     loaded.
 
     The module is responsible for doing any setup code. Callbacks can be
-    registered with the APITool.register_on_...().
+    registered with the APITool.register_on_graph_view_created_callback()
 
     There are two toolbars available, the main top toolbar and a graph view
     toolbar. These can be accessed with .toolbar and .graph_view_toolbar
