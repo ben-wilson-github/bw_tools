@@ -4,13 +4,13 @@
    contain the root `toctree` directive.
    
 
-Welcome to bw_tools's documentation!
+Welcome to BW_Tools documentation!
 ====================================
-description of the tools
 
-ref to install
-    sdplugin
-    remove old version
+Download here
+
+To get the tools installed, follow this guide
+:doc:`install`
 
 ref to using the tools
     with page for each tool
@@ -39,8 +39,9 @@ go read api Reference
 
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 1
 
     install
+    usage
     support
     api_reference
