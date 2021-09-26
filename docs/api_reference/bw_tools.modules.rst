@@ -1,8 +1,6 @@
-bw\_tools.modules package
-=========================
+bw\_tools.modules
+=================
 
-Subpackages
------------
 
 .. toctree::
    :maxdepth: 4
@@ -15,8 +13,6 @@ Subpackages
    bw_tools.modules.bw_settings
    bw_tools.modules.bw_straighten_connection
 
-Module contents
----------------
 
 .. automodule:: bw_tools.modules
    :members:

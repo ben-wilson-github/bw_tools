@@ -142,4 +142,4 @@ pluginInfo.json
 # PyCharm
 .idea
 
-doc.html
+modules.rst

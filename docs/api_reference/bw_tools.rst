@@ -1,8 +1,6 @@
-bw\_tools package
-=================
+bw\_tools
+=========
 
-Subpackages
------------
 
 .. toctree::
    :maxdepth: 4
@@ -10,8 +8,6 @@ Subpackages
    bw_tools.common
    bw_tools.modules
 
-Module contents
----------------
 
 .. automodule:: bw_tools
    :members:
