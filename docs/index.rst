@@ -4,13 +4,14 @@
    contain the root `toctree` directive.
    
 
-Welcome to bw_tools's documentation!
+Welcome to BW_Tools documentation!
 ====================================
-description of the tools
 
-ref to install
-    sdplugin
-    remove old version
+Download here
+unsupport graph types
+
+To get the tools installed, follow this guide
+:doc:`install`
 
 ref to using the tools
     with page for each tool
@@ -37,10 +38,21 @@ common module usage
 go read api Reference
 :doc:`api_reference`
 
+change list:
+2.0.0
+rewrite
+
+2.0.1
+added default description to framer tool
+Can no longer run graph tools on unsupported graph types
+
+2.0.2
+Updated tooltip for framer
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 1
 
     install
+    usage
     support
     api_reference
