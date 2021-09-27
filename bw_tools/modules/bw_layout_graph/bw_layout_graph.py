@@ -150,9 +150,9 @@ def on_clicked_layout_graph(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    toolbar = api.get_graph_view_toolbar(graph_view_id)
-    if toolbar is None:
-        toolbar = api.create_graph_view_toolbar(graph_view_id)
+    # toolbar = api.get_graph_view_toolbar(graph_view_id)
+    # if toolbar is None:
+    toolbar = api.create_graph_view_toolbar(graph_view_id)
 
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
     action: QAction = toolbar.addAction(QIcon(str(icon_path.resolve())), "")
