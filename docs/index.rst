@@ -38,6 +38,16 @@ common module usage
 go read api Reference
 :doc:`api_reference`
 
+change list:
+2.0.0
+rewrite
+
+2.0.1
+added default description to framer tool
+Can no longer run graph tools on unsupported graph types
+
+2.0.2
+Updated tooltip for framer
 
 .. toctree::
     :maxdepth: 1
