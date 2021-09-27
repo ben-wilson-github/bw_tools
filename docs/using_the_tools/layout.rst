@@ -1,3 +1,3 @@
 BW Layout Graph
 ===============
-Docs here
+This tool is used to automatically 

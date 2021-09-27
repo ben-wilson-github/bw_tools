@@ -48,6 +48,7 @@ Can no longer run graph tools on unsupported graph types
 
 2.0.2
 Updated tooltip for framer
+Fixed alignment behavior on layout graph not working
 
 .. toctree::
     :maxdepth: 1
