@@ -130,7 +130,9 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     icon = Path(__file__).parent / "resources" / "bw_framer_icon.png"
     action: QAction = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
     action.setShortcut(QtGui.QKeySequence(settings.hotkey))
-    action.setToolTip("Frames the selected nodes")
+    action.setToolTip(
+        "Frames the selected nodes by reusing an existing frame, or drawing a new one.\n"
+        f"({settings.hotkey})")
     action.triggered.connect(lambda: on_clicked_run_framer(api))
 
 

@@ -8,6 +8,7 @@ Welcome to BW_Tools documentation!
 ====================================
 
 Download here
+unsupport graph types
 
 To get the tools installed, follow this guide
 :doc:`install`
