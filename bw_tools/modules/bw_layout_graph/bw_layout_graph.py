@@ -82,9 +82,9 @@ def run_layout(
 
     already_processed = list()
     for root_node in node_selection.root_nodes:
-        if settings.alignment_behavior == 0:
+        if settings.alignment_behavior == "Mainline":
             behavior = BWVerticalAlignFarthestInput(settings)
-        elif settings.alignment_behavior == 1:
+        elif settings.alignment_behavior == "Center":
             behavior = BWVerticalAlignMidPoint(settings)
         else:
             behavior = BWVerticalAlignTopStack(settings)
