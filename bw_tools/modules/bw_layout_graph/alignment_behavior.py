@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from operator import attrgetter
 from typing import TYPE_CHECKING, Tuple
 
+from bw_tools.common.bw_chain_dimension import BWChainDimension
 from bw_tools.common.bw_node import BWFloat2
+from bw_tools.modules.bw_layout_graph.aligner_mainline import BWMainlineAligner
 
 if TYPE_CHECKING:
     from .bw_layout_graph import BWLayoutSettings
@@ -87,8 +90,9 @@ class BWVerticalAlignMidPoint(BWPostAlignmentBehavior):
 
 
 @dataclass
-class BWVerticalAlignFarthestInput(BWPostAlignmentBehavior):
+class BWVerticalAlignMainlineInput(BWPostAlignmentBehavior):
     def exec(self, node: BWLayoutNode):
+        # Farthest is likely to be a mainline
         farthest = [node.input_nodes[0]]
         input_node: BWLayoutNode
         for input_node in node.input_nodes[1:]:
@@ -98,11 +102,28 @@ class BWVerticalAlignFarthestInput(BWPostAlignmentBehavior):
                 farthest.append(input_node)
 
         if len(farthest) > 1:
-            mid_point_align = BWVerticalAlignMidPoint(self.settings)
-            mid_point_align.exec(node)
-            return
+            # If ambiguous, get the mainline itself
+            # Mainline being the one with the deepest chain
+            mainline_aligner = BWMainlineAligner(self.settings)
+            cds = mainline_aligner.get_chain_dimensions_ignore_branches(
+                farthest
+            )
+            cds.sort(key=lambda cd: cd.bounds.left)
+            
+            # If mainline was ambiguous too, revert to center align
+            if (
+                len(cds) == 0
+                or len(cds) >= 2
+                and cds[0].bounds.left == cds[1].bounds.left
+            ):
+                mid_point_align = BWVerticalAlignMidPoint(self.settings)
+                mid_point_align.exec(node)
+                return
 
-        farthest = farthest[0]
+            farthest = cds[0].right_node
+        else:
+            farthest = farthest[0]
+
         offset = node.pos.y - farthest.pos.y
 
         input_node: BWLayoutNode

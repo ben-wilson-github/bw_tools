@@ -29,7 +29,7 @@
         "content": {
             "Enable": {
                 "widget": 4,
-                "value": true
+                "value": false
             },
             "Additional Offset": {
                 "widget": 2,

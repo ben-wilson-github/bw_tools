@@ -19,7 +19,7 @@ from sd.tools.graphlayout import snapSDNodes
 from .aligner_mainline import BWMainlineAligner
 from .aligner_vertical import BWVerticalAligner
 from .alignment_behavior import (
-    BWVerticalAlignFarthestInput,
+    BWVerticalAlignMainlineInput,
     BWVerticalAlignMidPoint,
     BWVerticalAlignTopStack,
 )
@@ -83,7 +83,7 @@ def run_layout(
     already_processed = list()
     for root_node in node_selection.root_nodes:
         if settings.alignment_behavior == "Mainline":
-            behavior = BWVerticalAlignFarthestInput(settings)
+            behavior = BWVerticalAlignMainlineInput(settings)
         elif settings.alignment_behavior == "Center":
             behavior = BWVerticalAlignMidPoint(settings)
         else:
@@ -123,15 +123,10 @@ def on_clicked_layout_graph(api: BWAPITool):
         return
 
     with SDHistoryUtils.UndoGroup("Undo Group"):
-        api_nodes = remove_dot_nodes(
-            api.current_node_selection, api.current_graph
-        )
-        node_selection = BWLayoutNodeSelection(api_nodes, api.current_graph)
-
         settings = BWLayoutSettings(
             Path(__file__).parent / "bw_layout_graph_settings.json"
         )
-        if node_selection.node_count >= settings.node_count_warning:
+        if len(api.current_node_selection) >= settings.node_count_warning:
             msg = (
                 "Running Layout Graph on a large selection could take a while,"
                 " are you sure you want to continue"
@@ -145,6 +140,11 @@ def on_clicked_layout_graph(api: BWAPITool):
 
             if ret == QMessageBox.No:
                 return
+        
+        api_nodes = remove_dot_nodes(
+            api.current_node_selection, api.current_graph
+        )
+        node_selection = BWLayoutNodeSelection(api_nodes, api.current_graph)
 
         run_layout(node_selection, api, settings)
 
