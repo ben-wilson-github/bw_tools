@@ -5,9 +5,10 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
 
+from PySide2.QtGui import QIcon, QKeySequence
+
 from bw_tools.common.bw_node import BWNode
 from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
-from PySide2 import QtGui
 from PySide2.QtWidgets import QAction
 from sd.api import sdbasetypes
 from sd.api.sdgraph import SDGraph
@@ -119,21 +120,24 @@ def on_clicked_run_framer(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    toolbar = api.get_graph_view_toolbar(graph_view_id)
-    if toolbar is None:
-        toolbar = api.create_graph_view_toolbar(graph_view_id)
+    api.add_toolbar_to_graph_view(graph_view_id)
 
     settings = BWFramerSettings(
         Path(__file__).parent / "bw_framer_settings.json"
     )
-
     icon = Path(__file__).parent / "resources" / "bw_framer_icon.png"
-    action: QAction = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
-    action.setShortcut(QtGui.QKeySequence(settings.hotkey))
-    action.setToolTip(
-        "Frames the selected nodes by reusing an existing frame, or drawing a new one.\n"
-        f"({settings.hotkey})")
+    tooltip = f"""
+    Frames the selected nodes by reusing an existing frame, or drawing
+    a new one.
+
+    Shortcut: {settings.hotkey}
+    """
+    action = QAction()
+    action.setIcon(QIcon(str(icon.resolve())))
+    action.setToolTip(tooltip)
+    action.setShortcut(QKeySequence(settings.hotkey))
     action.triggered.connect(lambda: on_clicked_run_framer(api))
+    api.graph_view_toolbar.add_action("bw_framer", action)
 
 
 def on_initialize(api: BWAPITool):

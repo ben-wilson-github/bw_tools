@@ -140,7 +140,7 @@ def on_clicked_layout_graph(api: BWAPITool):
 
             if ret == QMessageBox.No:
                 return
-        
+
         api_nodes = remove_dot_nodes(
             api.current_node_selection, api.current_graph
         )
@@ -150,19 +150,26 @@ def on_clicked_layout_graph(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    # toolbar = api.get_graph_view_toolbar(graph_view_id)
-    # if toolbar is None:
-    toolbar = api.create_graph_view_toolbar(graph_view_id)
-
-    icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
-    action: QAction = toolbar.addAction(QIcon(str(icon_path.resolve())), "")
+    api.add_toolbar_to_graph_view(graph_view_id)
 
     settings = BWLayoutSettings(
         Path(__file__).parent / "bw_layout_graph_settings.json"
     )
+
+    icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
+    tooltip = f"""
+    Automatically align selected nodes based on their hierarchy, arranged
+    to minimise overlapping. Align a given nodes inputs about their center
+    point, stack them on top of each other or align them by their mainline.
+
+    Shortcut: {settings.hotkey}
+    """
+    action = QAction()
+    action.setIcon(QIcon(str(icon_path.resolve())))
     action.setShortcut(QKeySequence(settings.hotkey))
-    action.setToolTip("Layout Graph")
+    action.setToolTip(tooltip)
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
+    api.graph_view_toolbar.add_action("bw_layout_graph", action)
 
 
 def on_initialize(api: BWAPITool):

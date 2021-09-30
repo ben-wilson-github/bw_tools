@@ -29,11 +29,11 @@
         "content": {
             "Enable": {
                 "widget": 4,
-                "value": false
+                "value": true
             },
             "Additional Offset": {
                 "widget": 2,
-                "value": 95
+                "value": 96
             },
             "Minimum Threshold": {
                 "widget": 2,
@@ -46,7 +46,7 @@
         "content": {
             "Enable": {
                 "widget": 4,
-                "value": false
+                "value": true
             },
             "Alignment": {
                 "widget": 5,

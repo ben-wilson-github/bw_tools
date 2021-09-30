@@ -8,7 +8,7 @@ import os
 
 def main():
     plugin_name = "bw_tools"
-    version = "2.0.2"
+    version = "2.0.3"
     min_designer_version = "11.2.0"
     author = "Ben Wilson"
     email = "ben.q.wilson@gmail.com"
@@ -22,7 +22,7 @@ def main():
         "bw_generate_slider_outputs",
         "bw_print_node_info",
     ]
-    ignore_extention = [".psd"]
+    ignore_extention = [".psd", ".json"]
 
     with ZipFile(f"{plugin_name_version}.sdplugin", "w") as zip_obj:
         for root, folders, files in os.walk(Path.cwd().joinpath(plugin_name)):
