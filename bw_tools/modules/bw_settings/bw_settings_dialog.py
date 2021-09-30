@@ -37,7 +37,7 @@ class SettingsDialog(QDialog):
     """
 
     def __init__(self, api: BWAPITool):
-        super(SettingsDialog, self).__init__(parent=api.main_window)
+        super().__init__(parent=api.main_window)
         self._value_background = "#151515"
 
         self.setModal(False)
