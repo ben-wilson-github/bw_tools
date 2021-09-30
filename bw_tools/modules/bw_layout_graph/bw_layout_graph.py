@@ -194,7 +194,7 @@ def get_default_settings() -> Dict:
             "content": {
                 "Enable": {"widget": 4, "value": True},
                 "Additional Offset": {"widget": 2, "value": 96},
-                "Minimum Threshold": {"widget": 2, "value": 96},
+                "Minimum Threshold": {"widget": 2, "value": 128},
             },
         },
         "Straighten Connection Settings": {

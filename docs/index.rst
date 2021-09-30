@@ -50,6 +50,11 @@ Can no longer run graph tools on unsupported graph types
 Updated tooltip for framer
 Fixed alignment behavior on layout graph not working
 
+2.0.3
+Fixed toolbar sometimes not loading correctly
+Updated tooltips
+Fixed on hover for icons
+
 .. toctree::
     :maxdepth: 1
 
