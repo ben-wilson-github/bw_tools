@@ -54,6 +54,8 @@ Fixed alignment behavior on layout graph not working
 Fixed toolbar sometimes not loading correctly
 Updated tooltips
 Fixed on hover for icons
+layout graph mainline min threshold is now correctly calculated
+optimize graph no longer deleted nodes connected to the same input node, but different properties
 
 .. toctree::
     :maxdepth: 1

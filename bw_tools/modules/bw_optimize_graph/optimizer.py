@@ -50,7 +50,7 @@ class Optimizer:
         """
         unique_nodes: Dict[BWNode, List[BWNode]] = dict()
         for node in nodes:
-            duplicate_of: BWNode = self._is_duplicate_of_a_node(
+            duplicate_of: Optional[BWNode] = self._is_duplicate_of_a_node(
                 node, unique_nodes
             )
 
@@ -64,10 +64,18 @@ class Optimizer:
     def _is_duplicate_of_a_node(
         self, node: BWNode, unique_nodes: Dict[BWNode, List[BWNode]]
     ) -> Optional(BWNode):
+        """
+        Given a potential duplicate node and a list of unique nodes, will
+        return the unique node that the given node is a duplicate of.
+        """
         for identifier in unique_nodes.keys():
             unique_node = self.node_selection.node(identifier)
+
+            # If the labels do not match, the nodes could not possibly
+            # be duplicates
             if node.label != unique_node.label:
                 continue
+
             if property_matcher.input_properties_match(node, unique_node):
                 return unique_node
         return None
