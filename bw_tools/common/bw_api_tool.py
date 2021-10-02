@@ -26,6 +26,7 @@ class CompNodeID(Enum):
     DOT = "sbs::compositing::passthrough"
     UNIFORM_COLOR = "sbs::compositing::uniform"
     COMP_GRAPH = "sbs::compositing::sbscompgraph_instance"
+    OUTPUT = "sbs::compositing::output"
 
 
 class FunctionNodeId(Enum):

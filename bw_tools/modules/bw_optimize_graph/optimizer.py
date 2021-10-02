@@ -7,6 +7,7 @@ import sd
 from sd.api.sdproperty import SDPropertyCategory, SDPropertyInheritanceMethod
 
 from . import property_matcher
+from bw_tools.common.bw_api_tool import CompNodeID
 
 if TYPE_CHECKING:
     from bw_tools.common.bw_api_tool import CompNodeID
@@ -118,6 +119,13 @@ class Optimizer:
             output_size_property = connected_node.getPropertyFromId(
                 "$outputsize", SDPropertyCategory.Input
             )
+
+            # Ignore output nodes
+            if (
+                connected_node.getDefinition().getId()
+                == CompNodeID.OUTPUT.value
+            ):
+                return
 
             if (
                 connected_node.getPropertyInheritanceMethod(
