@@ -26,6 +26,7 @@ class CompNodeID(Enum):
     DOT = "sbs::compositing::passthrough"
     UNIFORM_COLOR = "sbs::compositing::uniform"
     COMP_GRAPH = "sbs::compositing::sbscompgraph_instance"
+    OUTPUT = "sbs::compositing::output"
 
 
 class FunctionNodeId(Enum):
@@ -69,6 +70,7 @@ class BWAPITool:
         self.menu: Optional[QtWidgets.QMenu] = None
         self.callback_ids: List[int] = []
 
+        self.graph_view_toolbar: Optional[BWToolbar] = None
         self._graph_view_toolbar_list: dict[int, BWToolbar] = dict()
         self._menu_object_name = "bw_tools_menu_obj"
         self._menu_label = " BW Tools"
@@ -195,17 +197,25 @@ class BWAPITool:
         self.callback_ids.append(graph_view_id)
         return graph_view_id
 
-    def create_graph_view_toolbar(self, graph_view_id: int) -> BWToolbar:
-        toolbar = BWToolbar(self.main_window)
+    def add_toolbar_to_graph_view(self, graph_view_id: int):
+        try:
+            print(self.graph_view_toolbar)
+        except RuntimeError:
+            # This occurs when a previously loaded package has been closed
+            # I believe Designer is deleting the toolbar giving us a 
+            # null pointer
+            self.graph_view_toolbar = BWToolbar(self.main_window)
+
+        if self.graph_view_toolbar is None:
+            self.graph_view_toolbar = BWToolbar(self.main_window)
+
         icon = Path(__file__).parent / "resources/bw_tools_icon.png"
         self.ui_mgr.addToolbarToGraphView(
             graph_view_id,
-            toolbar,
+            self.graph_view_toolbar,
             icon=QtGui.QIcon(str(icon.resolve())),
             tooltip="BW Toolbar",
         )
-        self._graph_view_toolbar_list[graph_view_id] = toolbar
-        return toolbar
 
     def remove_toolbars(self):
         for toolbar in self._graph_view_toolbar_list.values():

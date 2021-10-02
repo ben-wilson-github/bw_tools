@@ -100,7 +100,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s1.hotkey = "C"
         s1.node_spacing = 32.0
         s1.mainline_additional_offset = 96.0
-        s1.mainline_min_threshold = 96
+        s1.mainline_min_threshold = 128
         s1.alignment_behavior = "Mainline"
         s1.run_straighten_connection = False
         s1.snap_to_grid = False
@@ -110,7 +110,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s2.hotkey = "C"
         s2.node_spacing = 32.0
         s2.mainline_additional_offset = 96.0
-        s2.mainline_min_threshold = 96
+        s2.mainline_min_threshold = 128
         s2.alignment_behavior = "Center"
         s2.run_straighten_connection = False
         s2.snap_to_grid = False
@@ -120,7 +120,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s3.hotkey = "C"
         s3.node_spacing = 32.0
         s3.mainline_additional_offset = 96.0
-        s3.mainline_min_threshold = 96
+        s3.mainline_min_threshold = 128
         s3.alignment_behavior = "Top"
         s3.run_straighten_connection = False
         s3.snap_to_grid = False
@@ -130,7 +130,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s4.hotkey = "C"
         s4.node_spacing = 32.0
         s4.mainline_additional_offset = 96.0
-        s4.mainline_min_threshold = 96
+        s4.mainline_min_threshold = 128
         s4.alignment_behavior = "Mainline"
         s4.run_straighten_connection = False
         s4.snap_to_grid = False
@@ -140,7 +140,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s5.hotkey = "C"
         s5.node_spacing = 32.0
         s5.mainline_additional_offset = 96.0
-        s5.mainline_min_threshold = 96
+        s5.mainline_min_threshold = 128
         s5.alignment_behavior = "Center"
         s5.run_straighten_connection = False
         s5.snap_to_grid = False
@@ -150,7 +150,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s6.hotkey = "C"
         s6.node_spacing = 32.0
         s6.mainline_additional_offset = 96.0
-        s6.mainline_min_threshold = 96
+        s6.mainline_min_threshold = 128
         s6.alignment_behavior = "Top"
         s6.run_straighten_connection = False
         s6.snap_to_grid = False
@@ -160,7 +160,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s7.hotkey = "C"
         s7.node_spacing = 32.0
         s7.mainline_additional_offset = 0.0
-        s7.mainline_min_threshold = 96
+        s7.mainline_min_threshold = 128
         s7.alignment_behavior = "Mainline"
         s7.run_straighten_connection = False
         s7.snap_to_grid = False
@@ -170,7 +170,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
         s8.hotkey = "C"
         s8.node_spacing = 128.0
         s8.mainline_additional_offset = 96.0
-        s8.mainline_min_threshold = 96
+        s8.mainline_min_threshold = 128
         s8.alignment_behavior = "Mainline"
         s8.run_straighten_connection = False
         s8.snap_to_grid = False
@@ -206,7 +206,7 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
                 cls.pkg_mgr.unloadUserPackage(package)
             package = cls.pkg_mgr.loadUserPackage(str(tmp_file.resolve()))
             cls.packages.append(package)
-    
+
     def test_no_nodes_does_not_throw_error_mainline_enabled_mainline_align(
         self,
     ):
@@ -520,7 +520,9 @@ class TestLayoutGraphMainlineEnabledMainlineAlign(unittest.TestCase):
                 places=2,
             )
 
-    def _get_node_positions(self, node_selection: BWLayoutNodeSelection) -> Dict:
+    def _get_node_positions(
+        self, node_selection: BWLayoutNodeSelection
+    ) -> Dict:
         result = {}
         node: BWLayoutNode
         for node in node_selection.nodes:

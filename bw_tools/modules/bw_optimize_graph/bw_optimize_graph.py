@@ -4,11 +4,14 @@ import os
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
+from PySide2.QtGui import QIcon, QKeySequence
+
+from PySide2.QtWidgets import QAction
 
 from bw_tools.common.bw_node_selection import BWNodeSelection
 from bw_tools.modules.bw_layout_graph import bw_layout_graph
 from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
-from PySide2 import QtGui, QtWidgets
+from PySide2 import QtWidgets
 from sd.api.sdhistoryutils import SDHistoryUtils
 
 from .atomic_optimizer import AtomicOptimizer
@@ -119,19 +122,24 @@ def _on_clicked_run(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    toolbar = api.get_graph_view_toolbar(graph_view_id)
-    if toolbar is None:
-        toolbar = api.create_graph_view_toolbar(graph_view_id)
+    api.add_toolbar_to_graph_view(graph_view_id)
 
     settings = BWOptimizeSettings(
         Path(__file__).parent / "bw_optimize_graph_settings.json"
     )
-
     icon = Path(__file__).parent / "resources/icons/bw_optimize_graph.png"
-    action = toolbar.addAction(QtGui.QIcon(str(icon.resolve())), "")
-    action.setShortcut(QtGui.QKeySequence(settings.hotkey))
-    action.setToolTip("Optimize graph")
+    tooltip = f"""
+    Optimises the graph by identifying, removing duplicate nodes and
+    optimising node settings for performance.
+
+    Shortcut: {settings.hotkey}
+    """
+    action = QAction()
+    action.setIcon(QIcon(str(icon.resolve())))
+    action.setShortcut(QKeySequence(settings.hotkey))
+    action.setToolTip(tooltip)
     action.triggered.connect(lambda: _on_clicked_run(api))
+    api.graph_view_toolbar.add_action("bw_optimize_graph", action)
 
 
 def on_initialize(api: BWAPITool):

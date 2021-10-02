@@ -38,6 +38,17 @@ class BWMainlineAligner:
                 branching_output_node
             )
 
+    def _remove_cd_within_threshold(
+        self, cds: List[BWChainDimension], threshold: float
+    ) -> List[BWChainDimension]:
+        for cd in cds.copy():
+            if cd.left_node.pos.x < threshold:
+                # If the deepest cd is already past the threshold
+                # then we know its safe to move behind it
+                break
+            cds.remove(cd)
+        return cds
+
     def push_back_branching_output_node_behind_largest_chain(
         self,
         branching_output_node: BWLayoutNode,
@@ -105,10 +116,20 @@ class BWMainlineAligner:
         inputs = [
             n for n in branching_node.input_nodes if n is not mainline_node
         ]
-        left_bound = self.find_left_most_bound(inputs)
-        if left_bound is None:
-            return
 
+        # Sort the chain dimensions by left bound
+        cds = self.get_chain_dimensions_ignore_branches(inputs)
+        if len(cds) == 0:
+            return None
+        cds.sort(key=lambda cd: cd.bounds.left)
+
+        # Remove any cds which are within threshold
+        threshold = branching_node.pos.x - self.settings.mainline_min_threshold
+        cds = self._remove_cd_within_threshold(cds, threshold)
+        if len(cds) == 0:
+            return None
+
+        left_bound = cds[0].bounds.left
         spacer = self.settings.node_spacing
         spacer += self.settings.mainline_additional_offset
         mainline_node.set_position(
@@ -131,6 +152,7 @@ class BWMainlineAligner:
         cds = self.get_chain_dimensions_ignore_branches(node_list)
         if len(cds) == 0:
             return None
+
         cd: BWChainDimension = min(cds, key=attrgetter("bounds.left"))
         return cd.bounds.left
 
@@ -175,17 +197,10 @@ class BWMainlineAligner:
         cds: List[BWChainDimension] = self.get_chain_dimensions_for_inputs(
             node
         )
-
-        # For pleasing visual, do not consider chains
-        # which are very small.
-        for cd in cds.copy():
-            if cd.width <= self.settings.mainline_min_threshold:
-                cds.remove(cd)
         if len(cds) == 0:
             return None
 
         min_cd = min(cds, key=attrgetter("bounds.left"))
-
         chains_of_same_size = [
             cd for cd in cds if cd.bounds.left == min_cd.bounds.left
         ]
@@ -223,9 +238,12 @@ class BWMainlineAligner:
         self,
         output_node: BWLayoutNode,
     ) -> List[BWChainDimension]:
+        """
+        Returns a list of chain dimensions for each connected input.
+        """
         node_lists = self.calculate_node_lists_for_inputs(output_node)
-        if len(node_lists) < 2:
-            return []
+        # if len(node_lists) < 2:
+        #     return []
 
         cds = list()
         for i, input_node in enumerate(output_node.input_nodes):

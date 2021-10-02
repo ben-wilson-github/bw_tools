@@ -48,6 +48,16 @@ Can no longer run graph tools on unsupported graph types
 
 2.0.2
 Updated tooltip for framer
+Fixed alignment behavior on layout graph not working
+
+2.0.3
+Fixed toolbar sometimes not loading correctly
+Fixed toolbar returning null pointer after a package has been unloaded
+Updated tooltips
+Fixed on hover for icons
+layout graph mainline min threshold is now correctly calculated
+optimize graph no longer deleted nodes connected to the same input node, but different properties
+optimize graph no longer throws error when optimising uniform color nodes directly connected to an output node
 
 .. toctree::
     :maxdepth: 1

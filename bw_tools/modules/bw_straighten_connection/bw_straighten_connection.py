@@ -309,9 +309,7 @@ def on_clicked_remove_dot_nodes_from_selection(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    toolbar = api.get_graph_view_toolbar(graph_view_id)
-    if toolbar is None:
-        toolbar = api.create_graph_view_toolbar(graph_view_id)
+    api.add_toolbar_to_graph_view(graph_view_id)
 
     settings = BWStraightenSettings(
         Path(__file__).parent / "bw_straighten_connection_settings.json"
@@ -322,44 +320,63 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
         / "resources"
         / "straighten_connection_target.png"
     )
-    action: QAction = toolbar.addAction(QIcon(str(icon.resolve())), "")
+    tooltip = f"""
+    Straightens connection from selected nodes to all outputs by inserting
+    dot nodes into the connection.
+
+    Connections align horiontally to the source node.
+
+    Shortcut: {settings.target_hotkey}
+    """
+    action = QAction()
+    action.setIcon(QIcon(str(icon.resolve())))
+    action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.target_hotkey))
-    action.setToolTip(
-        "Straighten connections on selected nodes. "
-        "Connections insert dot nodes near the output nodes."
-    )
     action.triggered.connect(
         lambda: on_clicked_straighten_connection(
             api, BWBreakAtTarget(api.current_graph)
         )
     )
+    api.graph_view_toolbar.add_action("bw_straighten_target", action)
 
     icon = (
         Path(__file__).parent
         / "resources"
         / "straighten_connection_source.png"
     )
-    action = toolbar.addAction(QIcon(str(icon.resolve())), "")
+    tooltip = f"""
+    Straightens connection from selected nodes to all outputs by inserting
+    dot nodes into the connection.
+
+    Connections align horizontally to the y center of all output nodes.
+
+    Shortcut: {settings.source_hotkey}
+    """
+    action = QAction()
+    action.setIcon(QIcon(str(icon.resolve())))
+    action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.source_hotkey))
-    action.setToolTip(
-        "Straighten connections on selected nodes. "
-        "Connections insert dot nodes near the input node."
-    )
     action.triggered.connect(
         lambda: on_clicked_straighten_connection(
             api, BWBreakAtSource(api.current_graph)
         )
     )
+    api.graph_view_toolbar.add_action("bw_straighten_source", action)
 
     icon = Path(__file__).parent / "resources" / "remove_dot_node_selected.png"
-    action = toolbar.addAction(QIcon(str(icon.resolve())), "")
+    tooltip = f"""
+    Remove all dot nodes connected to the outputs of the selected nodes.
+
+    Shortcut: {settings.remove_dot_nodes_hotkey}
+    """
+    action = QAction()
+    action.setIcon(QIcon(str(icon.resolve())))
+    action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.remove_dot_nodes_hotkey))
-    action.setToolTip(
-        "Remove all dot nodes connected to the outputs of the selected nodes."
-    )
     action.triggered.connect(
         lambda: on_clicked_remove_dot_nodes_from_selection(api)
     )
+    api.graph_view_toolbar.add_action("bw_straighten_remove", action)
 
 
 def on_initialize(api: BWAPITool):

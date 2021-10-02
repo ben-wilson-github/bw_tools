@@ -267,6 +267,54 @@ class TestOptimizeGraph(unittest.TestCase):
 
         self.assertEqual(len(graph.getNodes()), 7)
 
+    def test_does_not_collapse_dot_nodes(self):
+        graph_name = "test_does_not_collapse_dot_nodes"
+        print(f"...{graph_name}")
+
+        settings = Mock()
+        settings.uniform_force_output_size = True
+        settings.recursive = True
+        settings.popup_on_complete = False
+        settings.run_layout_tools = False
+
+        graph = self.package.findResourceFromUrl(graph_name)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
+        bw_optimize_graph.run(node_selection, self.api, settings)
+
+        self.assertEqual(len(graph.getNodes()), 13)
+    
+    def test_does_collapse_dot_nodes(self):
+        graph_name = "test_does_collapse_dot_nodes"
+        print(f"...{graph_name}")
+
+        settings = Mock()
+        settings.uniform_force_output_size = True
+        settings.recursive = True
+        settings.popup_on_complete = False
+        settings.run_layout_tools = False
+
+        graph = self.package.findResourceFromUrl(graph_name)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
+        bw_optimize_graph.run(node_selection, self.api, settings)
+
+        self.assertEqual(len(graph.getNodes()), 4)
+
+    def test_test_uniform_color_node_does_not_throw_error_1(self):
+        graph_name = "test_uniform_color_node_does_not_throw_error_1"
+        print(f"...{graph_name}")
+
+        settings = Mock()
+        settings.uniform_force_output_size = True
+        settings.recursive = True
+        settings.popup_on_complete = False
+        settings.run_layout_tools = False
+
+        graph = self.package.findResourceFromUrl(graph_name)
+        node_selection = BWNodeSelection(graph.getNodes(), graph)
+        bw_optimize_graph.run(node_selection, self.api, settings)
+        # The graph should not error
+        self.assertTrue(True)
+
 
 if __name__ == "__main__":
     unittest.main()
