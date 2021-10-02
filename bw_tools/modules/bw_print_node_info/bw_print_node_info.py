@@ -28,9 +28,9 @@ def print_node_info(api: bw_api_tool.BWAPITool):
             f"\tID: {node.getDefinition().getId()}\n"
             f"\tLabel: {node.getDefinition().getLabel()}\n"
         )
-        ret += _get_properties(sd.api.sdproperty.SDPropertyCategory.Annotation)
-        ret += _get_properties(sd.api.sdproperty.SDPropertyCategory.Input)
-        ret += _get_properties(sd.api.sdproperty.SDPropertyCategory.Output)
+        ret += _get_properties(node, sd.api.sdproperty.SDPropertyCategory.Annotation)
+        ret += _get_properties(node, sd.api.sdproperty.SDPropertyCategory.Input)
+        ret += _get_properties(node, sd.api.sdproperty.SDPropertyCategory.Output)
         ret += f'{"=" * 20}\n'
         print(ret)
 
