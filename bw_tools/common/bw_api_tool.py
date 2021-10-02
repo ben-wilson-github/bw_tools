@@ -198,6 +198,14 @@ class BWAPITool:
         return graph_view_id
 
     def add_toolbar_to_graph_view(self, graph_view_id: int):
+        try:
+            print(self.graph_view_toolbar)
+        except RuntimeError:
+            # This occurs when a previously loaded package has been closed
+            # I believe Designer is deleting the toolbar giving us a 
+            # null pointer
+            self.graph_view_toolbar = BWToolbar(self.main_window)
+
         if self.graph_view_toolbar is None:
             self.graph_view_toolbar = BWToolbar(self.main_window)
 

@@ -1,7 +1,6 @@
 from typing import Callable
 from PySide2.QtGui import QIcon, QKeySequence
 from PySide2.QtWidgets import QAction, QToolBar
-from pathlib import Path
 
 
 class BWToolbar(QToolBar):
