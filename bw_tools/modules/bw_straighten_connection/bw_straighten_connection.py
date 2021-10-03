@@ -390,5 +390,5 @@ def get_default_settings() -> Dict:
         "Break At Target Hotkey": {"widget": 1, "value": "Alt+C"},
         "Break At Source Hotkey": {"widget": 1, "value": "Alt+V"},
         "Remove Connected Dot Nodes Hotkey": {"widget": 1, "value": "Alt+X"},
-        "Dot Node Distance": {"widget": 2, "value": 128},
+        "Dot Node Distance": {"widget": 2, "value": 196},
     }
