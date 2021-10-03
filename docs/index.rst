@@ -59,6 +59,10 @@ layout graph mainline min threshold is now correctly calculated
 optimize graph no longer deleted nodes connected to the same input node, but different properties
 optimize graph no longer throws error when optimising uniform color nodes directly connected to an output node
 
+2.0.4
+layout graph setting names updates
+layout graph when mainline is enabled, will revert to center alignment when a mainline failed threshold test
+
 .. toctree::
     :maxdepth: 1
 

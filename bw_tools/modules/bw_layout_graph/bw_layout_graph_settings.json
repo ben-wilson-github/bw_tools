@@ -3,14 +3,14 @@
         "widget": 1,
         "value": "C"
     },
-    "Input Node Alignment": {
+    "Vertical Alignment": {
         "widget": 5,
         "list": [
             "Mainline",
             "Center",
             "Top"
         ],
-        "value": "Top"
+        "value": "Mainline"
     },
     "Node Spacing": {
         "widget": 2,
@@ -27,15 +27,15 @@
     "Mainline Settings": {
         "widget": 0,
         "content": {
-            "Enable": {
+            "Enable Offset Mainline": {
                 "widget": 4,
                 "value": true
             },
-            "Additional Offset": {
+            "Offset Amount": {
                 "widget": 2,
-                "value": 96
+                "value": 0
             },
-            "Minimum Threshold": {
+            "Adjacent Chain Threshold": {
                 "widget": 2,
                 "value": 128
             }

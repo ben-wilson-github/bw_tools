@@ -1,4 +1,3 @@
-from abc import abstractclassmethod
 from pathlib import Path
 
 from zipfile import ZipFile
@@ -8,7 +7,7 @@ import os
 
 def main():
     plugin_name = "bw_tools"
-    version = "2.0.3"
+    version = "2.0.4"
     min_designer_version = "11.2.0"
     author = "Ben Wilson"
     email = "ben.q.wilson@gmail.com"

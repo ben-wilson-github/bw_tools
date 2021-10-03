@@ -120,12 +120,20 @@ class BWVerticalAlignMainlineInput(BWPostAlignmentBehavior):
                 mid_point_align.exec(node)
                 return
 
-            farthest = cds[0].right_node
+            mainline_node = cds[0].right_node
         else:
-            farthest = farthest[0]
+            mainline_node = farthest[0]
 
-        offset = node.pos.y - farthest.pos.y
+        # If mainline wasnt pushed back due to threshold settings
+        # then align by center instead
+        threshold = node.pos.x - self.settings.mainline_min_threshold
+        if mainline_node.pos.x >= threshold and self.settings.mainline_enabled:
+            mid_point_align = BWVerticalAlignMidPoint(self.settings)
+            mid_point_align.exec(node)
+            return
 
+        # set default offset value in y
+        offset = node.pos.y - mainline_node.pos.y
         input_node: BWLayoutNode
         for input_node in node.input_nodes:
             if node is not input_node.alignment_behavior.offset_node:
