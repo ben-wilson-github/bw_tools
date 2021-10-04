@@ -63,6 +63,9 @@ optimize graph no longer throws error when optimising uniform color nodes direct
 layout graph setting names updates
 layout graph when mainline is enabled, will revert to center alignment when a mainline failed threshold test
 
+2.0.5
+setting window now saves settings when pressing ok immediately after changing a value
+
 .. toctree::
     :maxdepth: 1
 
