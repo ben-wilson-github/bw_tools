@@ -32,17 +32,16 @@ class BWLayoutSettings(BWModuleSettings):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
         self.node_spacing: Union[int, float] = self.get("Node Spacing;value")
-
         self.mainline_additional_offset: Union[int, float] = self.get(
-            "Mainline Settings;content;Additional Offset;value"
+            "Mainline Settings;content;Offset Amount;value"
         )
         self.mainline_min_threshold: int = self.get(
-            "Mainline Settings;content;Minimum Threshold;value"
+            "Mainline Settings;content;Adjacent Chain Threshold;value"
         )
         self.mainline_enabled: bool = self.get(
-            "Mainline Settings;content;Enable;value"
+            "Mainline Settings;content;Enable Offset Mainline;value"
         )
-        self.alignment_behavior: int = self.get("Input Node Alignment;value")
+        self.alignment_behavior: int = self.get("Vertical Alignment;value")
         self.node_count_warning: int = self.get("Node Count Warning;value")
 
         self.run_straighten_connection: bool = self.get(
@@ -181,7 +180,7 @@ def on_initialize(api: BWAPITool):
 def get_default_settings() -> Dict:
     return {
         "Hotkey": {"widget": 1, "value": "C"},
-        "Input Node Alignment": {
+        "Vertical Alignment": {
             "widget": 5,
             "list": ["Mainline", "Center", "Top"],
             "value": "Mainline",
@@ -192,9 +191,9 @@ def get_default_settings() -> Dict:
         "Mainline Settings": {
             "widget": 0,
             "content": {
-                "Enable": {"widget": 4, "value": True},
-                "Additional Offset": {"widget": 2, "value": 96},
-                "Minimum Threshold": {"widget": 2, "value": 128},
+                "Enable Offset Mainline": {"widget": 4, "value": True},
+                "Offset Amount": {"widget": 2, "value": 96},
+                "Adjacent Chain Threshold": {"widget": 2, "value": 128},
             },
         },
         "Straighten Connection Settings": {

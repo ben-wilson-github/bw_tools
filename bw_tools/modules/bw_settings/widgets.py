@@ -68,6 +68,7 @@ class BWStringValueWidget(BWSettingWidget):
         self.layout().addWidget(line_edit)
 
         self.set_up_mapper(model, line_edit, 0, value_property_item)
+        line_edit.textChanged.connect(self.mapper.submit)
 
 
 class BWBoolValueWidget(BWSettingWidget):
@@ -84,6 +85,7 @@ class BWBoolValueWidget(BWSettingWidget):
         self.layout().setAlignment(w, Qt.AlignRight)
 
         self.set_up_mapper(model, w, 0, value_property_item)
+        w.stateChanged.connect(self.mapper.submit)
 
 
 class BWFloatValueWidget(BWSettingWidget):
@@ -112,6 +114,7 @@ class BWFloatValueWidget(BWSettingWidget):
         self.layout().addWidget(w)
 
         self.set_up_mapper(model, w, 0, value_property_item)
+        w.valueChanged.connect(self.mapper.submit)
 
 
 class BWIntValueWidget(BWSettingWidget):
@@ -139,6 +142,7 @@ class BWIntValueWidget(BWSettingWidget):
         self.layout().addWidget(self.widget)
 
         self.set_up_mapper(model, self.widget, 0, value_property_item)
+        self.widget.valueChanged.connect(self.mapper.submit)
 
 
 class BWDropDownWidget(BWSettingWidget):
@@ -190,6 +194,10 @@ class BWRGBAValueWidget(BWSettingWidget):
         self.layout().addWidget(self.a)
 
         self.set_up_mapper(model, value_property_item)
+        self.r.valueChanged.connect(self.mapper_r.submit)
+        self.g.valueChanged.connect(self.mapper_g.submit)
+        self.b.valueChanged.connect(self.mapper_b.submit)
+        self.a.valueChanged.connect(self.mapper_a.submit)
 
     def set_up_mapper(self, model: BWModuleModel, parent_item: QStandardItem):
         self.mapper_r = QDataWidgetMapper()

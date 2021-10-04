@@ -3,7 +3,7 @@
         "widget": 1,
         "value": "C"
     },
-    "Input Node Alignment": {
+    "Vertical Alignment": {
         "widget": 5,
         "list": [
             "Mainline",
@@ -27,15 +27,15 @@
     "Mainline Settings": {
         "widget": 0,
         "content": {
-            "Enable": {
+            "Enable Offset Mainline": {
                 "widget": 4,
                 "value": true
             },
-            "Additional Offset": {
+            "Offset Amount": {
                 "widget": 2,
                 "value": 96
             },
-            "Minimum Threshold": {
+            "Adjacent Chain Threshold": {
                 "widget": 2,
                 "value": 128
             }

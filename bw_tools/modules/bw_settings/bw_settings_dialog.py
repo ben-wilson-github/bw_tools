@@ -246,6 +246,8 @@ class SettingsDialog(QDialog):
         w = QPushButton("Ok")
         layout.addWidget(w)
         w.clicked.connect(self.on_clicked_ok)
+        w.setAutoDefault(True)
+        w.setDefault(True)
 
         w = QPushButton("Cancel")
         w.clicked.connect(self.close)

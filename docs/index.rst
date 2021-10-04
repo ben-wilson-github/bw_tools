@@ -13,6 +13,12 @@ unsupport graph types
 To get the tools installed, follow this guide
 :doc:`install`
 
+
+general guide to using the tools
+    as helpers to layout yourself
+    layout in small groups
+    little by little
+    fix uniform nodes as you go
 ref to using the tools
     with page for each tool
         pictures
@@ -58,6 +64,13 @@ Fixed on hover for icons
 layout graph mainline min threshold is now correctly calculated
 optimize graph no longer deleted nodes connected to the same input node, but different properties
 optimize graph no longer throws error when optimising uniform color nodes directly connected to an output node
+
+2.0.4
+layout graph setting names updates
+layout graph when mainline is enabled, will revert to center alignment when a mainline failed threshold test
+
+2.0.5
+setting window now saves settings when pressing ok immediately after changing a value
 
 .. toctree::
     :maxdepth: 1
