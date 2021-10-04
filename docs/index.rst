@@ -13,6 +13,12 @@ unsupport graph types
 To get the tools installed, follow this guide
 :doc:`install`
 
+
+general guide to using the tools
+    as helpers to layout yourself
+    layout in small groups
+    little by little
+    fix uniform nodes as you go
 ref to using the tools
     with page for each tool
         pictures

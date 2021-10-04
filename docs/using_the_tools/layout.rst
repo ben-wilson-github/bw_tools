@@ -17,9 +17,9 @@ When a node has multiple outputs, it will align to the right most output. Visual
 
 Simple Hierarchy
 ^^^^^^^^^^^^^^^^
-
-When a node has branching outputs, all it's inputs are aligned relative to the current position. Input nodes are stacked based on the input order and the specific alignment is determined by its `Input Alignment Behavior`_.
-A nodes height is taken into account when aligning sibling nodes in a chain.
+When a node has multiple inputs, they are aligned relative to the current position.
+Input nodes are stacked based on the input order and the specific alignment setting. See `Vertical Alignment Behavior`_.
+Node heights are taken into account when aligning input nodes in a chain.
 
 .. image:: ../images/layout/stacking_nodes.gif
 
@@ -30,43 +30,49 @@ Where the hierarchy extends deeper, nodes will move to avoid any overlap.
 .. admonition:: Hidden Inputs/Outputs
    :class: important
 
-    Some nodes have hidden inputs or outputs, defined by the visibleif condition. Currently there is no way to access this information with the Designer API and as such they will be included in the height calculation.
+    Some nodes have hidden inputs or outputs, defined by the visibleif condition.
+    Currently there is no way to access this information with the Designer API and as such they will be included in the height calculation.
     This means these node will have a height value as if all inputs and outputs were visible.
 
     .. image:: ../images/layout/hidden_outputs.jpg
 
-Input Alignment Behavior
-^^^^^^^^^^^^^^^^^^^^^^^^
-This property controls the alignment of input nodes relative to their output.
-
-Mainline Input Alignment:
-The mainline node will align to the center of the output and siblings will position above or below. See Mainline
-
-
-
-
-Looping Networks
-^^^^^^^^^^^^^^^^^^^^^^^
-placing behind closest output
-y align to farthest
-test_chain_8 sibling above moved above branching output sibling to minimise connection crossing over
-    ddoesnt do it when under mainline
-
-
-Network Chain Behavior
-----------------------
-
-moved above / below sibling
-without mainline / with mainline comparsion in x and y
-if mainline then sibling is center
-
 Root Nodes
 ^^^^^^^^^^
-stay in place
-is a top parent node
-multiple output roots
-roots considered serarate Chains
-make room for expanding network
+Where nodes have no connected outputs, they are considered Root Nodes. 
+When running the tool, these nodes will stay in place and all inputs will align to it
+
+.. image:: ../images/layout/root_nodes.gif
+
+.. admonition:: Root Node Behavior
+   :class: important
+
+   That is, no connected outputs in your active selection.
+   A Node may have connected outputs in your graph, but at the head of your selection, making it a root node.
+
+   .. image:: ../images/layout/root_node_in_sel.gif
+
+If your selection contains multiple root nodes, they are considered as separate chains.
+Therefore, is important to provide enough spacing for the network to fully expand.
+
+.. image:: ../images/layout/root_node_space.gif
+
+Vertical Alignment Behavior
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Input nodes will align relative to their output. if a node has multiple outputs, it will align to the farthest output. See `Multiple Output Nodes`_.
+
+Mainline Input Alignment:
+
+The mainline node will align to the center of the output and siblings will position above or below. See Mainline Settings for information about what a mainline is
+
+.. image:: ../images/layout/vertical_align_mainline.jpg
+
+Multiple Output Nodes
+^^^^^^^^^^^^^^^^^^^^^
+Some nodes have multiple outputs and may connect to various points in the network.
+In these cases, the node will always be positioned behind the closest output and aligned with the farthest output.
+
+.. image:: ../images/layout/behind_closest_output.jpg
+
 
 Mainline
 --------
@@ -75,3 +81,4 @@ moved back behind
 
 Settings
 --------
+

@@ -33,7 +33,7 @@
             },
             "Offset Amount": {
                 "widget": 2,
-                "value": 0
+                "value": 96
             },
             "Adjacent Chain Threshold": {
                 "widget": 2,
@@ -46,7 +46,7 @@
         "content": {
             "Enable": {
                 "widget": 4,
-                "value": false
+                "value": true
             },
             "Alignment": {
                 "widget": 5,
