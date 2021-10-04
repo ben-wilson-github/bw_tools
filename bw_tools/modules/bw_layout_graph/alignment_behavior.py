@@ -134,6 +134,7 @@ class BWVerticalAlignMainlineInput(BWPostAlignmentBehavior):
 
         # set default offset value in y
         offset = node.pos.y - mainline_node.pos.y
+
         input_node: BWLayoutNode
         for input_node in node.input_nodes:
             if node is not input_node.alignment_behavior.offset_node:
