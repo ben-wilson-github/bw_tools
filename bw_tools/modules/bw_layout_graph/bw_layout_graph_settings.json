@@ -46,7 +46,7 @@
         "content": {
             "Enable": {
                 "widget": 4,
-                "value": true
+                "value": false
             },
             "Alignment": {
                 "widget": 5,

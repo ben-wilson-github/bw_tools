@@ -72,6 +72,9 @@ layout graph when mainline is enabled, will revert to center alignment when a ma
 2.0.5
 setting window now saves settings when pressing ok immediately after changing a value
 
+2.0.6
+Layout graph mainline logic update. Now only considers mainline nodes if input chains are not equal. Reverts to center align
+
 .. toctree::
     :maxdepth: 1
 
