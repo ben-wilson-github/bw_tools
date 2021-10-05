@@ -10,7 +10,7 @@
             "Center",
             "Top"
         ],
-        "value": "Top"
+        "value": "Mainline"
     },
     "Node Spacing": {
         "widget": 2,
@@ -46,7 +46,7 @@
         "content": {
             "Enable": {
                 "widget": 4,
-                "value": false
+                "value": true
             },
             "Alignment": {
                 "widget": 5,
