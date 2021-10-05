@@ -113,6 +113,7 @@ class BWMainlineAligner:
             # These are handled in pass 2
             return
 
+        # Get sibling inputs
         inputs = [
             n for n in branching_node.input_nodes if n is not mainline_node
         ]
@@ -127,8 +128,10 @@ class BWMainlineAligner:
         threshold = branching_node.pos.x - self.settings.mainline_min_threshold
         cds = self._remove_cd_within_threshold(cds, threshold)
         if len(cds) == 0:
+            # If no relevant sibling chains remain, we will not move back
             return None
 
+        # Move mainline behind the deepest sibling chain
         left_bound = cds[0].bounds.left
         spacer = self.settings.node_spacing
         spacer += self.settings.mainline_additional_offset
@@ -181,7 +184,7 @@ class BWMainlineAligner:
         ]
         return potential_nodes
 
-    def find_mainline_node(self, node: BWLayoutNode) -> BWLayoutNode:
+    def find_mainline_node(self, node: BWLayoutNode) -> Optional[BWLayoutNode]:
         """
         Returns a mainline node from a given nodes potential mainline inputs.
         The node with the largest chain network will be considered mainline.
@@ -200,14 +203,17 @@ class BWMainlineAligner:
         if len(cds) == 0:
             return None
 
+        # Fine the deepest chain
         min_cd = min(cds, key=attrgetter("bounds.left"))
         chains_of_same_size = [
             cd for cd in cds if cd.bounds.left == min_cd.bounds.left
         ]
+        if len(chains_of_same_size) == 1:
+            return min_cd.right_node
+        else:
+            # If multiple chains are the same length, declare no mainline
+            return None
 
-        mainline_chain = min(chains_of_same_size, key=attrgetter("node_count"))
-
-        return mainline_chain.right_node
 
     def calculate_node_lists_for_inputs(
         self,
