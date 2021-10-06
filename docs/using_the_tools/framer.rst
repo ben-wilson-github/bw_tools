@@ -31,7 +31,7 @@ Settings
 
 Hotkey
 ^^^^^^
-The hotkey assigned to the run the tool, written as a string. Combine key combinations with "+".
+The hotkey assigned to the run the tool, written as a string. Combine key combinations with "+". Requires a restart.
 
 Margin
 ^^^^^^
