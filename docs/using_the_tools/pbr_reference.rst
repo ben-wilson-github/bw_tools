@@ -1,7 +1,7 @@
 PBR Reference
 =============
 A convenient PBR color chart built directly into Designer.
-It provides various pbr values, based on `DONTNOD 2014 pbr chart https://seblagarde.wordpress.com/2014/04/14/dontnod-physically-based-rendering-chart-for-unreal-engine-4/ `,
+It provides various pbr values, based on `DONTNOD 2014 pbr chart <https://seblagarde.wordpress.com/2014/04/14/dontnod-physically-based-rendering-chart-for-unreal-engine-4/>`_,
 to quickly and easily reference without the need to having a downloaded color chart opened in windows.
 
 .. image:: ../images/pbr_chart/pbr_chart.jpg
