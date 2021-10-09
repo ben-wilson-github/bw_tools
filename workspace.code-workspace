@@ -5,8 +5,5 @@
 		}
 	],
 	"settings": {
-		// "terminal.integrated.env.windows": {
-		// 	"PYTHONPATH": "F:/personal_work/dev/bw_tools"
-		// }
 	}
 }

@@ -50,4 +50,3 @@ Uniform Color Node Settings
 Force Output Size (16x16)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Whether or not to optimize uniform color nodes output size.
-
