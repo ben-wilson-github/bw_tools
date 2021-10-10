@@ -128,13 +128,13 @@ network is resolved first.
 4. Apply node snapping, if Snap To Grid is on.
 5. Insert dot nodes, if `Straighten Connection Settings`_ is turned on.
 
-Settings
---------
+Layout Settings
+---------------
 
 .. image:: ../images/layout/layout_settings.jpg
 
-Hotkey
-^^^^^^
+Layout Hotkey
+^^^^^^^^^^^^^
 The hotkey assigned to the run the tool, written as a string. Combine key combinations with "+". Requires a restart.
 
 Vertical Alignment
@@ -179,8 +179,8 @@ apply the offset.
 
 .. image:: ../images/layout/layout_settings_adjacent_threshold.jpg
 
-Straighten Connection Settings
-------------------------------
+Straighten Connection
+---------------------
 Information about the Straighten Connection can be found :ref:`straighten`.
   
 Enable

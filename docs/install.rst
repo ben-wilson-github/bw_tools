@@ -7,7 +7,7 @@ How To Install
     You must first manually delete the previous version of bw_tools from your plugins folders.
 
     This is your documents folder by default
-    C:/Users/UserName/Documents/Adobe/Adobe Substance 3D Designer/python/sduserplugins
+    ``C:/Users/UserName/Documents/Adobe/Adobe Substance 3D Designer/python/sduserplugins``
 
     If unsure, you can quickly get to the appropaite folder by right clicking the plugin inside Tools > Plugin Manager... and selecting Show In File Browser...
 
