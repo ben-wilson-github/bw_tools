@@ -23,12 +23,12 @@ size property, it will not be changed.
 
 .. image:: ../images/optimizer/uniform_color.gif
 
-Settings
---------
+Optimize Settings
+-----------------
 .. image:: ../images/optimizer/settings.jpg
 
-Hotkey
-^^^^^^
+Optimize Hotkey
+^^^^^^^^^^^^^^^
 The hotkey assigned to the run the tool, written as a string. Combine key combinations with "+". Requires a restart.
 
 Recursive

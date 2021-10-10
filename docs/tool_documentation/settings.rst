@@ -4,8 +4,8 @@ Window displaying all settings for all loaded modules
 
 .. image:: ../images/settings/settings.jpg
 
-Usage
------
+Settings Usage
+--------------
 Nativate to BW Tools > Settings...
 
 .. image:: ../images/settings/location.jpg

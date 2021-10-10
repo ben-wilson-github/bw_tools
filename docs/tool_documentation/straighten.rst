@@ -39,8 +39,8 @@ If two more more output nodes are close together, they will reuse an existing do
 .. image:: ../images/straighten/break_source.jpg
 
 
-Settings
---------
+Straighten Connection Settings
+------------------------------
 .. image:: ../images/straighten/settings.jpg
 
 Break At Target Hotkey

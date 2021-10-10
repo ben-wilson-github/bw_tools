@@ -18,12 +18,12 @@ sys.path.insert(0, os.path.abspath('C:\\Program Files\\Adobe\\Adobe Substance 3D
 
 # -- Project information -----------------------------------------------------
 
-project = 'bw_tools'
+project = 'BW Tools'
 copyright = '2021, Ben Wilson'
 author = 'Ben Wilson'
 
 # The full version, including alpha/beta/rc tags
-release = '2.0.1'
+release = '2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -35,6 +35,7 @@ autodoc_mock_imports = ["sd", "PySide2"]
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosectionlabel'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

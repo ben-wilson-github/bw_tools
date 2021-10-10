@@ -24,13 +24,13 @@ If you have a frame already selected, it will reuse that frame and refit it to y
 
     .. image:: ../images/framer/frame_selected_multiple_frames.gif
 
-Settings
---------
+Framer Settings
+---------------
 
 .. image:: ../images/framer/framer_settings.jpg
 
-Hotkey
-^^^^^^
+Framer Hotkey
+^^^^^^^^^^^^^
 The hotkey assigned to the run the tool, written as a string. Combine key combinations with "+". Requires a restart.
 
 Margin

@@ -6,8 +6,8 @@ to quickly and easily reference without the need to having a downloaded color ch
 
 .. image:: ../images/pbr_chart/pbr_chart.jpg
 
-Usage
------
+PBR Reference Usage
+-------------------
 To open the pbr chart, navigate to BW Tools > Open PBR Chart
 
 .. image:: ../images/pbr_chart/open.jpg

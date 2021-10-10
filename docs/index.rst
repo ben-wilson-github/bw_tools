@@ -1,32 +1,67 @@
-.. bw_tools documentation master file, created by
-   sphinx-quickstart on Sat Sep 25 20:59:12 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-   
-
-Welcome to BW_Tools documentation!
+Welcome to BW Tools documentation!
 ====================================
+.. toctree::
+    :maxdepth: 1
+
+    install
+    usage
+    general_guide
+    support
+    api_reference
+
+
+Download
+========
 
 Download here
-unsupport graph types
 
+Installing The Tools
+====================
 To get the tools installed, follow this guide
 :doc:`install`
 
+Overview
+========
+BW Tools is a plugin for Substance Designer aimed at speeding up graph organisation tasks.
+The plugin is split into a series of modules, each designed to solve a particular problem.
+Take a look at :doc:`usage` for a more detailed look at each of the tools.
 
-general guide to using the tools
-    as helpers to layout yourself
-    layout in small groups
-    little by little
-    fix uniform nodes as you go
-ref to using the tools
-    with page for each tool
-        pictures
-        settings
+I recommend looking at :doc:`general_guide` to get the most out of the tools.
 
-support
+If you are looking to work with the code or want to understand more,
+check out the :doc:`api_reference` and my `git hub page <https://github.com/ben-wilson-github/bw_tools>`_
 
-license
+
+Compatibility
+=============
+Compatible with Substance Designer 11.2.0 onwards
+
+
+License
+=======
+MIT License
+
+Copyright (c) 2021 ben-wilson-github
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
 
 developers
 adding modules
@@ -75,10 +110,3 @@ setting window now saves settings when pressing ok immediately after changing a 
 2.0.6
 Layout graph mainline logic update. Now only considers mainline nodes if input chains are not equal. Reverts to center align
 
-.. toctree::
-    :maxdepth: 1
-
-    install
-    usage
-    support
-    api_reference
