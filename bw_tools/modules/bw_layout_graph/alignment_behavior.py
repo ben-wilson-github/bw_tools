@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from operator import attrgetter
 from typing import TYPE_CHECKING, Tuple
 
-from bw_tools.common.bw_chain_dimension import BWChainDimension
 from bw_tools.common.bw_node import BWFloat2
 from bw_tools.modules.bw_layout_graph.aligner_mainline import BWMainlineAligner
 
@@ -54,9 +52,7 @@ class BWPostAlignmentBehavior(ABC):
         pass
 
     @staticmethod
-    def calculate_mid_point(
-        a: BWLayoutNode, b: BWLayoutNode
-    ) -> Tuple[float, float]:
+    def calculate_mid_point(a: BWLayoutNode, b: BWLayoutNode) -> Tuple[float, float]:
         x = (a.pos.x + b.pos.x) / 2
         y = (a.pos.y + b.pos.y) / 2
 
@@ -66,9 +62,7 @@ class BWPostAlignmentBehavior(ABC):
 @dataclass
 class BWVerticalAlignMidPoint(BWPostAlignmentBehavior):
     def exec(self, node: BWLayoutNode):
-        _, mid_point = self.calculate_mid_point(
-            node.input_nodes[0], node.input_nodes[-1]
-        )
+        _, mid_point = self.calculate_mid_point(node.input_nodes[0], node.input_nodes[-1])
         offset = node.pos.y - mid_point
 
         input_node: BWLayoutNode
@@ -81,9 +75,7 @@ class BWVerticalAlignMidPoint(BWPostAlignmentBehavior):
                 offset -= input_node.height + self.settings.node_spacing
             else:
                 input_node.alignment_behavior.offset_node = node
-                input_node.alignment_behavior.update_offset(
-                    BWFloat2(input_node.pos.x, input_node.pos.y + offset)
-                )
+                input_node.alignment_behavior.update_offset(BWFloat2(input_node.pos.x, input_node.pos.y + offset))
                 input_node.alignment_behavior.exec()
 
             input_node.update_all_chain_positions()
@@ -105,17 +97,11 @@ class BWVerticalAlignMainlineInput(BWPostAlignmentBehavior):
             # If ambiguous, get the mainline itself
             # Mainline being the one with the deepest chain
             mainline_aligner = BWMainlineAligner(self.settings)
-            cds = mainline_aligner.get_chain_dimensions_ignore_branches(
-                farthest
-            )
+            cds = mainline_aligner.get_chain_dimensions_ignore_branches(farthest)
             cds.sort(key=lambda cd: cd.bounds.left)
-            
+
             # If mainline was ambiguous too, revert to center align
-            if (
-                len(cds) == 0
-                or len(cds) >= 2
-                and cds[0].bounds.left == cds[1].bounds.left
-            ):
+            if len(cds) == 0 or len(cds) >= 2 and cds[0].bounds.left == cds[1].bounds.left:
                 mid_point_align = BWVerticalAlignMidPoint(self.settings)
                 mid_point_align.exec(node)
                 return
@@ -143,9 +129,7 @@ class BWVerticalAlignMainlineInput(BWPostAlignmentBehavior):
                 offset -= input_node.height + self.settings.node_spacing
             else:
                 input_node.alignment_behavior.offset_node = node
-                input_node.alignment_behavior.update_offset(
-                    BWFloat2(input_node.pos.x, input_node.pos.y + offset)
-                )
+                input_node.alignment_behavior.update_offset(BWFloat2(input_node.pos.x, input_node.pos.y + offset))
                 input_node.alignment_behavior.exec()
 
             input_node.update_all_chain_positions()

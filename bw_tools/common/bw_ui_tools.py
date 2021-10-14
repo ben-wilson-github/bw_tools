@@ -3,9 +3,7 @@ from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QLabel
 
 
-def label(
-    text, alignment=Qt.AlignCenter, bold=True, dimmed=True, tabbed=False
-) -> QLabel:
+def label(text, alignment=Qt.AlignCenter, bold=True, dimmed=True, tabbed=False) -> QLabel:
     if tabbed:
         text = f"\t{text}"
 

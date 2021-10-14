@@ -61,9 +61,7 @@ class BWStringValueWidget(BWSettingWidget):
         line_edit = QLineEdit(self)
         # line_edit.setText(values[0])
         # line_edit.textChanged.connect(self.on_str_value_changed)
-        line_edit.setStyleSheet(
-            f"background : {BACKGROUND}; border-radius: 3px"
-        )
+        line_edit.setStyleSheet(f"background : {BACKGROUND}; border-radius: 3px")
         line_edit.setAlignment(Qt.AlignRight)
         self.layout().addWidget(line_edit)
 
@@ -101,14 +99,7 @@ class BWFloatValueWidget(BWSettingWidget):
         w = QDoubleSpinBox(self)
         w.setMaximum(999)
         # w.valueChanged.connect(self.on_int_float_value_changed)
-        w.setStyleSheet(
-            "QDoubleSpinBox"
-            "{"
-            f"background : {BACKGROUND};"
-            "color : #cccccc;"
-            "border-radius: 3px;"
-            "}"
-        )
+        w.setStyleSheet("QDoubleSpinBox" "{" f"background : {BACKGROUND};" "color : #cccccc;" "border-radius: 3px;" "}")
         w.setMaximumWidth(50)
         w.setAlignment(Qt.AlignRight)
         self.layout().addWidget(w)
@@ -130,12 +121,7 @@ class BWIntValueWidget(BWSettingWidget):
         self.widget = QSpinBox(self)
         self.widget.setMaximum(999)
         self.widget.setStyleSheet(
-            "QSpinBox"
-            "{"
-            f"background : {BACKGROUND};"
-            "color : #cccccc;"
-            "border-radius: 3px;"
-            "}"
+            "QSpinBox" "{" f"background : {BACKGROUND};" "color : #cccccc;" "border-radius: 3px;" "}"
         )
         self.widget.setMaximumWidth(50)
         self.widget.setAlignment(Qt.AlignRight)
@@ -157,14 +143,7 @@ class BWDropDownWidget(BWSettingWidget):
 
         combo = QComboBox()
         combo.addItems(possible_values)
-        combo.setStyleSheet(
-            "QComboBox"
-            "{"
-            f"background: {BACKGROUND};"
-            "color: #cccccc;"
-            "border-radius: 3px;"
-            "}"
-        )
+        combo.setStyleSheet("QComboBox" "{" f"background: {BACKGROUND};" "color: #cccccc;" "border-radius: 3px;" "}")
         # combo.currentIndexChanged.connect(self.on_combobox_value_changed)
         self.layout().addWidget(combo)
 

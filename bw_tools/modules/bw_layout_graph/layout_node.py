@@ -9,9 +9,7 @@ from .alignment_behavior import BWNodeAlignmentBehavior
 
 @dataclass
 class BWLayoutNode(BWNode):
-    _alignment_behavior: Optional[BWNodeAlignmentBehavior] = field(
-        init=False, repr=False, default=None
-    )
+    _alignment_behavior: Optional[BWNodeAlignmentBehavior] = field(init=False, repr=False, default=None)
 
     @property
     def alignment_behavior(self) -> BWNodeAlignmentBehavior:
@@ -69,18 +67,10 @@ class BWLayoutNode(BWNode):
 
 @dataclass
 class BWLayoutNodeSelection(BWNodeSelection):
-    dot_nodes: List[BWLayoutNode] = field(
-        init=False, default_factory=list, repr=False
-    )
-    root_nodes: List[BWLayoutNode] = field(
-        init=False, default_factory=list, repr=False
-    )
-    branching_output_nodes: List[BWLayoutNode] = field(
-        init=False, default_factory=list, repr=False
-    )
-    branching_input_nodes: List[BWLayoutNode] = field(
-        init=False, default_factory=list, repr=False
-    )
+    dot_nodes: List[BWLayoutNode] = field(init=False, default_factory=list, repr=False)
+    root_nodes: List[BWLayoutNode] = field(init=False, default_factory=list, repr=False)
+    branching_output_nodes: List[BWLayoutNode] = field(init=False, default_factory=list, repr=False)
+    branching_input_nodes: List[BWLayoutNode] = field(init=False, default_factory=list, repr=False)
 
     def __post_init__(self):
         super().__post_init__()
@@ -94,16 +84,10 @@ class BWLayoutNodeSelection(BWNodeSelection):
             if node.is_dot:
                 self.dot_nodes.append(node)
 
-            if (
-                node.has_branching_outputs
-                and node not in self.branching_output_nodes
-            ):
+            if node.has_branching_outputs and node not in self.branching_output_nodes:
                 self.branching_output_nodes.append(node)
 
-            if (
-                node.has_branching_inputs
-                and node not in self.branching_input_nodes
-            ):
+            if node.has_branching_inputs and node not in self.branching_input_nodes:
                 self.branching_input_nodes.append(node)
 
     def _create_nodes(self):

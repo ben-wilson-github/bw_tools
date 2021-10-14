@@ -86,12 +86,8 @@ class BWNodeSelection(NodeGroupInterface):
             self._add_output_nodes(node)
 
     def _add_input_nodes(self, node: BWNode):
-        for index_in_node, api_property in enumerate(
-            node.input_connectable_properties
-        ):
-            api_connections = node.api_node.getPropertyConnections(
-                api_property
-            )
+        for index_in_node, api_property in enumerate(node.input_connectable_properties):
+            api_connections = node.api_node.getPropertyConnections(api_property)
             if len(api_connections) == 0:
                 continue
 
@@ -108,14 +104,10 @@ class BWNodeSelection(NodeGroupInterface):
                 node.add_input_connection_data(connection)
 
     def _add_output_nodes(self, node: BWNode):
-        for index_in_node, api_property in enumerate(
-            node.output_connectable_properties
-        ):
+        for index_in_node, api_property in enumerate(node.output_connectable_properties):
             connection_data = BWOutputConnectionData(index_in_node)
 
-            api_connections = node.api_node.getPropertyConnections(
-                api_property
-            )
+            api_connections = node.api_node.getPropertyConnections(api_property)
             api_connection: SDConnection
             for api_connection in api_connections:
                 output_api_node: SDNode = api_connection.getInputPropertyNode()
@@ -131,9 +123,7 @@ class BWNodeSelection(NodeGroupInterface):
                 node.add_output_connection_data(connection_data)
 
 
-def remove_dot_nodes(
-    api_nodes: List[SDNode], api_graph: SDGraph
-) -> List[SDNode]:
+def remove_dot_nodes(api_nodes: List[SDNode], api_graph: SDGraph) -> List[SDNode]:
     """
     Removes all dot nodes in the selection
     """
@@ -144,26 +134,16 @@ def remove_dot_nodes(
             continue
 
         # Get property the connection comes from
-        dot_node_input_property = api_node.getPropertyFromId(
-            "input", SDPropertyCategory.Input
-        )
-        dot_node_input_connection: SDConnection = (
-            api_node.getPropertyConnections(dot_node_input_property)[0]
-        )
+        dot_node_input_property = api_node.getPropertyFromId("input", SDPropertyCategory.Input)
+        dot_node_input_connection: SDConnection = api_node.getPropertyConnections(dot_node_input_property)[0]
 
-        output_node_property: SDProperty = (
-            dot_node_input_connection.getInputProperty()
-        )
+        output_node_property: SDProperty = dot_node_input_connection.getInputProperty()
         output_node: SDNode = dot_node_input_connection.getInputPropertyNode()
 
         # Get property the connection goes too
-        dot_node_output_property = api_node.getPropertyFromId(
-            "unique_filter_output", SDPropertyCategory.Output
-        )
+        dot_node_output_property = api_node.getPropertyFromId("unique_filter_output", SDPropertyCategory.Output)
 
-        dot_node_output_connections: SDConnection = (
-            api_node.getPropertyConnections(dot_node_output_property)
-        )
+        dot_node_output_connections: SDConnection = api_node.getPropertyConnections(dot_node_output_property)
         connection: SDConnection
         for connection in dot_node_output_connections:
             input_node_property: SDProperty = connection.getInputProperty()

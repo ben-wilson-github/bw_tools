@@ -61,9 +61,7 @@ class BWAPITool:
         self.logger: Optional[logging.RootLogger] = None
         self.log_handler: Optional[logging.Handler] = None
         self.application: SDApplication = self.context.getSDApplication()
-        self.ui_mgr: QtForPythonUIMgrWrapper = (
-            self.application.getQtForPythonUIMgr()
-        )
+        self.ui_mgr: QtForPythonUIMgrWrapper = self.application.getQtForPythonUIMgr()
         self.pkg_mgr: SDPackageMgr = self.application.getPackageMgr()
         self.main_window: QtWidgets.QMainWindow = self.ui_mgr.getMainWindow()
         self.loaded_modules: List[BW_MODULE] = []
@@ -106,9 +104,7 @@ class BWAPITool:
         if self.current_graph is None:
             return False
 
-        return isinstance(
-            self.current_graph, (SDSBSCompGraph, SDSBSFunctionGraph)
-        )
+        return isinstance(self.current_graph, (SDSBSCompGraph, SDSBSFunctionGraph))
 
     @property
     def log(self) -> logging.RootLogger:
@@ -160,9 +156,7 @@ class BWAPITool:
                 )
                 return False
 
-            name = module.__name__.split(".")[
-                -1
-            ]  # Strips module path and returns the name
+            name = module.__name__.split(".")[-1]  # Strips module path and returns the name
             self.loaded_modules.append(name)
             self.logger.info(f"Initialized module {name}")
 
@@ -178,12 +172,8 @@ class BWAPITool:
                     f"{name}_settings.json",
                 )
                 if not module_settings.exists():
-                    self.logger.info(
-                        f"Missing settings file for {name}. " "Writing new one"
-                    )
-                    with open(
-                        str(module_settings.resolve()), "w"
-                    ) as settings_file:
+                    self.logger.info(f"Missing settings file for {name}. " "Writing new one")
+                    with open(str(module_settings.resolve()), "w") as settings_file:
                         json.dump(default_settings, settings_file, indent=4)
 
             return True
@@ -197,9 +187,7 @@ class BWAPITool:
 
     def add_menu(self):
         self.logger.debug("Creating BW Tools menu...")
-        self.menu = self.ui_mgr.newMenu(
-            self._menu_label, self._menu_object_name
-        )
+        self.menu = self.ui_mgr.newMenu(self._menu_label, self._menu_object_name)
 
     def remove_menu(self):
         self.ui_mgr.deleteMenu(self._menu_object_name)

@@ -72,15 +72,9 @@ class BWPBRReference(QDialog):
         self.leftClick = False
         self.click_x = 0
         self.click_y = 0
-        self.nonmetal_roughness_image_path = (
-            Path(__file__).parent / "resources" / "roughness_nonmetal.png"
-        )
-        self.metal_roughness_image_path = (
-            Path(__file__).parent / "resources" / "roughness_metal.png"
-        )
-        self.close_button_image_path = (
-            Path(__file__).parent / "resources" / "icons" / "close_button.png"
-        )
+        self.nonmetal_roughness_image_path = Path(__file__).parent / "resources" / "roughness_nonmetal.png"
+        self.metal_roughness_image_path = Path(__file__).parent / "resources" / "roughness_metal.png"
+        self.close_button_image_path = Path(__file__).parent / "resources" / "icons" / "close_button.png"
 
         self.swatch_size = 50
         self._ui()
@@ -97,9 +91,7 @@ class BWPBRReference(QDialog):
     def mouseMoveEvent(self, event: QMouseEvent):
         super().mouseMoveEvent(event)
         if self.leftClick:
-            self.move(
-                event.globalX() - self.click_x, event.globalY() - self.click_y
-            )
+            self.move(event.globalX() - self.click_x, event.globalY() - self.click_y)
 
     def mouseReleaseEvent(self, event: QMouseEvent):
         super().mouseReleaseEvent(event)
@@ -176,17 +168,13 @@ class BWPBRReference(QDialog):
 
         layout.addStretch()
         pixmap = QPixmap(str(self.close_button_image_path.resolve()))
-        pixmap = pixmap.scaled(
-            15, 15, Qt.KeepAspectRatio, Qt.SmoothTransformation
-        )
+        pixmap = pixmap.scaled(15, 15, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.close_button = QLabel()
         self.close_button.setPixmap(pixmap)
         self.close_button.mouseReleaseEvent = self._close_window
         layout.addWidget(self.close_button)
 
-        self.main_layout.addWidget(
-            bw_ui_tools.label("Base Color (Medium Luminosity)")
-        )
+        self.main_layout.addWidget(bw_ui_tools.label("Base Color (Medium Luminosity)"))
         self.main_layout.addLayout(self._ui_nonmetal_base_colors())
         self.main_layout.addLayout(self._ui_metal_base_colors())
 

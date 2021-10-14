@@ -23,24 +23,17 @@ class BWModuleSettings:
             with open(self.file_path) as settings_file:
                 data = json.load(settings_file)
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"Unable to open {self.file_path}. The file was not found"
-            )
+            raise FileNotFoundError(f"Unable to open {self.file_path}. The file was not found")
 
         keys = setting.split(";")
 
         try:
             ret = self._get_from_dict(data, keys)
         except KeyError:
-            raise KeyError(
-                f"Unable to get {setting} from settings file. "
-                "It was not found inside the file."
-            )
+            raise KeyError(f"Unable to get {setting} from settings file. " "It was not found inside the file.")
 
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"Unable to open {self.file_path}. The file was not found"
-            )
+            raise FileNotFoundError(f"Unable to open {self.file_path}. The file was not found")
         else:
             return ret
 

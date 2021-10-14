@@ -1,5 +1,4 @@
 from functools import partial
-from PySide2.QtGui import QIcon
 
 from PySide2.QtWidgets import QAction
 
@@ -45,6 +44,4 @@ def on_graph_created(graph_view_id, api: bw_api_tool.BWAPITool):
 
 
 def on_initialize(api: bw_api_tool.BWAPITool):
-    api.register_on_graph_view_created_callback(
-        partial(on_graph_created, api=api)
-    )
+    api.register_on_graph_view_created_callback(partial(on_graph_created, api=api))

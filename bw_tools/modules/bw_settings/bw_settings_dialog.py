@@ -58,9 +58,7 @@ class SettingsDialog(QDialog):
 
         # Select first item in list
         index = self.module_model.index(0, 0)
-        self.module_view_widget.selectionModel().setCurrentIndex(
-            index, QItemSelectionModel.SelectCurrent
-        )
+        self.module_view_widget.selectionModel().setCurrentIndex(index, QItemSelectionModel.SelectCurrent)
 
     def get_selected_module_item_from_model(
         self,
@@ -73,9 +71,7 @@ class SettingsDialog(QDialog):
         item = self.module_model.itemFromIndex(index)
         return item
 
-    def get_settings_for_module(
-        self, file_path: Path
-    ) -> Union[Dict, FileNotFoundError]:
+    def get_settings_for_module(self, file_path: Path) -> Union[Dict, FileNotFoundError]:
         """
         Returns the setting read from given file path.
         Returns FileNotFoundError is there was an issue reading the .json
@@ -89,9 +85,7 @@ class SettingsDialog(QDialog):
             with open(str(file_path.resolve())) as settings_file:
                 data = json.load(settings_file)
         except json.JSONDecodeError:
-            raise FileNotFoundError(
-                "Unable to load settings. Settings file is invalid."
-            )
+            raise FileNotFoundError("Unable to load settings. Settings file is invalid.")
         else:
             return data
 
@@ -111,16 +105,12 @@ class SettingsDialog(QDialog):
             module_item = self.module_model.item(row, 0)
 
             settings_file_path: Path = (
-                self.settings_file_dir
-                / module_item.text()
-                / f"{module_item.text()}_settings.json"
+                self.settings_file_dir / module_item.text() / f"{module_item.text()}_settings.json"
             )
             if not settings_file_path.exists():
                 continue
 
-            setting_writer.write_module_settings(
-                module_item, settings_file_path
-            )
+            setting_writer.write_module_settings(module_item, settings_file_path)
 
     def on_clicked_ok(self):
         self.on_clicked_apply()
@@ -134,9 +124,7 @@ class SettingsDialog(QDialog):
             self.module_model.setItem(row, 0, module_item)
 
             try:
-                settings = self.get_settings_for_module(
-                    self.settings_file_dir / module / f"{module}_settings.json"
-                )
+                settings = self.get_settings_for_module(self.settings_file_dir / module / f"{module}_settings.json")
             except FileNotFoundError as e:
                 module_item.setData(e)
             else:
@@ -144,9 +132,7 @@ class SettingsDialog(QDialog):
                     module_item, settings
                 )  # Must take in settings, as setting data will reorder
 
-    def _add_module_settings_to_model(
-        self, parent_item: QStandardItem, settings: Dict
-    ):
+    def _add_module_settings_to_model(self, parent_item: QStandardItem, settings: Dict):
         for setting_name, setting_params in settings.items():
             setting_item = QStandardItem(setting_name)
             parent_item.appendRow(setting_item)
@@ -208,9 +194,7 @@ class SettingsDialog(QDialog):
             module_item = self.module_model.item(i, 0)
             module_name = module_item.text()
 
-            module_widget = settings_loader.get_module_widget(
-                module_item, self.module_model
-            )
+            module_widget = settings_loader.get_module_widget(module_item, self.module_model)
             self.module_settings_layout.addWidget(module_widget)
 
             self._module_setting_widgets[module_name] = module_widget
@@ -231,9 +215,7 @@ class SettingsDialog(QDialog):
         self._ui_add_module_view_widget(col)
 
     def _ui_frame_module_settings(self, col: int):
-        self.main_layout.addWidget(
-            bw_ui_tools.label("Module Settings"), 0, col
-        )
+        self.main_layout.addWidget(bw_ui_tools.label("Module Settings"), 0, col)
         scroll_area = self._ui_add_scroll_area_widget(col)
         self._ui_add_settings_widget(scroll_area)
 
@@ -259,13 +241,9 @@ class SettingsDialog(QDialog):
 
     def _ui_add_module_view_widget(self, col: int):
         self.module_view_widget.setFixedWidth(130)
-        self.module_view_widget.setEditTriggers(
-            QAbstractItemView.NoEditTriggers
-        )
+        self.module_view_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.main_layout.addWidget(self.module_view_widget, 1, col)
-        self.module_view_widget.selectionModel().selectionChanged.connect(
-            self.on_clicked_module
-        )
+        self.module_view_widget.selectionModel().selectionChanged.connect(self.on_clicked_module)
 
     def _ui_add_settings_widget(self, scroll_area: QScrollArea):
         settings_widget = QWidget(scroll_area)

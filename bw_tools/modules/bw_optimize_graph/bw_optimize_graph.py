@@ -30,8 +30,7 @@ class BWOptimizeSettings(BWModuleSettings):
         self.popup_on_complete: bool = self.get("Popup On Complete;value")
         self.run_layout_tools: bool = self.get("Run Layout Tools;value")
         self.uniform_force_output_size: bool = self.get(
-            "Uniform Color Node Settings;content;"
-            "Force Output Size (16x16);value"
+            "Uniform Color Node Settings;content;" "Force Output Size (16x16);value"
         )
 
 
@@ -75,9 +74,7 @@ def run(
     if settings.run_layout_tools:
         api_nodes = [n.api_node for n in node_selection.nodes]
         bw_layout_graph.run_layout(
-            bw_layout_graph.BWLayoutNodeSelection(
-                api_nodes, node_selection.api_graph
-            ),
+            bw_layout_graph.BWLayoutNodeSelection(api_nodes, node_selection.api_graph),
             api,
         )
 
@@ -92,9 +89,7 @@ def run(
     api.log.info(msg)
 
     if settings.popup_on_complete:
-        QtWidgets.QMessageBox.information(
-            None, "", msg, QtWidgets.QMessageBox.Ok
-        )
+        QtWidgets.QMessageBox.information(None, "", msg, QtWidgets.QMessageBox.Ok)
 
 
 def _on_clicked_run(api: BWAPITool):
@@ -110,13 +105,9 @@ def _on_clicked_run(api: BWAPITool):
 
     with SDHistoryUtils.UndoGroup("Optimize Nodes"):
         api.log.info("Running optimize graph...")
-        node_selection = BWNodeSelection(
-            api.current_node_selection, api.current_graph
-        )
+        node_selection = BWNodeSelection(api.current_node_selection, api.current_graph)
 
-        settings = BWOptimizeSettings(
-            Path(__file__).parent / "bw_optimize_graph_settings.json"
-        )
+        settings = BWOptimizeSettings(Path(__file__).parent / "bw_optimize_graph_settings.json")
 
         run(node_selection, api, settings)
 
@@ -124,9 +115,7 @@ def _on_clicked_run(api: BWAPITool):
 def on_graph_view_created(graph_view_id, api: BWAPITool):
     toolbar = api.get_graph_view_toolbar(graph_view_id)
 
-    settings = BWOptimizeSettings(
-        Path(__file__).parent / "bw_optimize_graph_settings.json"
-    )
+    settings = BWOptimizeSettings(Path(__file__).parent / "bw_optimize_graph_settings.json")
     icon = Path(__file__).parent / "resources/icons/bw_optimize_graph.png"
     tooltip = f"""
     Optimises the graph by identifying, removing duplicate nodes and
@@ -143,9 +132,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
 
 
 def on_initialize(api: BWAPITool):
-    api.register_on_graph_view_created_callback(
-        partial(on_graph_view_created, api=api)
-    )
+    api.register_on_graph_view_created_callback(partial(on_graph_view_created, api=api))
 
 
 def get_default_settings() -> Dict:
@@ -156,8 +143,6 @@ def get_default_settings() -> Dict:
         "Popup On Complete": {"widget": 4, "value": True},
         "Uniform Color Node Settings": {
             "widget": 0,
-            "content": {
-                "Force Output Size (16x16)": {"widget": 4, "value": True}
-            },
+            "content": {"Force Output Size (16x16)": {"widget": 4, "value": True}},
         },
     }

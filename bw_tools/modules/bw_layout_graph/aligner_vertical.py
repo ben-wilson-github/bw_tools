@@ -29,9 +29,7 @@ class BWVerticalAligner:
     settings: BWLayoutSettings
     alignment_behavior: BWPostAlignmentBehavior
 
-    def run_aligner(
-        self, node: BWLayoutNode, already_processed: List[BWLayoutNode]
-    ):
+    def run_aligner(self, node: BWLayoutNode, already_processed: List[BWLayoutNode]):
         if not node.has_input_nodes_connected:
             return
 
@@ -76,40 +74,24 @@ class BWVerticalAligner:
         input_node.set_position(input_node.pos.x, target_node.pos.y)
 
     @staticmethod
-    def align_below_bound(
-        node: BWLayoutNode, lower_bound: float, upper_bound: float
-    ):
+    def align_below_bound(node: BWLayoutNode, lower_bound: float, upper_bound: float):
         offset = lower_bound - upper_bound
         node.set_position(node.pos.x, node.pos.y + offset)
 
-    def align_below_shortest_chain_dimension(
-        self, node_to_move: BWLayoutNode, output_node: BWLayoutNode, index: int
-    ):
-        node_above = self.calculate_node_above(
-            node_to_move, output_node, index
-        )
-        node_above_node_list, roots = self.calculate_node_list(
-            node_above, nodes_to_ignore=[node_to_move]
-        )
-        node_to_move_node_list, _ = self.calculate_node_list(
-            node_to_move, nodes_to_ignore=roots
-        )
+    def align_below_shortest_chain_dimension(self, node_to_move: BWLayoutNode, output_node: BWLayoutNode, index: int):
+        node_above = self.calculate_node_above(node_to_move, output_node, index)
+        node_above_node_list, roots = self.calculate_node_list(node_above, nodes_to_ignore=[node_to_move])
+        node_to_move_node_list, _ = self.calculate_node_list(node_to_move, nodes_to_ignore=roots)
         smallest_cd = self.calculate_smallest_chain_dimension(
             node_to_move,
             node_above,
             node_to_move_node_list,
             node_above_node_list,
         )
-        upper_bound = self.calculate_upper_bounds(
-            node_to_move, node_to_move_node_list, smallest_cd
-        )
-        lower_bound = self.calculate_lower_bounds(
-            node_above, node_above_node_list, smallest_cd
-        )
+        upper_bound = self.calculate_upper_bounds(node_to_move, node_to_move_node_list, smallest_cd)
+        lower_bound = self.calculate_lower_bounds(node_above, node_above_node_list, smallest_cd)
 
-        self.align_below_bound(
-            node_to_move, lower_bound + self.settings.node_spacing, upper_bound
-        )
+        self.align_below_bound(node_to_move, lower_bound + self.settings.node_spacing, upper_bound)
 
     def calculate_smallest_chain_dimension(
         self,
@@ -118,9 +100,7 @@ class BWVerticalAligner:
         node_to_move_chain: BWChainDimension,
         node_above_chain: BWChainDimension,
     ) -> BWChainDimension:
-        node_to_move_cd = calculate_chain_dimension(
-            node_to_move, node_to_move_chain
-        )
+        node_to_move_cd = calculate_chain_dimension(node_to_move, node_to_move_chain)
         nove_above_cd = calculate_chain_dimension(node_above, node_above_chain)
         return self.get_smaller_chain(node_to_move_cd, nove_above_cd)
 
@@ -200,38 +180,24 @@ class BWVerticalAligner:
     ):
         input_node: BWLayoutNode
         for input_node in output_node.input_nodes:
-            if (
-                input_node in nodes_to_ignore
-                or input_node.alignment_behavior.offset_node is not output_node
-            ):
+            if input_node in nodes_to_ignore or input_node.alignment_behavior.offset_node is not output_node:
                 continue
 
-            if (
-                input_node.is_root
-                or input_node.has_branching_outputs
-                and input_node not in roots
-            ):
+            if input_node.is_root or input_node.has_branching_outputs and input_node not in roots:
                 roots.append(input_node)
 
             if input_node not in nodes:
                 nodes.append(input_node)
-                self.populate_node_list(
-                    input_node, nodes, roots, nodes_to_ignore
-                )
+                self.populate_node_list(input_node, nodes, roots, nodes_to_ignore)
 
     @staticmethod
-    def calculate_node_above(
-        node_to_move: BWLayoutNode, output_node: BWLayoutNode, index: int
-    ) -> BWLayoutNode:
+    def calculate_node_above(node_to_move: BWLayoutNode, output_node: BWLayoutNode, index: int) -> BWLayoutNode:
         node_above = output_node.input_nodes[index - 1]
 
         # If the node_to_move connects to the node above, the want to ignore
         # it. Instead we want to move the node_to_move to the next chain above
         # it in the node_above
-        if (
-            node_above in node_to_move.output_nodes
-            and node_above.has_branching_inputs
-        ):
+        if node_above in node_to_move.output_nodes and node_above.has_branching_inputs:
             # If the node above only has the one input, it has to be the
             # node_to_move. Therefore, no sibling chain to move too
             for i, input_node in enumerate(node_above.input_nodes):
