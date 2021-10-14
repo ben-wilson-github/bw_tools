@@ -308,8 +308,8 @@ def on_clicked_remove_dot_nodes_from_selection(api: BWAPITool):
             node.delete_output_dot_nodes()
 
 
-def on_graph_view_created(graph_view_id, api: BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+def on_graph_view_created(graph_view_id: int, api: BWAPITool):
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
     settings = BWStraightenSettings(
         Path(__file__).parent / "bw_straighten_connection_settings.json"
@@ -337,7 +337,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
             api, BWBreakAtTarget(api.current_graph)
         )
     )
-    api.graph_view_toolbar.add_action("bw_straighten_target", action)
+    toolbar.add_action("bw_straighten_target", action)
 
     icon = (
         Path(__file__).parent
@@ -361,7 +361,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
             api, BWBreakAtSource(api.current_graph)
         )
     )
-    api.graph_view_toolbar.add_action("bw_straighten_source", action)
+    toolbar.add_action("bw_straighten_source", action)
 
     icon = Path(__file__).parent / "resources" / "remove_dot_node_selected.png"
     tooltip = f"""
@@ -376,7 +376,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.triggered.connect(
         lambda: on_clicked_remove_dot_nodes_from_selection(api)
     )
-    api.graph_view_toolbar.add_action("bw_straighten_remove", action)
+    toolbar.add_action("bw_straighten_remove", action)
 
 
 def on_initialize(api: BWAPITool):

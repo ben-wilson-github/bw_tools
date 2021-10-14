@@ -36,12 +36,12 @@ def print_node_info(api: bw_api_tool.BWAPITool):
 
 
 def on_graph_created(graph_view_id, api: bw_api_tool.BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
     action = QAction("Info")
     action.setToolTip("Prints API information about the selected nodes.")
     action.triggered.connect(lambda: print_node_info(api))
-    api.graph_view_toolbar.add_action("bw_print_info", action)
+    toolbar.add_action("bw_print_info", action)
 
 
 def on_initialize(api: bw_api_tool.BWAPITool):

@@ -70,7 +70,8 @@ class BWAPITool:
         self.menu: Optional[QtWidgets.QMenu] = None
         self.callback_ids: List[int] = []
 
-        self.graph_view_toolbar: Optional[BWToolbar] = None
+        self._max_toolbars = 3  # Limit toolbars in memory
+        self._graph_view_ids: List[int] = []
         self._graph_view_toolbar_list: dict[int, BWToolbar] = dict()
         self._menu_object_name = "bw_tools_menu_obj"
         self._menu_label = " BW Tools"
@@ -117,9 +118,24 @@ class BWAPITool:
         try:
             toolbar = self._graph_view_toolbar_list[graph_view_id]
         except KeyError:
-            return None
-        else:
-            return toolbar
+            toolbar = BWToolbar(self.main_window)
+            icon = Path(__file__).parent / "resources/bw_tools_icon.png"
+            self.ui_mgr.addToolbarToGraphView(
+                graph_view_id,
+                toolbar,
+                icon=QtGui.QIcon(str(icon.resolve())),
+                tooltip="BW Toolbar",
+            )
+            self._graph_view_toolbar_list[graph_view_id] = toolbar
+            self._graph_view_ids.append(graph_view_id)
+
+            # Maintain a limited number of toolbars since new ones
+            # are continously created when the user switches graphs
+            if len(self._graph_view_ids) == self._max_toolbars:
+                id = self._graph_view_ids.pop(0)
+                del self._graph_view_toolbar_list[id]
+
+        return toolbar
 
     def initialize_logger(self):
         self.logger = logging.getLogger("bw_tools")
@@ -196,26 +212,6 @@ class BWAPITool:
         graph_view_id = self.ui_mgr.registerGraphViewCreatedCallback(func)
         self.callback_ids.append(graph_view_id)
         return graph_view_id
-
-    def add_toolbar_to_graph_view(self, graph_view_id: int):
-        try:
-            print(self.graph_view_toolbar)
-        except RuntimeError:
-            # This occurs when a previously loaded package has been closed
-            # I believe Designer is deleting the toolbar giving us a 
-            # null pointer
-            self.graph_view_toolbar = BWToolbar(self.main_window)
-
-        if self.graph_view_toolbar is None:
-            self.graph_view_toolbar = BWToolbar(self.main_window)
-
-        icon = Path(__file__).parent / "resources/bw_tools_icon.png"
-        self.ui_mgr.addToolbarToGraphView(
-            graph_view_id,
-            self.graph_view_toolbar,
-            icon=QtGui.QIcon(str(icon.resolve())),
-            tooltip="BW Toolbar",
-        )
 
     def remove_toolbars(self):
         for toolbar in self._graph_view_toolbar_list.values():

@@ -5,5 +5,14 @@
 		}
 	],
 	"settings": {
+		"python.formatting.provider": "black",
+		"python.formatting.blackArgs": [
+			"--line-length",
+			"120"
+		],
+		"python.linting.flake8Args": [
+            "--max-line-length=120",
+            "--ignore=E402",
+        ],
 	}
 }

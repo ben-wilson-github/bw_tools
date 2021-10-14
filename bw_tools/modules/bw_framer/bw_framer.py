@@ -120,7 +120,7 @@ def on_clicked_run_framer(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
     settings = BWFramerSettings(
         Path(__file__).parent / "bw_framer_settings.json"
@@ -137,7 +137,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.hotkey))
     action.triggered.connect(lambda: on_clicked_run_framer(api))
-    api.graph_view_toolbar.add_action("bw_framer", action)
+    toolbar.add_action("bw_framer", action)
 
 
 def on_initialize(api: BWAPITool):

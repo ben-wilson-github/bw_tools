@@ -149,7 +149,7 @@ def on_clicked_layout_graph(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
     settings = BWLayoutSettings(
         Path(__file__).parent / "bw_layout_graph_settings.json"
@@ -168,7 +168,7 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setShortcut(QKeySequence(settings.hotkey))
     action.setToolTip(tooltip)
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
-    api.graph_view_toolbar.add_action("bw_layout_graph", action)
+    toolbar.add_action("bw_layout_graph", action)
 
 
 def on_initialize(api: BWAPITool):
