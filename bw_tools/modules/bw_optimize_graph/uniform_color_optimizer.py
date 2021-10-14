@@ -26,6 +26,4 @@ class UniformOptimizer(optimizer.Optimizer):
 
     def _optimize_output_size(self, node: BWNode):
         self._set_output_size(node, 4)
-        self._set_connected_output_nodes_inheritance_method(
-            node, SDPropertyInheritanceMethod.RelativeToParent
-        )
+        self._set_connected_output_nodes_inheritance_method(node, SDPropertyInheritanceMethod.RelativeToParent)

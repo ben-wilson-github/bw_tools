@@ -19,26 +19,16 @@ class BWStraightenNode(BWNode):
         for prop in self.output_connectable_properties:
             con: SDConnection
             for con in self.api_node.getPropertyConnections(prop):
-                dot_node = BWStraightenNode(
-                    con.getInputPropertyNode(), self.graph
-                )
+                dot_node = BWStraightenNode(con.getInputPropertyNode(), self.graph)
                 if not dot_node.is_dot:
                     continue
 
                 dot_node.delete_output_dot_nodes()
-                self._rebuild_deleted_dot_connection(
-                    dot_node, con.getOutputProperty()
-                )
+                self._rebuild_deleted_dot_connection(dot_node, con.getOutputProperty())
                 self.graph.deleteNode(dot_node.api_node)
 
-    def _rebuild_deleted_dot_connection(
-        self, dot_node: BWStraightenNode, input_node_property: SDProperty
-    ):
-        output_node_connections = (
-            dot_node._get_connected_output_connections_for_property_id(
-                "unique_filter_output"
-            )
-        )
+    def _rebuild_deleted_dot_connection(self, dot_node: BWStraightenNode, input_node_property: SDProperty):
+        output_node_connections = dot_node._get_connected_output_connections_for_property_id("unique_filter_output")
 
         for output_node_con in output_node_connections:
             # I find api naming convension backwards
@@ -53,30 +43,19 @@ class BWStraightenNode(BWNode):
                 output_node_property,
             )
 
-    def _get_connected_output_connections_for_property_id(
-        self, api_property_id: str
-    ) -> List[SDConnection]:
-        p = self.api_node.getPropertyFromId(
-            api_property_id, SDPropertyCategory.Output
-        )
+    def _get_connected_output_connections_for_property_id(self, api_property_id: str) -> List[SDConnection]:
+        p = self.api_node.getPropertyFromId(api_property_id, SDPropertyCategory.Output)
         return [con for con in self.api_node.getPropertyConnections(p)]
 
-    def _get_connected_output_connections_for_property(
-        self, api_property: SDProperty
-    ) -> List[SDConnection]:
-        return [
-            con for con in self.api_node.getPropertyConnections(api_property)
-        ]
+    def _get_connected_output_connections_for_property(self, api_property: SDProperty) -> List[SDConnection]:
+        return [con for con in self.api_node.getPropertyConnections(api_property)]
 
-    def indices_in_target_node(
-        self, target_node: BWStraightenNode
-    ) -> List[int]:
+    def indices_in_target_node(self, target_node: BWStraightenNode) -> List[int]:
         return [
             i
             for i, p in enumerate(target_node.input_connectable_properties)
             for connection in target_node.api_node.getPropertyConnections(p)
-            if connection.getInputPropertyNode().getIdentifier()
-            == str(self.identifier)
+            if connection.getInputPropertyNode().getIdentifier() == str(self.identifier)
         ]
 
     def get_position_of_output_index(self, i: int) -> float:

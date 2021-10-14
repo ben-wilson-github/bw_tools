@@ -32,9 +32,7 @@ class BWFramerSettings(BWModuleSettings):
 
 
 def get_frames(graph_objects: list[SDGraphObject]) -> list[SDGraphObjectFrame]:
-    return [
-        obj for obj in graph_objects if isinstance(obj, SDGraphObjectFrame)
-    ]
+    return [obj for obj in graph_objects if isinstance(obj, SDGraphObjectFrame)]
 
 
 def delete_frames(
@@ -85,11 +83,7 @@ def run_framer(
         )
         frame.setDescription(settings.default_description)
 
-    frame.setPosition(
-        sdbasetypes.float2(
-            min_x - settings.margin, min_y - settings.margin * 2
-        )
-    )
+    frame.setPosition(sdbasetypes.float2(min_x - settings.margin, min_y - settings.margin * 2))
     frame.setSize(sdbasetypes.float2(width, height))
 
 
@@ -105,9 +99,7 @@ def on_clicked_run_framer(api: BWAPITool):
         return
 
     with SDHistoryUtils.UndoGroup("Framer"):
-        settings = BWFramerSettings(
-            Path(__file__).parent / "bw_framer_settings.json"
-        )
+        settings = BWFramerSettings(Path(__file__).parent / "bw_framer_settings.json")
         nodes = api.current_node_selection
         if len(nodes) == 0:
             return
@@ -120,11 +112,9 @@ def on_clicked_run_framer(api: BWAPITool):
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
-    settings = BWFramerSettings(
-        Path(__file__).parent / "bw_framer_settings.json"
-    )
+    settings = BWFramerSettings(Path(__file__).parent / "bw_framer_settings.json")
     icon = Path(__file__).parent / "resources" / "bw_framer_icon.png"
     tooltip = f"""
     Frames the selected nodes by reusing an existing frame, or drawing
@@ -137,13 +127,11 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.hotkey))
     action.triggered.connect(lambda: on_clicked_run_framer(api))
-    api.graph_view_toolbar.add_action("bw_framer", action)
+    toolbar.add_action("bw_framer", action)
 
 
 def on_initialize(api: BWAPITool):
-    api.register_on_graph_view_created_callback(
-        partial(on_graph_view_created, api=api)
-    )
+    api.register_on_graph_view_created_callback(partial(on_graph_view_created, api=api))
 
 
 def get_default_settings() -> Dict:

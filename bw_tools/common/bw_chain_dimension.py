@@ -117,9 +117,7 @@ def calculate_chain_dimension(
             continue
         else:
             if node_in_bounds(input_node, limit_bounds):
-                input_cd = calculate_chain_dimension(
-                    input_node, selection, limit_bounds=limit_bounds
-                )
+                input_cd = calculate_chain_dimension(input_node, selection, limit_bounds=limit_bounds)
 
                 cd.node_count += input_cd.node_count
 

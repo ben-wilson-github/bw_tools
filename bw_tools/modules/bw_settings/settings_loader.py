@@ -61,9 +61,7 @@ def get_setting_property_items(
     return widget_item, value_item, list_item, content_item
 
 
-def get_module_widget(
-    module_item: QStandardItem, model: QStandardItemModel
-) -> QWidget:
+def get_module_widget(module_item: QStandardItem, model: QStandardItemModel) -> QWidget:
     if isinstance(module_item.data(), FileNotFoundError):
         return QLabel(str(module_item.data()))
 
@@ -133,9 +131,7 @@ def _add_widget_to_layout(
     layout: QLayout,
     model: QStandardItemModel,
 ):
-    w = widget_constructor(
-        setting_name, possible_values, value_property_item, model
-    )
+    w = widget_constructor(setting_name, possible_values, value_property_item, model)
     layout.addWidget(w)
 
 
@@ -150,14 +146,9 @@ def _add_group_box_to_layout(
     layout.addWidget(w)
 
     for i in range(content_property_item.rowCount()):
-        _add_setting_to_layout(
-            w.layout(), content_property_item.child(i), model
-        )
+        _add_setting_to_layout(w.layout(), content_property_item.child(i), model)
     return
 
 
 def _get_possible_values(list_property_item: QStandardItem) -> List[Any]:
-    return [
-        list_property_item.child(i).text()
-        for i in range(list_property_item.rowCount())
-    ]
+    return [list_property_item.child(i).text() for i in range(list_property_item.rowCount())]

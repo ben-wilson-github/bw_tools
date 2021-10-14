@@ -13,9 +13,7 @@ def write_module_settings(module_item: QStandardItem, file_path: Path):
         json.dump(data, settings_file, indent=4)
 
 
-def _build_dict(
-    parent_item: QStandardItem, data: Dict[Any, Any]
-) -> Dict[Any, Any]:
+def _build_dict(parent_item: QStandardItem, data: Dict[Any, Any]) -> Dict[Any, Any]:
     for row in range(parent_item.rowCount()):
         setting_item = parent_item.child(row)
         setting_name = setting_item.text()
@@ -33,8 +31,7 @@ def _build_dict(
 
         if list_property_item is not None:
             data[setting_name]["list"] = [
-                list_property_item.child(i).data()
-                for i in range(list_property_item.rowCount())
+                list_property_item.child(i).data() for i in range(list_property_item.rowCount())
             ]
 
         if value_property_item is not None:
@@ -63,9 +60,7 @@ def _get_value_from_item(value_property_item: QStandardItem) -> Any:
             value = data_type(value_item.text())
     else:
         value = [
-            type(value_property_item.child(i).data())(
-                value_property_item.child(i).text()
-            )
+            type(value_property_item.child(i).data())(value_property_item.child(i).text())
             for i in range(value_property_item.rowCount())
         ]
     return value

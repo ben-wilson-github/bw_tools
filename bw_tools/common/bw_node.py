@@ -43,31 +43,17 @@ class BWNode:
     pos: BWFloat2 = field(init=False, repr=False, default_factory=BWFloat2)
 
     _height: float = field(init=False, repr=False, default=-1)
-    _input_connectable_properties: Optional[SDProperty] = field(
-        init=False, repr=False, default=None
-    )
-    _output_connectable_properties: Optional[SDProperty] = field(
-        init=False, repr=False, default=None
-    )
-    _input_nodes: Optional[Tuple["BWNode"]] = field(
-        init=False, repr=False, default=None
-    )
-    _output_nodes: Optional[Tuple["BWNode"]] = field(
-        init=False, repr=False, default=None
-    )
-    _input_connection_data: List[BWInputConnectionData] = field(
-        init=False, default_factory=list, repr=False
-    )
-    _output_connection_data: List[BWOutputConnectionData] = field(
-        init=False, default_factory=list, repr=False
-    )
+    _input_connectable_properties: Optional[SDProperty] = field(init=False, repr=False, default=None)
+    _output_connectable_properties: Optional[SDProperty] = field(init=False, repr=False, default=None)
+    _input_nodes: Optional[Tuple["BWNode"]] = field(init=False, repr=False, default=None)
+    _output_nodes: Optional[Tuple["BWNode"]] = field(init=False, repr=False, default=None)
+    _input_connection_data: List[BWInputConnectionData] = field(init=False, default_factory=list, repr=False)
+    _output_connection_data: List[BWOutputConnectionData] = field(init=False, default_factory=list, repr=False)
 
     def __post_init__(self):
         self.label = self.api_node.getDefinition().getLabel()
         self.identifier = int(self.api_node.getIdentifier())
-        self.pos = BWFloat2(
-            self.api_node.getPosition().x, self.api_node.getPosition().y
-        )
+        self.pos = BWFloat2(self.api_node.getPosition().x, self.api_node.getPosition().y)
 
     @property
     def height(self) -> float:
@@ -137,11 +123,7 @@ class BWNode:
         if self._input_connectable_properties:
             return self._input_connectable_properties
 
-        self._input_connectable_properties = (
-            self._connectable_properties_from_category(
-                SDPropertyCategory.Input
-            )
-        )
+        self._input_connectable_properties = self._connectable_properties_from_category(SDPropertyCategory.Input)
         return self._input_connectable_properties
 
     @property
@@ -150,11 +132,7 @@ class BWNode:
         if self._output_connectable_properties:
             return self._output_connectable_properties
 
-        self._output_connectable_properties = (
-            self._connectable_properties_from_category(
-                SDPropertyCategory.Output
-            )
-        )
+        self._output_connectable_properties = self._connectable_properties_from_category(SDPropertyCategory.Output)
         return self._output_connectable_properties
 
     @property
@@ -177,8 +155,7 @@ class BWNode:
     def is_dot(self) -> bool:
         return (
             self.api_node.getDefinition().getId() == CompNodeID.DOT.value
-            or self.api_node.getDefinition().getId()
-            == FunctionNodeId.DOT.value
+            or self.api_node.getDefinition().getId() == FunctionNodeId.DOT.value
         )
 
     @property
@@ -205,15 +182,11 @@ class BWNode:
         self.api_node.setPosition(sdbasetypes.float2(x, y))
 
     def add_comment(self, msg: str):
-        comment: SDGraphObjectComment = SDGraphObjectComment.sNewAsChild(
-            self.api_node
-        )
+        comment: SDGraphObjectComment = SDGraphObjectComment.sNewAsChild(self.api_node)
         comment.setPosition(sdbasetypes.float2(64, 0))
         comment.setDescription(msg)
 
-    def _connectable_properties_from_category(
-        self, category
-    ) -> Tuple[SDProperty]:
+    def _connectable_properties_from_category(self, category) -> Tuple[SDProperty]:
         connectable_properties = []
         for p in self.api_node.getProperties(category):
             if p.isConnectable():

@@ -22,8 +22,5 @@ class AtomicOptimizer(Optimizer):
         return [
             node
             for node in self.node_selection.nodes
-            if node.api_node.getPropertyFromId(
-                "unique_filter_output", SDPropertyCategory.Output
-            )
-            is not None
+            if node.api_node.getPropertyFromId("unique_filter_output", SDPropertyCategory.Output) is not None
         ]

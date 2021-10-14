@@ -34,9 +34,7 @@ class BWStraightenSettings(BWModuleSettings):
         super().__init__(file_path)
         self.target_hotkey: str = self.get("Break At Target Hotkey;value")
         self.source_hotkey: str = self.get("Break At Source Hotkey;value")
-        self.remove_dot_nodes_hotkey: str = self.get(
-            "Remove Connected Dot Nodes Hotkey;value"
-        )
+        self.remove_dot_nodes_hotkey: str = self.get("Remove Connected Dot Nodes Hotkey;value")
         self.dot_node_distance: str = self.get("Dot Node Distance;value")
 
 
@@ -45,9 +43,7 @@ class BWStraightenConnectionData:
     connection: Dict[int, List[SDConnection]] = field(default_factory=dict)
     base_dot_node: Dict[int, BWStraightenNode] = field(default_factory=dict)
     properties_with_outputs_count: int = 0
-    output_nodes: Dict[int, List[BWStraightenNode]] = field(
-        default_factory=dict
-    )
+    output_nodes: Dict[int, List[BWStraightenNode]] = field(default_factory=dict)
 
 
 def run_straighten_connection(
@@ -87,17 +83,10 @@ def _create_connection_data_for_all_inputs(
     StraightenConnectionData.output_nodes will be ordered by position x
     """
     data = BWStraightenConnectionData()
-    for i, api_property in enumerate(
-        source_node.output_connectable_properties
-    ):
-        cons = source_node._get_connected_output_connections_for_property(
-            api_property
-        )
+    for i, api_property in enumerate(source_node.output_connectable_properties):
+        cons = source_node._get_connected_output_connections_for_property(api_property)
         cons.sort(key=lambda c: c.getInputPropertyNode().getPosition().x)
-        data.output_nodes[i] = [
-            BWStraightenNode(con.getInputPropertyNode(), source_node.graph)
-            for con in cons
-        ]
+        data.output_nodes[i] = [BWStraightenNode(con.getInputPropertyNode(), source_node.graph) for con in cons]
         data.connection[i] = cons
         if cons:
             data.properties_with_outputs_count += 1
@@ -126,15 +115,11 @@ def _create_base_dot_nodes(
 
         if not data.output_nodes[i]:
             continue
-        if not behavior.should_create_base_dot_node(
-            source_node, data, i, settings
-        ):
+        if not behavior.should_create_base_dot_node(source_node, data, i, settings):
             continue
 
         dot_node = BWStraightenNode(
-            source_node.graph.newNode(
-                _get_dot_node_id_for_graph(source_node.graph)
-            ),
+            source_node.graph.newNode(_get_dot_node_id_for_graph(source_node.graph)),
             source_node.graph,
         )
         data.base_dot_node[i] = dot_node
@@ -186,13 +171,9 @@ def _insert_target_dot_nodes(
 
         for y, output_node in enumerate(data.output_nodes[i]):
 
-            if behavior.should_create_target_dot_node(
-                source_node, dot_node, output_node, data, i, settings
-            ):
+            if behavior.should_create_target_dot_node(source_node, dot_node, output_node, data, i, settings):
                 new_dot_node = BWStraightenNode(
-                    source_node.graph.newNode(
-                        _get_dot_node_id_for_graph(source_node.graph)
-                    ),
+                    source_node.graph.newNode(_get_dot_node_id_for_graph(source_node.graph)),
                     source_node.graph,
                 )
                 new_dot_node_pos: BWFloat2 = behavior.get_position_target_dot(
@@ -202,17 +183,12 @@ def _insert_target_dot_nodes(
                     i,
                     settings,
                 )
-                new_dot_node.set_position(
-                    new_dot_node_pos.x, new_dot_node_pos.y
-                )
+                new_dot_node.set_position(new_dot_node_pos.x, new_dot_node_pos.y)
                 _connect_node(dot_node, new_dot_node, data.connection[i][y])
 
                 dot_node = new_dot_node
 
-            if (
-                output_node.pos.x
-                >= dot_node.pos.x + settings.dot_node_distance
-            ):
+            if output_node.pos.x >= dot_node.pos.x + settings.dot_node_distance:
                 _connect_node(dot_node, output_node, data.connection[i][y])
 
 
@@ -225,30 +201,18 @@ def _connect_node(
     Helper function to connect a node to another. Uses the given connection
     to determin which property the new connection should be made too.
     """
-    source_property = _get_source_property_from_connection(
-        source_node, connection
-    )
-    target_property = _get_target_property_from_connection(
-        target_node, connection
-    )
-    source_node.api_node.newPropertyConnection(
-        source_property, target_node.api_node, target_property
-    )
+    source_property = _get_source_property_from_connection(source_node, connection)
+    target_property = _get_target_property_from_connection(target_node, connection)
+    source_node.api_node.newPropertyConnection(source_property, target_node.api_node, target_property)
 
 
-def _get_target_property_from_connection(
-    target_node: BWStraightenNode, connection: SDConnection
-) -> SDProperty:
+def _get_target_property_from_connection(target_node: BWStraightenNode, connection: SDConnection) -> SDProperty:
     if target_node.is_dot:
-        return target_node.api_node.getPropertyFromId(
-            "input", SDPropertyCategory.Input
-        )
+        return target_node.api_node.getPropertyFromId("input", SDPropertyCategory.Input)
     return connection.getInputProperty()
 
 
-def _get_source_property_from_connection(
-    source_node: BWStraightenNode, connection: SDConnection
-) -> SDProperty:
+def _get_source_property_from_connection(source_node: BWStraightenNode, connection: SDConnection) -> SDProperty:
     if source_node.is_dot:
         return source_node.api_node.getPropertyFromId(
             "unique_filter_output",
@@ -257,9 +221,7 @@ def _get_source_property_from_connection(
     return connection.getOutputProperty()
 
 
-def on_clicked_straighten_connection(
-    api: BWAPITool, behavior: Type[BWAbstractStraightenBehavior]
-):
+def on_clicked_straighten_connection(api: BWAPITool, behavior: Type[BWAbstractStraightenBehavior]):
     if not api.current_graph_is_supported:
         api.log.error("Graph type is unsupported")
         return
@@ -273,9 +235,7 @@ def on_clicked_straighten_connection(
     with SDHistoryUtils.UndoGroup("Straighten Connection Undo Group"):
         api.logger.info("Running straighten connection")
 
-        settings = BWStraightenSettings(
-            Path(__file__).parent / "bw_straighten_connection_settings.json"
-        )
+        settings = BWStraightenSettings(Path(__file__).parent / "bw_straighten_connection_settings.json")
 
         for node in api.current_node_selection:
             try:
@@ -308,18 +268,12 @@ def on_clicked_remove_dot_nodes_from_selection(api: BWAPITool):
             node.delete_output_dot_nodes()
 
 
-def on_graph_view_created(graph_view_id, api: BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+def on_graph_view_created(graph_view_id: int, api: BWAPITool):
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
-    settings = BWStraightenSettings(
-        Path(__file__).parent / "bw_straighten_connection_settings.json"
-    )
+    settings = BWStraightenSettings(Path(__file__).parent / "bw_straighten_connection_settings.json")
 
-    icon = (
-        Path(__file__).parent
-        / "resources"
-        / "straighten_connection_target.png"
-    )
+    icon = Path(__file__).parent / "resources" / "straighten_connection_target.png"
     tooltip = f"""
     Straightens connection from selected nodes to all outputs by inserting
     dot nodes into the connection.
@@ -332,18 +286,10 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setIcon(QIcon(str(icon.resolve())))
     action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.target_hotkey))
-    action.triggered.connect(
-        lambda: on_clicked_straighten_connection(
-            api, BWBreakAtTarget(api.current_graph)
-        )
-    )
-    api.graph_view_toolbar.add_action("bw_straighten_target", action)
+    action.triggered.connect(lambda: on_clicked_straighten_connection(api, BWBreakAtTarget(api.current_graph)))
+    toolbar.add_action("bw_straighten_target", action)
 
-    icon = (
-        Path(__file__).parent
-        / "resources"
-        / "straighten_connection_source.png"
-    )
+    icon = Path(__file__).parent / "resources" / "straighten_connection_source.png"
     tooltip = f"""
     Straightens connection from selected nodes to all outputs by inserting
     dot nodes into the connection.
@@ -356,12 +302,8 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setIcon(QIcon(str(icon.resolve())))
     action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.source_hotkey))
-    action.triggered.connect(
-        lambda: on_clicked_straighten_connection(
-            api, BWBreakAtSource(api.current_graph)
-        )
-    )
-    api.graph_view_toolbar.add_action("bw_straighten_source", action)
+    action.triggered.connect(lambda: on_clicked_straighten_connection(api, BWBreakAtSource(api.current_graph)))
+    toolbar.add_action("bw_straighten_source", action)
 
     icon = Path(__file__).parent / "resources" / "remove_dot_node_selected.png"
     tooltip = f"""
@@ -373,16 +315,12 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setIcon(QIcon(str(icon.resolve())))
     action.setToolTip(tooltip)
     action.setShortcut(QKeySequence(settings.remove_dot_nodes_hotkey))
-    action.triggered.connect(
-        lambda: on_clicked_remove_dot_nodes_from_selection(api)
-    )
-    api.graph_view_toolbar.add_action("bw_straighten_remove", action)
+    action.triggered.connect(lambda: on_clicked_remove_dot_nodes_from_selection(api))
+    toolbar.add_action("bw_straighten_remove", action)
 
 
 def on_initialize(api: BWAPITool):
-    api.register_on_graph_view_created_callback(
-        partial(on_graph_view_created, api=api)
-    )
+    api.register_on_graph_view_created_callback(partial(on_graph_view_created, api=api))
 
 
 def get_default_settings() -> Dict:

@@ -32,24 +32,14 @@ class BWLayoutSettings(BWModuleSettings):
         super().__init__(file_path)
         self.hotkey: str = self.get("Hotkey;value")
         self.node_spacing: Union[int, float] = self.get("Node Spacing;value")
-        self.mainline_additional_offset: Union[int, float] = self.get(
-            "Mainline Settings;content;Offset Amount;value"
-        )
-        self.mainline_min_threshold: int = self.get(
-            "Mainline Settings;content;Adjacent Chain Threshold;value"
-        )
-        self.mainline_enabled: bool = self.get(
-            "Mainline Settings;content;Enable Offset Mainline;value"
-        )
+        self.mainline_additional_offset: Union[int, float] = self.get("Mainline Settings;content;Offset Amount;value")
+        self.mainline_min_threshold: int = self.get("Mainline Settings;content;Adjacent Chain Threshold;value")
+        self.mainline_enabled: bool = self.get("Mainline Settings;content;Enable Offset Mainline;value")
         self.alignment_behavior: int = self.get("Vertical Alignment;value")
         self.node_count_warning: int = self.get("Node Count Warning;value")
 
-        self.run_straighten_connection: bool = self.get(
-            "Straighten Connection Settings;content;Enable;value"
-        )
-        self.straighten_connection_behavior: bool = self.get(
-            "Straighten Connection Settings;content;Alignment;value"
-        )
+        self.run_straighten_connection: bool = self.get("Straighten Connection Settings;content;Enable;value")
+        self.straighten_connection_behavior: bool = self.get("Straighten Connection Settings;content;Alignment;value")
 
         self.snap_to_grid: bool = self.get("Snap To Grid;value")
 
@@ -62,9 +52,7 @@ def run_layout(
     api.log.info("Running layout Graph")
 
     if settings is None:
-        settings = BWLayoutSettings(
-            Path(__file__).parent / "bw_layout_graph_settings.json"
-        )
+        settings = BWLayoutSettings(Path(__file__).parent / "bw_layout_graph_settings.json")
 
     node_sorter = BWNodeSorter(settings)
     for root_node in node_selection.root_nodes:
@@ -103,9 +91,7 @@ def run_layout(
             behavior = BWBreakAtSource(api.current_graph)
         else:
             behavior = BWBreakAtTarget(api.current_graph)
-        bw_straighten_connection.on_clicked_straighten_connection(
-            api, behavior
-        )
+        bw_straighten_connection.on_clicked_straighten_connection(api, behavior)
 
     api.log.info("Finished running layout graph")
 
@@ -122,14 +108,9 @@ def on_clicked_layout_graph(api: BWAPITool):
         return
 
     with SDHistoryUtils.UndoGroup("Undo Group"):
-        settings = BWLayoutSettings(
-            Path(__file__).parent / "bw_layout_graph_settings.json"
-        )
+        settings = BWLayoutSettings(Path(__file__).parent / "bw_layout_graph_settings.json")
         if len(api.current_node_selection) >= settings.node_count_warning:
-            msg = (
-                "Running Layout Graph on a large selection could take a while,"
-                " are you sure you want to continue"
-            )
+            msg = "Running Layout Graph on a large selection could take a while," " are you sure you want to continue"
             ret = QMessageBox.question(
                 None,
                 "",
@@ -140,20 +121,16 @@ def on_clicked_layout_graph(api: BWAPITool):
             if ret == QMessageBox.No:
                 return
 
-        api_nodes = remove_dot_nodes(
-            api.current_node_selection, api.current_graph
-        )
+        api_nodes = remove_dot_nodes(api.current_node_selection, api.current_graph)
         node_selection = BWLayoutNodeSelection(api_nodes, api.current_graph)
 
         run_layout(node_selection, api, settings)
 
 
 def on_graph_view_created(graph_view_id, api: BWAPITool):
-    api.add_toolbar_to_graph_view(graph_view_id)
+    toolbar = api.get_graph_view_toolbar(graph_view_id)
 
-    settings = BWLayoutSettings(
-        Path(__file__).parent / "bw_layout_graph_settings.json"
-    )
+    settings = BWLayoutSettings(Path(__file__).parent / "bw_layout_graph_settings.json")
 
     icon_path = Path(__file__).parent / "resources/icons/bwLayoutGraphIcon.png"
     tooltip = f"""
@@ -168,13 +145,11 @@ def on_graph_view_created(graph_view_id, api: BWAPITool):
     action.setShortcut(QKeySequence(settings.hotkey))
     action.setToolTip(tooltip)
     action.triggered.connect(lambda: on_clicked_layout_graph(api))
-    api.graph_view_toolbar.add_action("bw_layout_graph", action)
+    toolbar.add_action("bw_layout_graph", action)
 
 
 def on_initialize(api: BWAPITool):
-    api.register_on_graph_view_created_callback(
-        partial(on_graph_view_created, api=api)
-    )
+    api.register_on_graph_view_created_callback(partial(on_graph_view_created, api=api))
 
 
 def get_default_settings() -> Dict:
