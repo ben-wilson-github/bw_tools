@@ -31,3 +31,6 @@ setting window now saves settings when pressing ok immediately after changing a 
 
 2.0.6
 Layout graph mainline logic update. Now only considers mainline nodes if input chains are not equal. Reverts to center align
+
+2.0.7
+Fixed toolbar disappearing when using edit in context
