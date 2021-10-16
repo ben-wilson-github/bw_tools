@@ -1,7 +1,7 @@
 How To Install
 ==============
 
-.. admonition:: Have A Previous Installed?
+.. admonition:: Have A Previous Version Installed?
    :class: important
 
     You must first manually delete the previous version of bw_tools from your plugins folders.
