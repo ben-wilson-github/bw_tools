@@ -4,33 +4,39 @@ Welcome to BW Tools documentation!
     :maxdepth: 1
 
     install
-    usage
+    changes_from_1x
     general_guide
+    usage
     support
     developers
-    api_reference
-    release_notes
 
 Download
 ========
 
 Download here
 
-Installing The Tools
-====================
-To get the tools installed, follow this guide
-:doc:`install`
 
 Overview
 ========
-BW Tools is a plugin for Substance Designer aimed at speeding up graph organisation tasks.
+BWTools is a series of plugins for Substance Designer, aimed at speeding up graph organisation tasks.
+The plugins come as a package which neatly slots directly into Designers UI,
+where the user can set hotkeys for the various tools along with their associated settings.
+
+If you have used an older version, please check out :doc:`changes_from_1x`.
+
 The plugin is split into a series of modules, each designed to solve a particular problem.
-Take a look at :doc:`usage` for a more detailed look at each of the tools.
+Check out :doc:`usage` for a more detailed look at each of the tools.
 
 I recommend looking at :doc:`general_guide` to get the most out of the tools.
 
 If you are looking to work with the code or want to understand more,
-check out the :doc:`api_reference` and my `git hub page <https://github.com/ben-wilson-github/bw_tools>`_
+check out my `git hub page <https://github.com/ben-wilson-github/bw_tools>`_
+
+
+Installing The Tools
+====================
+To get the tools installed, follow this guide
+:doc:`install`
 
 
 Compatibility

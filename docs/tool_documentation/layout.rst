@@ -120,13 +120,13 @@ the `Vertical Alignment Behavior`_ will define how the input nodes align vertica
 Evaluation Order
 ----------------
 The tool runs in several passes and is evaluated from left to right, top to bottom, meaning the deepest part of the
-network is resolved first.
+network is solved first.
 
 1. Sort nodes by their hierarchy.
 2. Apply mainline offsets, if Enable Offset Mainline is on.
 3. Align nodes vertically basee on their `Vertical Alignment Behavior`_.
 4. Apply node snapping, if Snap To Grid is on.
-5. Insert dot nodes, if `Straighten Connection Settings`_ is turned on.
+5. Insert dot nodes, if `Straighten Connection`_ is turned on.
 
 Layout Settings
 ---------------
@@ -149,7 +149,7 @@ The spacing between nodes, given in absolute units of the graph grid.
 
 Node Count Warning
 ^^^^^^^^^^^^^^^^^^
-Whether or not to prompt the user if more node than the given threshold is selected when running the tool.
+Whether or not to prompt the user if more node than the given threshold are selected when running the tool.
 This is helpful to alert the user that the tool could potentially take some time to run.
 
 Snap To Grid
@@ -170,6 +170,7 @@ found in a nodes inputs. See `Mainline Concept`_
 Offset Amount
 ^^^^^^^^^^^^^
 The amount to offset the mainline node, given in absolute units of the graph grid.
+
 .. note:: This is in addition to the node spacing value.
 
 Adjacent Chain Threshold

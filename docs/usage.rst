@@ -16,6 +16,12 @@ Currently, the Designer API has many bugs with the new graph types added in 11.0
 For this reason, I have disabled the tools from running in these unsupported graph types.
 I hope to support all graph types in future when the Designer API has fixed the bugs.
 
+Current supported graph types are
+
+1. Compositing Graph
+
+2. Function Graph
+
 Current unsupported graph types are
 
 1. Model Graph
