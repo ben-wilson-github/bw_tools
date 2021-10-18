@@ -7,7 +7,7 @@ from pathlib import Path
 # we must insert the root directory
 ROOT_DIR = Path(__file__).parent
 if ROOT_DIR not in sys.path:
-    sys.path.insert(0, ROOT_DIR)
+    sys.path.insert(0, str(ROOT_DIR.resolve()))
 
 # Add windows specific because designer does not
 # resolve / correctly

@@ -2,6 +2,7 @@
     "recommendations": [
         "seanwu.vscode-qt-for-python",
         "dotjoshjohnson.xml",
-        "trond-snekvik.simple-rst"
+        "trond-snekvik.simple-rst",
+        "ms-python.python"
     ]
 }
