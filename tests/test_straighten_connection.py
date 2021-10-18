@@ -67,9 +67,10 @@ class TestStraightenConnection(unittest.TestCase):
             cls.source_result_dir,
             cls.target_result_dir,
         ]:
-            for f in os.listdir(folder):
-                path = folder / f
-                path.unlink()
+            if folder.exists():
+                for f in os.listdir(folder):
+                    path = folder / f
+                    path.unlink()
 
         _run_render_textures(
             cls.package,
