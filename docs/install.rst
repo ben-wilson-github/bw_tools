@@ -9,8 +9,6 @@ How To Install
     This is your documents folder by default
     ``C:/Users/UserName/Documents/Adobe/Adobe Substance 3D Designer/python/sduserplugins``
 
-    If unsure, you can quickly get to the appropaite folder by right clicking the plugin inside Tools > Plugin Manager... and selecting Show In File Browser...
-
     Delete the previous bw_tools folder and restart Designer
 
 To install, launch Substance Designer and to go Tools > Plugin Manager...
