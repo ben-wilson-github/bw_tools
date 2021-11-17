@@ -46,6 +46,7 @@ class Settings(BWModuleSettings):
 
 def on_initialize(api: BWAPITool):
     settings_action: QAction = api.menu.addAction("Settings...")
+    settings_action.setMenuRole(QAction.NoRole)
     settings_action.setToolTip("BW Tools Settings")
     settings_action.triggered.connect(lambda: on_clicked_settings(api))
 
