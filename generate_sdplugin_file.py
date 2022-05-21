@@ -13,8 +13,7 @@ def main():
     email = "ben.q.wilson@gmail.com"
     platform = "any"
     metadata_format_version = "1"
-
-    plugin_name_version = f"{plugin_name}_{version.replace('.', '_')}"
+    plugin_name_version = f"{plugin_name.replace('_', '-')}-{version.replace('.', '-')}"
 
     ignore_folders = [
         "__pycache__",
