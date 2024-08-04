@@ -1,6 +1,6 @@
 from functools import partial
 
-from PySide2.QtWidgets import QAction
+from PySide6.QtGui import QAction
 
 import sd
 from bw_tools.common import bw_api_tool

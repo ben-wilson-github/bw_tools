@@ -11,8 +11,8 @@ from bw_tools.modules.bw_straighten_connection.straighten_behavior import (
     BWBreakAtSource,
     BWBreakAtTarget,
 )
-from PySide2.QtGui import QIcon, QKeySequence
-from PySide2.QtWidgets import QAction, QMessageBox
+from PySide6.QtGui import QIcon, QKeySequence, QAction
+from PySide6.QtWidgets import QMessageBox
 from sd.api.sdhistoryutils import SDHistoryUtils
 from sd.tools.graphlayout import snapSDNodes
 

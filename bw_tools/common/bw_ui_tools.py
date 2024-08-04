@@ -1,6 +1,6 @@
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QFont
-from PySide2.QtWidgets import QLabel
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QLabel
 
 
 def label(text, alignment=Qt.AlignCenter, bold=True, dimmed=True, tabbed=False) -> QLabel:

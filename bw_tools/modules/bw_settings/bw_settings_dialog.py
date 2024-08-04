@@ -5,9 +5,9 @@ from typing import Dict, Optional, Type, Union
 from bw_tools.common import bw_ui_tools
 from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.modules.bw_settings.bw_settings_model import BWModuleModel
-from PySide2.QtCore import QItemSelectionModel
-from PySide2.QtGui import QStandardItem
-from PySide2.QtWidgets import (
+from PySide6.QtCore import QItemSelectionModel
+from PySide6.QtGui import QStandardItem
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QDialog,
     QGridLayout,

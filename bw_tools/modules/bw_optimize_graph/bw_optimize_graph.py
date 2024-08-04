@@ -4,14 +4,12 @@ import os
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict
-from PySide2.QtGui import QIcon, QKeySequence
-
-from PySide2.QtWidgets import QAction
+from PySide6.QtGui import QIcon, QKeySequence, QAction
 
 from bw_tools.common.bw_node_selection import BWNodeSelection
 from bw_tools.modules.bw_layout_graph import bw_layout_graph
 from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
-from PySide2 import QtWidgets
+from PySide6 import QtWidgets
 from sd.api.sdhistoryutils import SDHistoryUtils
 
 from .atomic_optimizer import AtomicOptimizer

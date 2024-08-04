@@ -41,7 +41,7 @@ To get the tools installed, follow this guide
 
 Compatibility
 =============
-Compatible with Substance Designer 11.2.0 onwards
+Compatible with Substance Designer 14.0.0 onwards
 
 
 License

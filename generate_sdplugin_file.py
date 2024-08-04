@@ -7,8 +7,8 @@ import os
 
 def main():
     plugin_name = "bw_tools"
-    version = "2.0.1"
-    min_designer_version = "11.2.0"
+    version = "2.1.0"
+    min_designer_version = "14.0.0"
     author = "Ben Wilson"
     email = "ben.q.wilson@gmail.com"
     platform = "any"

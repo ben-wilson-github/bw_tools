@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 from bw_tools.common.bw_api_tool import BWAPITool
 from bw_tools.modules.bw_settings.bw_settings_dialog import SettingsDialog
-from PySide2.QtWidgets import QAction
+from PySide6.QtGui import QAction
 
 
 @dataclass

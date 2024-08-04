@@ -1,4 +1,4 @@
-from PySide2.QtGui import QStandardItemModel
+from PySide6.QtGui import QStandardItemModel
 
 
 class BWModuleModel(QStandardItemModel):

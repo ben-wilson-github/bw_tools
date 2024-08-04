@@ -1,9 +1,9 @@
 from typing import Any, Optional, Tuple
 
 from bw_tools.modules.bw_settings.bw_settings_model import BWModuleModel
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QStandardItem
-from PySide2.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItem
+from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDataWidgetMapper,

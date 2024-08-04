@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional, TypeVar
 
 import sd
-from PySide2 import QtGui, QtWidgets
+from PySide6 import QtGui, QtWidgets
 from sd.api.qtforpythonuimgrwrapper import QtForPythonUIMgrWrapper
 from sd.api.sbs.sdsbscompgraph import SDSBSCompGraph
 from sd.api.sbs.sdsbsfunctiongraph import SDSBSFunctionGraph
