@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Type
 from bw_tools.common.bw_api_tool import CompNodeID, FunctionNodeId
 from bw_tools.common.bw_node import BWFloat2
 from bw_tools.modules.bw_settings.bw_settings import BWModuleSettings
-from PySide2.QtGui import QIcon, QKeySequence
-from PySide2.QtWidgets import QAction
+from PySide6.QtGui import QIcon, QKeySequence, QAction
 from sd.api.sbs.sdsbsfunctiongraph import SDSBSFunctionGraph
 from sd.api.sdconnection import SDConnection
 from sd.api.sdgraph import SDGraph

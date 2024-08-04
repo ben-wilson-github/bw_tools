@@ -14,10 +14,10 @@ from bw_tools.modules.bw_settings.widgets import (
     BWSettingWidget,
     BWStringValueWidget,
 )
-from PySide2.QtWidgets import QLabel, QLayout, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QLayout, QVBoxLayout, QWidget
 
 if TYPE_CHECKING:
-    from PySide2.QtGui import QStandardItem, QStandardItemModel
+    from PySide6.QtGui import QStandardItem, QStandardItemModel
 
 
 class WidgetTypes(Enum):

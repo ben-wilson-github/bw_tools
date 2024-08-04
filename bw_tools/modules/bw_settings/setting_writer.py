@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from bw_tools.modules.bw_settings import settings_loader
-from PySide2.QtGui import QStandardItem
+from PySide6.QtGui import QStandardItem
 
 
 def write_module_settings(module_item: QStandardItem, file_path: Path):
